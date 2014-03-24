@@ -5,6 +5,11 @@ from google.protobuf import text_format
 import httplib, urllib, re, sys, random
 import binascii
 
+
+def generateHexString(length):
+  return '%030x' % random.randrange(16**length)
+
+
 if len(sys.argv) < 4:
   print "usage: job_submit.py <coordinator hostname> <web UI port> " \
       "<task binary>"
@@ -27,7 +32,17 @@ job_desc.root_task.args.append("100000")
 #root_input1 = job_desc.root_task.dependencies.add()
 #root_input1.id = 123456789
 #root_input1.type = reference_desc_pb2.ReferenceDescriptor.FUTURE
-input_id = binascii.unhexlify(sys.argv[4])
+
+# Use the user supplied random identifier if provided or generate
+# a new, random one otherwise.
+if len(sys.argv) == 5:
+  input_id = binascii.unhexlify(sys.argv[4])
+else:
+  input_id = binascii.unhexlify(generateHexString(64))
+
+
+
+#input_id = binascii.unhexlify('feedcafedeadbeeffeedcafedeadbeeffeedcafedeadbeeffeedcafedeadbeef') #sys.argv[4])
 output_id = binascii.unhexlify('db33daba280d8e68eea6e490723b02cedb33daba280d8e68eea6e490723b02ce')
 output2_id = binascii.unhexlify('feedcafedeadbeeffeedcafedeadbeeffeedcafedeadbeeffeedcafedeadbeef')
 job_desc.output_ids.append(output_id)
