@@ -38,6 +38,9 @@ void FlowGraph::AddArcsForTask(FlowGraphNode* task_node,
   // aggregator's outgoing edge
   AdjustUnscheduledAggToSinkCapacity(task_node->job_id_, 1);
   // TODO(malte): stub, read value from runtime config here
+
+
+  //TODO(gustafa) insert cost policy
   unsched_arc->cost_ = 1;
 }
 
