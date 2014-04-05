@@ -18,13 +18,13 @@ TESTS_DEPS =
 
 # TODO: Fix and move to build dir
 OBJ_BIN = $(addprefix $(SRC_ROOT_DIR)/examples/nginx/, $(BINS))
+OBJ_FILE = $(addprefix $(SRC_ROOT_DIR)/examples/nginx/, $(OBJS))
 
-all: $(OBJ_BIN)
+all:	$(OBJ_BIN)
 
 #	objs/src/core/nginx_firma.o \
 
-$(OBJ_BIN): $(addprefix $(SRC_ROOT_DIR)/examples/nginx/, $(OBJS)) \
-  $(BUILD_DIR)/engine/libfirmament_task_lib.a \
+$(OBJ_BIN):	objs/src/core/nginx_firma.o \
 	$(BUILD_DIR)/engine/libfirmament_task_lib.a
 	$(call quiet-command, \
 		$(CXX) $(CPPFLAGS) \
@@ -40,20 +40,6 @@ $(OBJ_BIN): $(addprefix $(SRC_ROOT_DIR)/examples/nginx/, $(OBJS)) \
 		"  DYNLNK  $@")
 
 
-# $(OBJ_BIN): $(addprefix $(OBJ_DIR)/, $(OBJS)) \
-# 	$(BUILD_DIR)/engine/libfirmament_task_lib.a
-# 	$(call quiet-command, \
-# 		$(CXX) $(CPPFLAGS) \
-# 		$(SRC_ROOT_DIR)/engine/task_lib_main.cc \
-# 		$(OPTFLAGS) $(DEFINES) \
-# 		$(BUILD_DIR)/engine/libfirmament_task_lib.a \
-# 		$(BUILD_DIR)/messages/libfirmament_messages.a \
-# 		$(BUILD_DIR)/misc/libfirmament_misc.a \
-# 		$(BUILD_DIR)/base/libfirmament_base.a \
-# 		$(BUILD_DIR)/platforms/unix/libfirmament_unix.a \
-# 		$< \
-# 		$(LIBS) -o $@ , \
-# 		"  DYNLNK  $@")
 
 
 	# -lpthread -lcrypt -lpcre -lcrypto -lcrypto -lz
@@ -61,10 +47,10 @@ $(OBJ_BIN): $(addprefix $(SRC_ROOT_DIR)/examples/nginx/, $(OBJS)) \
 	# $(shell echo "$(OBJ_DIR)") \
 
 
-objs/src/core/nginx_firma.o:  $(CORE_DEPS) \
+$(OBJ_FILE):	$(CORE_DEPS) \
 	src/core/nginx_firma.cpp
-	$(CXX) $(CPPFLAGS) -c src/core/nginx_firma.cpp \
-		-o objs/src/core/nginx_firma.o \
+	$(CXX) $(CPPFLAGS)  -c src/core/nginx_firma.cpp \
+		-o objs/src/core/nginx_firma.o
 		
 
 
