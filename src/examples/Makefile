@@ -3,7 +3,7 @@ BINS = hello_world \
        r2d2_trace_process \
        timespin \
        store_example \
-       gustafan
+       nginx
 
 OBJ_BIN = $(addprefix $(OBJ_DIR)/, $(BINS))
 
