@@ -78,8 +78,7 @@ inline void InitFirmament(int argc, char *argv[]) {
 template <typename T>
 inline set<T> pb_to_set(const RepeatedField<T>& pb_field) {
   set<T> return_set;
-  // N.B.: using GNU-style RTTI (typeof)
-  for (typeof(pb_field.begin()) iter = pb_field.begin();
+  for (auto iter = pb_field.begin();
        iter != pb_field.end();
        ++iter)
     return_set.insert(*iter);
@@ -92,8 +91,7 @@ inline set<T> pb_to_set(const RepeatedField<T>& pb_field) {
 template <typename T>
 inline set<T> pb_to_set(const RepeatedPtrField<T>& pb_field) {
   set<T> return_set;
-  // N.B.: using GNU-style RTTI (typeof)
-  for (typeof(pb_field.begin()) iter = pb_field.begin();
+  for (auto iter = pb_field.begin();
        iter != pb_field.end();
        ++iter)
     return_set.insert(*iter);
@@ -106,8 +104,7 @@ inline set<T> pb_to_set(const RepeatedPtrField<T>& pb_field) {
 template <typename T>
 inline vector<T> pb_to_vector(const RepeatedField<T>& pb_field) {
   vector<T> return_vec;
-  // N.B.: using GNU-style RTTI (typeof)
-  for (typeof(pb_field.begin()) iter = pb_field.begin();
+  for (auto iter = pb_field.begin();
        iter != pb_field.end();
        ++iter)
     return_vec.push_back(*iter);
@@ -120,8 +117,7 @@ inline vector<T> pb_to_vector(const RepeatedField<T>& pb_field) {
 template <typename T>
 inline vector<T> pb_to_vector(const RepeatedPtrField<T>& pb_field) {
   vector<T> return_vec;
-  // N.B.: using GNU-style RTTI (typeof)
-  for (typeof(pb_field.begin()) iter = pb_field.begin();
+  for (auto iter = pb_field.begin();
        iter != pb_field.end();
        ++iter)
     return_vec.push_back(*iter);

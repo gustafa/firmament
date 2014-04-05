@@ -68,8 +68,7 @@ class StreamSocketsAdapter : public firmament::MessagingAdapterInterface<T>,
   void DumpActiveChannels() {
     LOG(INFO) << NumActiveChannels() << " active channels at "
               << *this;
-    for (typeof(endpoint_channel_map_.begin()) chan_iter =
-         endpoint_channel_map_.begin();
+    for (auto chan_iter = endpoint_channel_map_.begin();
          chan_iter != endpoint_channel_map_.end();
          ++chan_iter) {
       LOG(INFO) << "[" << chan_iter->second << "]: Local: "

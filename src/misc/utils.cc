@@ -287,8 +287,7 @@ uint8_t* SHA256Hash(uint8_t* bytes, uint64_t len) {
 set<DataObjectID_t*> DataObjectIDsFromProtobuf(
     const RepeatedPtrField<string>& pb_field) {
   set<DataObjectID_t*> return_set;
-  // N.B.: using GNU-style RTTI (typeof)
-  for (typeof(pb_field.begin()) iter = pb_field.begin();
+  for (auto iter = pb_field.begin();
        iter != pb_field.end();
        ++iter)
     return_set.insert(new DataObjectID_t(*iter, false));
@@ -301,8 +300,7 @@ set<DataObjectID_t*> DataObjectIDsFromProtobuf(
 set<DataObjectID_t*> DataObjectIDsFromProtobuf(
     const RepeatedPtrField<ReferenceDescriptor>& pb_field) {
   set<DataObjectID_t*> return_set;
-  // N.B.: using GNU-style RTTI (typeof)
-  for (typeof(pb_field.begin()) iter = pb_field.begin();
+  for (auto iter = pb_field.begin();
        iter != pb_field.end();
        ++iter)
     return_set.insert(new DataObjectID_t(iter->id(), false));

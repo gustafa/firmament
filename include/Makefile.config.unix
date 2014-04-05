@@ -134,9 +134,9 @@ OPTFLAGS = -g -O0  # debug
 #OPTFLAGS = -O3    # release
 
 # for clang++, uncomment this line
-CPPFLAGS = $(INCLUDES) -Wall -Wextra -Werror -pedantic -Wno-error=unused-parameter -Wno-long-long -Wno-variadic-macros -Wno-language-extension-token -Wno-deprecated -Wno-error=unused-function -Wno-vla
+CPPFLAGS = $(INCLUDES) -std=c++11 -Wall -Wextra -Werror -pedantic -Wno-error=unused-parameter -Wno-long-long -Wno-variadic-macros -Wno-language-extension-token -Wno-deprecated -Wno-error=unused-function -Wno-vla 
 # for g++, uncomment this line
-#CPPFLAGS = $(INCLUDES) -Wall -Wextra -Werror -pedantic -Wno-error=unused-parameter -Wno-long-long -Wno-variadic-macros -Wno-deprecated -Wno-error=unused-function -Wno-vla
+#CPPFLAGS = $(INCLUDES) -std=c++11 -Wall -Wextra -Werror -pedantic -Wno-error=unused-parameter -Wno-long-long -Wno-variadic-macros -Wno-deprecated -Wno-error=unused-function -Wno-vla
 
 # To build statically linked executables, uncomment the following line AND make
 # sure that tcmalloc is NOT linked.

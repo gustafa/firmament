@@ -30,8 +30,7 @@ void TaskGraph::AddChildTask(TaskDescriptor* /*parent*/,
 
 void TaskGraph::CreateNodesForChildren(TaskGraphNode* node,
                                        TaskDescriptor* descr) {
-  for (typeof(descr->mutable_spawned()->begin()) c_iter =
-       descr->mutable_spawned()->begin();
+  for (auto c_iter = descr->mutable_spawned()->begin();
        c_iter != descr->mutable_spawned()->end();
        ++c_iter) {
     TaskGraphNode* new_child = new TaskGraphNode(&(*c_iter), node);
