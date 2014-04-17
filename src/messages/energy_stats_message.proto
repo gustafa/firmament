@@ -5,8 +5,8 @@ message EnergyStatsMessage {
 
   message EnergyMessage {
     required string uuid = 1;
-    optional int32 deltaJ = 2;
-    optional int32 totalJ = 3;
+    optional double deltaJ = 2;
+    optional double totalJ = 3;
   }
 
   required int32 update_interval = 1;
