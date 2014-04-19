@@ -181,6 +181,10 @@ int Victoria::sendStats(char *hostname, firmament::BaseMessage *bm) {
   portno = 8088; // TODO verify
   char buffer[256];
 
+
+  firmament::misc::Envelope<firmament::BaseMessage> envelope(bm);
+
+
   // if (argc < 3) {
   //     fprintf(stderr,"usage %s hostname port\n", argv[0]);
   //     exit(0);

@@ -7,6 +7,8 @@
 #include <vector>
 
 #include "messages/base_message.pb.h"
+#include "misc/protobuf_envelope.h"
+
 
 
 
