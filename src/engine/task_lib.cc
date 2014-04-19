@@ -20,11 +20,11 @@
 #include "platforms/common.h"
 #include "platforms/common.pb.h"
 
-
-DEFINE_string(coordinator_uri, "", "The URI to contact the coordinator at.");
-DEFINE_string(resource_id, "",
+// TODO(gustafa): FIX later!
+DEFINE_string(coordinator_uri, "tcp:localhost:8088", "The URI to contact the coordinator at.");
+DEFINE_string(resource_id, "feedcafedeadbeeffeedcafedeadbeeffeedcafedeadbeeffeedcafedeadbeef",
         "The resource ID that is running this task.");
-DEFINE_string(task_id, "", "The ID of this task.");
+DEFINE_string(task_id, "feedcafedeadbeeffeedcafedeadbeeffeedcafedeadbeeffeedcafedeadbeef", "The ID of this task.");
 DEFINE_int32(heartbeat_interval, 1,
         "The interval, in seconds, between heartbeats sent to the"
         "coordinator.");
@@ -163,77 +163,94 @@ bool TaskLib::PullTaskInformationFromCoordinator(TaskID_t task_id,
   return true;
 }
 
-void TaskLib::Run(int argc, char *argv[]) {
+void TaskLib::Run() {
   // TODO(malte): Any setup work goes here
-  CHECK(ConnectToCoordinator(coordinator_uri_))
-          << "Failed to connect to coordinator; is it reachable?";
+  // CHECK(ConnectToCoordinator(coordinator_uri_))
+  //         << "Failed to connect to coordinator; is it reachable?";
 
-  // Pull task information from coordinator if we do not have it already
-  PullTaskInformationFromCoordinator(task_id_, &task_descriptor_);
+  // // Pull task information from coordinator if we do not have it already
+  // PullTaskInformationFromCoordinator(task_id_, &task_descriptor_);
 
-  // Async receive -- the handler is responsible for invoking this again.
-  AwaitNextMessage();
+  // // Async receive -- the handler is responsible for invoking this again.
+  // AwaitNextMessage();
 
-  // Run task -- this will only return when the task thread has finished.
-  task_running_ = true;
-  RunTask(argc, argv);
+  // // Run task -- this will only return when the task thread has finished.
+  // task_running_ = true;
+  RunTask();
 
   // We have dropped out of the main loop and are exiting
   // TODO(malte): any cleanup we need to do; terminate running
-  // tasks etc.
-  VLOG(1) << "Dropped out of main loop -- cleaning up...";
-  // task_error_ will be set if the task failed for some reason.
-  SendFinalizeMessage(!task_error_);
-  chan_->Close();
+  // // tasks etc.
+  // VLOG(1) << "Dropped out of main loop -- cleaning up...";
+  // // task_error_ will be set if the task failed for some reason.
+  // SendFinalizeMessage(!task_error_);
+  // chan_->Close();
 }
 
-void TaskLib::RunTask(int argc, char *argv[]) {
-  //CHECK(task_desc_.code_dependency.is_consumable());
-  LOG(INFO) << "Invoking task code...";
-  const char* task_id_env;
-  if (FLAGS_task_id.empty())
-    task_id_env = getenv("TASK_ID");
-  else
-    task_id_env = FLAGS_task_id.c_str();
-  VLOG(1) << "Task ID is " << task_id_env;
-  CHECK_NOTNULL(task_id_env);
-  task_id_ = TaskIDFromString(task_id_env);
-  // Convert the arguments
-  vector<char*>* task_arg_vec = new vector<char*>;
-  ConvertTaskArgs(argc, argv, task_arg_vec);
-  // task_main blocks until the task has exited
-  //  exec(task_desc_.code_dependency());
+void TaskLib::RunMonitor(void *main_thread) {
+  // boost::thread task_thread(boost::bind(task_main, this, task_id_,
+  //         task_arg_vec));
 
-  // Set up Storage Engine here, returning a void* to the Cache
-  // Alternate way of doing this: set up cache here and just pass the
-  // various pointers.
-  setUpStorageEngine();
+  //sleep(60000);
 
-  boost::thread task_thread(boost::bind(task_main, this, task_id_,
-          task_arg_vec));
   task_running_ = true;
   ProcFSMonitor::ProcessStatistics_t current_stats;
-  // This will check if the task thread has joined once every heartbeat
-  // interval, and go back to sleep if it has not.
-  // TODO(malte): think about whether we'd like some kind of explicit
-  // notification scheme in case the heartbeat interval is large.
-  while (!task_thread.timed_join(
-          boost::posix_time::seconds(FLAGS_heartbeat_interval))) {
-    // TODO(malte): Check if we've exited with an error
+  // // This will check if the task thread has joined once every heartbeat
+  // // interval, and go back to sleep if it has not.
+  // // TODO(malte): think about whether we'd like some kind of explicit
+  // // notification scheme in case the heartbeat interval is large.
+  // while (!main_thread.timed_join(
+  //         boost::posix_time::seconds(FLAGS_heartbeat_interval))) {
+     while (true) {
+      sleep(FLAGS_heartbeat_interval);
+          // TODO(malte): Check if we've exited with an error
     // if(error)
     //   task_error_ = true;
     // Notify the coordinator that we're still running happily
-    VLOG(1) << "Task thread has not yet joined, sending heartbeat...";
-    task_perf_monitor_.ProcessInformation(pid_, &current_stats);
-    SendHeartbeat(current_stats);
+      VLOG(1) << "Task thread has not yet joined, sending heartbeat...";
+      task_perf_monitor_.ProcessInformation(pid_, &current_stats);
+      SendHeartbeat(current_stats);
     // TODO(malte): We'll need to receive any potential messages from the
     // coordinator here, too. This is probably best done by a simple RecvA on
     // the channel.
-  }
+    }
+
   task_running_ = false;
-  delete task_arg_vec;
-  // The finalizing message, reporting task success or failure, will be sent by
-  // the main loop once we drop out here.
+
+}
+
+void TaskLib::RunTask() {
+  // //CHECK(task_desc_.code_dependency.is_consumable());
+  // LOG(INFO) << "Invoking task code...";
+  // const char* task_id_env;
+  // if (FLAGS_task_id.empty())
+  //   task_id_env = getenv("TASK_ID");
+  // else
+  //   task_id_env = FLAGS_task_id.c_str();
+  // VLOG(1) << "Task ID is " << task_id_env;
+  // CHECK_NOTNULL(task_id_env);
+  // task_id_ = TaskIDFromString(task_id_env);
+  // // Convert the arguments
+  // //ConvertTaskArgs(argc, argv, task_arg_vec);
+  // // task_main blocks until the task has exited
+  // //  exec(task_desc_.code_dependency());
+
+  // // Set up Storage Engine here, returning a void* to the Cache
+  // // Alternate way of doing this: set up cache here and just pass the
+  // // various pointers.
+
+  //boost::thread::id main_thread_id =::get_id();
+
+
+  setUpStorageEngine();
+
+
+  void *monitor_thread = (void *) 2;
+  RunMonitor(monitor_thread);
+
+  // boost::thread task_thread(boost::bind(task_main, this, task_id_,
+  //          task_arg_vec));
+  
 }
 
 void TaskLib::SendFinalizeMessage(bool success) {

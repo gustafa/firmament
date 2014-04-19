@@ -70,10 +70,11 @@ using store::FREE;
 class TaskLib {
  public:
   TaskLib();
-  void Run(int argc, char *argv[]);
+  void Run();
+  void RunMonitor(void *main_thread);
   void AwaitNextMessage();
   bool ConnectToCoordinator(const string& coordinator_uri);
-  void RunTask(int argc, char *argv[]);
+  void RunTask();
   // CIEL programming model
   //virtual const string Construct(const DataObject& object);
   void Spawn(const ReferenceInterface& code,

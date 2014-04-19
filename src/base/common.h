@@ -66,6 +66,11 @@ inline void InitFirmament(int argc, char *argv[]) {
   // drop flags.
   // TODO(malte): figure out if the above can be fixed; hard-coded flag removal
   // logic is annoying!
+
+  for (int i = 0; i < argc; ++i) {
+    printf("arg: %s\n", argv[i]);
+  }
+
   google::ParseCommandLineFlags(&argc, &argv, false);
 
   // Set up glog for logging output
