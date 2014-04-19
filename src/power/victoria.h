@@ -8,8 +8,13 @@
 
 #include "messages/base_message.pb.h"
 #include "misc/protobuf_envelope.h"
+#include "platforms/unix/stream_sockets_adapter.h"
+#include "platforms/unix/stream_sockets_adapter-inl.h"
+#include "platforms/unix/stream_sockets_channel-inl.h"
 
-
+using firmament::platform_unix::streamsockets::StreamSocketsAdapter;
+using firmament::platform_unix::streamsockets::StreamSocketsChannel;
+using firmament::BaseMessage;
 
 
 class Victoria {
@@ -24,6 +29,9 @@ class Victoria {
 
   const std::vector<double> *xs;
   const std::vector<double> *ys;
+
+  StreamSocketsAdapter<BaseMessage>* m_adapter_;
+  StreamSocketsChannel<BaseMessage>* chan_;
 
 
   int sendStats(char *hostname, firmament::BaseMessage *base_message);

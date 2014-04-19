@@ -50,6 +50,8 @@ int binarySearch(const std::vector<double> *a, double key) {
 Victoria::Victoria(std::string firmament_master, std::vector<double> *xs, std::vector<double> *ys) {
   this->xs = xs;
   this->ys = ys;
+  m_adapter_ = new StreamSocketsAdapter<BaseMessage>();
+  chan_ = new StreamSocketsChannel<BaseMessage>(StreamSocketsChannel<BaseMessage>::SS_TCP);
 }
 
 void Victoria::addMonitor(int port, std::string hostname) {
@@ -183,6 +185,7 @@ int Victoria::sendStats(char *hostname, firmament::BaseMessage *bm) {
 
 
   firmament::misc::Envelope<firmament::BaseMessage> envelope(bm);
+
 
 
   // if (argc < 3) {
