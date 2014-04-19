@@ -19,7 +19,7 @@ endif
 # Get common build settings
 include include/Makefile.config
 
-all: tests-clean ext platforms misc engine scripts
+all: tests-clean ext platforms misc engine scripts power
 
 help: info
 
@@ -74,6 +74,9 @@ storage: messages ext
 #       script to decide which ones to build!
 platforms: messages
 	$(MAKE) $(MAKEFLAGS) -C $(SRC_ROOT_DIR)/platforms all
+
+power: base messages
+	$(MAKE) $(MAKEFLAGS) -C $(SRC_ROOT_DIR)/power all
 
 scripts:
 	$(MAKE) $(MAKEFLAGS) -C $(ROOT_DIR)/scripts/job
