@@ -62,7 +62,7 @@ OBJ_LIB = $(addprefix $(OBJ_DIR)/, $(LIB))
 #TESTS_OBJS = $(addprefix $(TEST_OBJ_DIR)/, $(TESTS))
 TESTS_BIN = $(addprefix $(TEST_OBJ_DIR)/, $(TESTS))
 
-all: protobufs $(OBJ_BIN) $(TESTS_BIN) $(OBJ_LIB) .setup
+all: protobufs $(OBJ_BIN) $(TESTS_BIN) $(OBJ_LIB) task_lib_main.so .setup
 
 protobufs: $(addprefix $(OBJ_DIR)/, $(PBS))
 
@@ -154,3 +154,10 @@ $(OBJ_DIR)/worker: $(addprefix $(OBJ_DIR)/, $(OBJS)) \
 # ---------------------------
 # This needs to be linked into task binaries.
 $(OBJ_LIB): $(addprefix $(OBJ_DIR)/, task_lib.o)
+
+
+ALL_O=$(addprefix $(BUILD_DIR)/, scheduling/trivial_cost_model.o scheduling/scheduling_delta.pb.o scheduling/flow_node_type.pb.o scheduling/quincy_scheduler.o scheduling/flow_graph.o scheduling/quincy_cost_model.o scheduling/event_driven_scheduler.o scheduling/scheduling_parameters.pb.o scheduling/dimacs_exporter.o scheduling/simple_scheduler.o sim/simulation_event.pb.o    storage/simple_object_store.o storage/Cache.o storage/StorageInfo.o misc/string_utils.o misc/pb_utils.o misc/event_logging.o misc/equivclasses.o misc/utils.o platforms/common.pb.o platforms/unix/stream_sockets_adapter.o platforms/unix/common.o platforms/unix/async_tcp_server.o platforms/unix/procfs_monitor.o platforms/unix/tcp_connection.o platforms/unix/signal_handler.o platforms/unix/procfs_machine.o engine/local_executor.o engine/knowledge_base.o engine/node.o engine/remote_executor.o engine/topology_manager.o messages/task_info_message.pb.o messages/registration_message.pb.o messages/storage_registration_message.pb.o messages/copy_message.pb.o messages/task_state_message.pb.o messages/storage_message.pb.o messages/task_delegation_message.pb.o messages/heartbeat_message.pb.o messages/base_message.pb.o messages/create_message.pb.o messages/lookup_message.pb.o messages/test_message.pb.o messages/task_heartbeat_message.pb.o messages/task_kill_message.pb.o messages/task_spawn_message.pb.o messages/io_notification_message.pb.o messages/delete_message.pb.o base/ensemble_desc.pb.o base/task_desc.pb.o base/resource_topology_node_desc.pb.o base/reference_desc.pb.o base/resource_desc.pb.o base/data_object.o base/job_desc.pb.o base/task_final_report.pb.o base/task_perf_statistics_sample.pb.o base/task_graph.o base/resource_status.o base/data_object_name.pb.o base/job.o base/machine_perf_statistics_sample.pb.o base/task.o)
+
+
+task_lib_main.so:	task_lib_main.cc
+	$(CC) -fPIC  -shared -std=c++11 $(OPTFLAGS) $(LIBS) $(INCLUDES)  $(DEFINES)  -o $(BUILD_DIR)/engine/task_lib_main.so    task_lib_main.cc task_lib.cc $(ALL_O) -ldl
