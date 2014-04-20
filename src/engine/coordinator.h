@@ -35,6 +35,7 @@
 #include "engine/knowledge_base.h"
 // XXX(malte): include order dependency
 #include "platforms/unix/common.h"
+#include "messages/energy_stats_message.pb.h"
 #include "messages/heartbeat_message.pb.h"
 #include "messages/registration_message.pb.h"
 #include "messages/task_delegation_message.pb.h"
@@ -228,6 +229,7 @@ class Coordinator : public Node,
   void DetectLocalResources();
   void HandleCreateRequest(const CreateRequest& msg,
                            const string& remote_endpoint);
+  void HandleEnergyStats(const EnergyStatsMessage& msg);
   void HandleIncomingMessage(BaseMessage *bm, const string& remote_endpoint);
   void HandleIncomingReceiveError(const boost::system::error_code& error,
                                   const string& remote_endpoint);

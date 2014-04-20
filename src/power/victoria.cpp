@@ -22,6 +22,8 @@ extern "C" {
   #include "moncom.h"
 }
 
+using firmament::misc::Envelope;
+
 int scalingFactor = 3;
 
 // Java implementation copy, returns index of where the key would
@@ -50,6 +52,7 @@ int binarySearch(const std::vector<double> *a, double key) {
 Victoria::Victoria(std::string firmament_master, std::vector<double> *xs, std::vector<double> *ys) {
   this->xs = xs;
   this->ys = ys;
+  this->coordinator_uri = firmament_master;
   m_adapter_ = new StreamSocketsAdapter<BaseMessage>();
   chan_ = new StreamSocketsChannel<BaseMessage>(StreamSocketsChannel<BaseMessage>::SS_TCP);
 }
@@ -58,8 +61,18 @@ void Victoria::addMonitor(int port, std::string hostname) {
   portToHost[port] = hostname;
 }
 
+bool Victoria::ConnectToCoordinator(const string& coordinator_uri) {
+  return m_adapter_->EstablishChannel(coordinator_uri, chan_);
+}
 
- 
+ void Victoria::HandleWrite(const boost::system::error_code& error,
+        size_t bytes_transferred) {
+  VLOG(1) << "In HandleWrite, thread is " << boost::this_thread::get_id();
+  if (error)
+    LOG(ERROR) << "Error returned from async write: " << error.message();
+  else
+    VLOG(1) << "bytes_transferred: " << bytes_transferred;
+}
 
 double Victoria::toRealWatts(double measuredWatt) {
   unsigned long insertIndex = binarySearch(xs, measuredWatt);
@@ -96,17 +109,19 @@ void Victoria::run() {
   double toWatts = 240 / (double) 3000;
   double prev[32] = {0};
 
+  CHECK(ConnectToCoordinator(coordinator_uri))
+          << "Failed to connect to coordinator; is it reachable?";
 
  unsigned char reqBuff[USBPACKLEN], rplyBuff[USBPACKLEN];
   getMeterStatsCmd_t *sCmd = (getMeterStatsCmd_t *) reqBuff;
   getMeterStatsRply_t *sRply = (getMeterStatsRply_t *) rplyBuff;
 
   std::string measurement_device = "/dev/ttyACM0";
-  socket = openMonitor(measurement_device.c_str());
+  //socket = openMonitor(measurement_device.c_str());
 
-  if (socket == -1) {
-    exit(-1);
-  }
+  // if (socket == -1) {
+  //   exit(-1);
+  // }
 
   pollInt = DEFAULTPOLLINTERVAL;
 
@@ -121,7 +136,7 @@ void Victoria::run() {
       firmament::BaseMessage bm;
       firmament::EnergyStatsMessage *energyStats = bm.mutable_energy_stats();
 
-
+      energyStats->set_update_interval(scalingFactor);
 
       t = time (NULL);
       gmt = gmtime(&t);
@@ -140,27 +155,27 @@ void Victoria::run() {
 
 
 
-        printf("Port-%d: ", port);
-        sCmd->cmd = CMDGETMETERSTATS;
-        sCmd->transid = rand() & 0xff;
-        sCmd->meter = port;
+        // printf("Port-%d: ", port);
+        // sCmd->cmd = CMDGETMETERSTATS;
+        // sCmd->transid = rand() & 0xff;
+        // sCmd->meter = port;
 
-        if (monCommand (socket, reqBuff, rplyBuff) != 0){
-          printf("Polling failure for meter %d\n", port);
-          exit (-1);
-        }
+        // if (monCommand (socket, reqBuff, rplyBuff) != 0){
+        //   printf("Polling failure for meter %d\n", port);
+        //   exit (-1);
+        // }
 
         // We are reporting accumulated mA-secs - convert to kWh assuming
         // in-phase 240V and divide by scaling factor 
 
-        energy = ((float) (sRply->accumCur) / scalingFactor); //  * 240.0; // / 1000.0 / 1000.0 / 3600.0;
-        double delta = energy - prev[port];
-        printf("%.2f\t",delta * toWatts); // - prev[i]);
-        prev[port] = energy;
+        // energy = ((float) (sRply->accumCur) / scalingFactor); //  * 240.0; // / 1000.0 / 1000.0 / 3600.0;
+        // double delta = energy - prev[port];
+        // printf("%.2f\t",delta * toWatts); // - prev[i]);
+        // prev[port] = energy;
 
 
       }
-
+      sendStats(&bm);
 
       printf("\n");
       fflush(stdout);
@@ -172,78 +187,28 @@ void Victoria::run() {
     }
   }
 }
-int Victoria::sendStats(char *hostname, firmament::BaseMessage *bm) {
 
-  int sockfd, portno, n;
-  struct sockaddr_in serv_addr;
-  struct hostent *server;
+bool Victoria::sendStats(firmament::BaseMessage *bm) {
 
-  printf("%s\n", hostname);
+  // int sockfd, portno, n;
+  // struct sockaddr_in serv_addr;
+  // struct hostent *server;
 
-  portno = 8088; // TODO verify
-  char buffer[256];
+  // printf("%s\n", hostname);
 
-
-  firmament::misc::Envelope<firmament::BaseMessage> envelope(bm);
+  // portno = 8088; // TODO verify
+  // char buffer[256];
 
 
+  // Envelope<BaseMessage> envelope(bm);
 
-  // if (argc < 3) {
-  //     fprintf(stderr,"usage %s hostname port\n", argv[0]);
-  //     exit(0);
-  // }
-  /* Create a socket point */
-  sockfd = socket(AF_INET, SOCK_STREAM, 0);
-  if (sockfd < 0) 
-  {
-      perror("ERROR opening socket");
-      exit(1);
-  }
-  server = gethostbyname(hostname);
-  if (server == NULL) {
-      fprintf(stderr,"ERROR, no such host\n");
-      exit(0);
-  }
+  Envelope<BaseMessage> envelope(bm);
+  return chan_->SendA(
+          envelope, boost::bind(&Victoria::HandleWrite,
+          this,
+          boost::asio::placeholders::error,
+          boost::asio::placeholders::bytes_transferred));
 
-  bzero((char *) &serv_addr, sizeof(serv_addr));
-  serv_addr.sin_family = AF_INET;
-  bcopy((char *)server->h_addr, 
-          (char *)&serv_addr.sin_addr.s_addr,
-              server->h_length);
-  serv_addr.sin_port = htons(portno);
-
-
-
-  /* Now connect to the server */
-  if (connect(sockfd,(struct sockaddr *) &serv_addr,sizeof(serv_addr)) < 0) 
-  {
-        perror("ERROR connecting");
-        exit(1);
-  } 
-  /* Now ask for a message from the user, this message
-  * will be read by server
-  */
-  printf("Please enter the message: ");
-  bzero(buffer,256);
-  fgets(buffer,255,stdin);
-  /* Send message to the server */
-  n = write(sockfd,buffer,strlen(buffer));
-  if (n < 0) 
-  {
-        perror("ERROR writing to socket");
-        exit(1);
-  }
-  /* Now read server response */
-  bzero(buffer,256);
-  n = read(sockfd,buffer,255);
-  if (n < 0) 
-  {
-        perror("ERROR reading from socket");
-        exit(1);
-  }
-  printf("%s\n",buffer);
-
-  return 0;
 }
 
 
@@ -258,7 +223,7 @@ int main(int argc, char const *argv[]) {
   // Real power values.
   std::vector<double> ys = {0, 2.5, 6.3, 13.3, 14.5, 15.4, 24.8, 47.8, 50.1, 62.3, 71, 117, 210, 302, 397, 483, 574, 787};
 
-  Victoria victoria("localhost", &xs, &ys);
+  Victoria victoria("tcp:localhost:8088", &xs, &ys);
 
 
 

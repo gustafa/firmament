@@ -133,8 +133,8 @@ CXX = clang++
 OPTFLAGS = -g -O0  # debug
 #OPTFLAGS = -O3    # release
 
-# for clang++, uncomment this line
-CPPFLAGS = $(INCLUDES) -std=c++11 -Wall -Wextra -Werror -pedantic -Wno-error=unused-parameter -Wno-long-long -Wno-variadic-macros -Wno-language-extension-token -Wno-deprecated -Wno-error=unused-function -Wno-vla 
+# for clang++, uncomment this line -Werror
+CPPFLAGS = $(INCLUDES) -std=c++11 -Wall -Wextra  -pedantic -Wno-error=unused-parameter -Wno-long-long -Wno-variadic-macros -Wno-language-extension-token -Wno-deprecated -Wno-error=unused-function -Wno-vla 
 # for g++, uncomment this line
 #CPPFLAGS = $(INCLUDES) -std=c++11 -Wall -Wextra -Werror -pedantic -Wno-error=unused-parameter -Wno-long-long -Wno-variadic-macros -Wno-deprecated -Wno-error=unused-function -Wno-vla
 

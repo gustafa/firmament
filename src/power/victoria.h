@@ -33,10 +33,17 @@ class Victoria {
   StreamSocketsAdapter<BaseMessage>* m_adapter_;
   StreamSocketsChannel<BaseMessage>* chan_;
 
+  std::string coordinator_uri;
 
-  int sendStats(char *hostname, firmament::BaseMessage *base_message);
+
+  bool sendStats(BaseMessage *bm);
 
   double toRealWatts(double measuredWatt);
+
+  void HandleWrite(const boost::system::error_code& error,
+        size_t bytes_transferred);
+
+  bool ConnectToCoordinator(const string& coordinator_uri);
 };
 
 #endif //VICTORIA_H
