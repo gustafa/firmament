@@ -70,11 +70,9 @@ using store::FREE;
 class TaskLib {
  public:
   TaskLib();
-  void Run();
-  void RunMonitor(void *main_thread);
+  void RunMonitor(boost::thread::id main_thread_id);
   void AwaitNextMessage();
   bool ConnectToCoordinator(const string& coordinator_uri);
-  void RunTask();
   // CIEL programming model
   //virtual const string Construct(const DataObject& object);
   void Spawn(const ReferenceInterface& code,

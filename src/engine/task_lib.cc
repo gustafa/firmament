@@ -163,31 +163,9 @@ bool TaskLib::PullTaskInformationFromCoordinator(TaskID_t task_id,
   return true;
 }
 
-void TaskLib::Run() {
-  // TODO(malte): Any setup work goes here
-  // CHECK(ConnectToCoordinator(coordinator_uri_))
-  //         << "Failed to connect to coordinator; is it reachable?";
+void TaskLib::RunMonitor(boost::thread::id main_thread_id) {
+  setUpStorageEngine();
 
-  // // Pull task information from coordinator if we do not have it already
-  // PullTaskInformationFromCoordinator(task_id_, &task_descriptor_);
-
-  // // Async receive -- the handler is responsible for invoking this again.
-  // AwaitNextMessage();
-
-  // // Run task -- this will only return when the task thread has finished.
-  // task_running_ = true;
-  RunTask();
-
-  // We have dropped out of the main loop and are exiting
-  // TODO(malte): any cleanup we need to do; terminate running
-  // // tasks etc.
-  // VLOG(1) << "Dropped out of main loop -- cleaning up...";
-  // // task_error_ will be set if the task failed for some reason.
-  // SendFinalizeMessage(!task_error_);
-  // chan_->Close();
-}
-
-void TaskLib::RunMonitor(void *main_thread) {
   // boost::thread task_thread(boost::bind(task_main, this, task_id_,
   //         task_arg_vec));
 
@@ -219,39 +197,6 @@ void TaskLib::RunMonitor(void *main_thread) {
 
 }
 
-void TaskLib::RunTask() {
-  // //CHECK(task_desc_.code_dependency.is_consumable());
-  // LOG(INFO) << "Invoking task code...";
-  // const char* task_id_env;
-  // if (FLAGS_task_id.empty())
-  //   task_id_env = getenv("TASK_ID");
-  // else
-  //   task_id_env = FLAGS_task_id.c_str();
-  // VLOG(1) << "Task ID is " << task_id_env;
-  // CHECK_NOTNULL(task_id_env);
-  // task_id_ = TaskIDFromString(task_id_env);
-  // // Convert the arguments
-  // //ConvertTaskArgs(argc, argv, task_arg_vec);
-  // // task_main blocks until the task has exited
-  // //  exec(task_desc_.code_dependency());
-
-  // // Set up Storage Engine here, returning a void* to the Cache
-  // // Alternate way of doing this: set up cache here and just pass the
-  // // various pointers.
-
-  //boost::thread::id main_thread_id =::get_id();
-
-
-  setUpStorageEngine();
-
-
-  void *monitor_thread = (void *) 2;
-  RunMonitor(monitor_thread);
-
-  // boost::thread task_thread(boost::bind(task_main, this, task_id_,
-  //          task_arg_vec));
-  
-}
 
 void TaskLib::SendFinalizeMessage(bool success) {
   BaseMessage bm;

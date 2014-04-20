@@ -21,7 +21,7 @@ extern char **environ;
 
 using namespace firmament;  // NOLINT
 
-void FreeFunction()
+void LaunchTasklib()
 {
   printf("hello from free function\n");
 
@@ -29,7 +29,7 @@ void FreeFunction()
   printf("Creating task_lib\n");
 
   
-  string sargs = "--tryfromenv=coordinator_uri";
+  string sargs = "--fromenv=coordinator_uri";
   string progargs = "nginxy";
 
 
@@ -38,7 +38,7 @@ void FreeFunction()
   //BaseMessage bm;
 
 
-
+  boost::thread::id main_thread_id = boost::this_thread::get_id();
 
   char *argv[2];
   argv[0] = const_cast<char*>(progargs.c_str());
@@ -56,7 +56,7 @@ void FreeFunction()
 
   TaskLib task_lib;
 
-  task_lib.Run();
+  task_lib.RunMonitor(main_thread_id);
 
   //TaskLib task;
   while (true) {
@@ -90,23 +90,6 @@ __attribute__ ((constructor)) static void task_lib_main() {
     s = *(environ+i);
   }
   printf("Starting thread\n");
-  boost::thread t1(&FreeFunction);
+  boost::thread t1(&LaunchTasklib);
 
-  // printf("%s", "woohoooooooooOOOooo\n");
-  // VLOG(2) << "Calling common::InitFirmament";
-
-
-  // string arg = "";
-  // char *carg = (char *) arg.c_str();
-
-
-  //    // printf("%s", "initing firmament tasklib\n");
-
-
-  //   //printf("%s", "running\n");
-
-
-  // task_lib.Run();
-
-  // 
 }
