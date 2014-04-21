@@ -322,6 +322,12 @@ void Coordinator::HandleIncomingMessage(BaseMessage *bm,
     HandleIONotification(*bm, remote_endpoint);
     handled_extensions++;
   }
+
+  if (bm->has_energy_stats()) {
+    const EnergyStatsMessage &msg = bm->energy_stats();
+    HandleEnergyStats(msg);
+    handled_extensions++;
+  }
   // Check that we have handled at least one sub-message
   if (handled_extensions == 0)
     LOG(ERROR) << "Ignored incoming message, no known extension present, "
@@ -420,6 +426,11 @@ void Coordinator::HandleIONotification(const BaseMessage& bm,
                                    JobIDFromString((*td_ptr)->job_id()));
     scheduler_->ScheduleJob(jd);
   }
+}
+
+void Coordinator::HandleEnergyStats(const EnergyStatsMessage& msg) {
+  //TODO(gustafa): Implement
+  VLOG(2) << "Handling EnergyStatsMessage";
 }
 
 void Coordinator::HandleLookupRequest(const LookupRequest& msg,

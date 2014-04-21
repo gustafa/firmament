@@ -134,7 +134,7 @@ OPTFLAGS = -g -O0  # debug
 #OPTFLAGS = -O3    # release
 
 # for clang++, uncomment this line
-CPPFLAGS = $(INCLUDES) -Wall -fPIC -Wextra  -pedantic -Wno-error=unused-parameter -Wno-long-long -Wno-variadic-macros -Wno-language-extension-token -Wno-deprecated -Wno-error=unused-function -Wno-vla -g
+CPPFLAGS = $(INCLUDES) -Wall -fPIC -Wextra  -pedantic -Wno-error=unused-parameter -Wno-long-long -Wno-variadic-macros -Wno-language-extension-token -Wno-deprecated -Wno-error=unused-function -Wno-vla -g -std=c++11
 # for g++, uncomment this line
 #CPPFLAGS = $(INCLUDES) -Wall -fPIC -Wextra  -pedantic -Wno-error=unused-parameter -Wno-long-long -Wno-variadic-macros -Wno-deprecated -Wno-error=unused-function -Wno-vla
 

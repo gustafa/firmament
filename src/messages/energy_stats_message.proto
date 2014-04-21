@@ -1,0 +1,14 @@
+package firmament;
+
+
+message EnergyStatsMessage {
+
+  message EnergyMessage {
+    required string uuid = 1;
+    optional double deltaJ = 2;
+    optional double totalJ = 3;
+  }
+
+  required int32 update_interval = 1;
+  repeated EnergyMessage energy_messages = 2;
+}

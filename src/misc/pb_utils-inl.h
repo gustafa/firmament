@@ -17,6 +17,7 @@ bool RepeatedContainsPtr(RepeatedPtrField<T>* pbf, T* item) {
   // N.B.: using GNU-style RTTI
   for (__typeof__(pbf->pointer_begin()) iter =
        pbf->pointer_begin();
+
        iter != pbf->pointer_end();
        ++iter) {
     if (*iter == item)
