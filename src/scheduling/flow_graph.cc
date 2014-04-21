@@ -19,32 +19,53 @@
 #include "misc/utils.h"
 #include "scheduling/flow_graph.h"
 #include "scheduling/flow_scheduling_cost_model_interface.h"
+#include "scheduling/trivial_cost_model.h"
+#include "scheduling/quincy_cost_model.h"
 
 namespace firmament {
 
 using machine::topology::TopologyManager;
 
-FlowGraph::FlowGraph()
+FlowGraph::FlowGraph(FlowSchedulingCostModelType cost_model)
     : current_id_(1) {
   // Add sink and cluster aggregator node
   AddSpecialNodes();
+  // Set up cost model for flow graph
+  VLOG(1) << "Set cost model to use in flow graph to \""
+          << cost_model << "\"";
+  switch (cost_model) {
+    case FlowSchedulingCostModelType::COST_MODEL_TRIVIAL:
+      cost_model_ = new TrivialCostModel(); 
+      break;
+    case FlowSchedulingCostModelType::COST_MODEL_QUINCY:
+      cost_model_ = new QuincyCostModel(); 
+      break;
+    default:
+      LOG(FATAL) << "Unknown flow scheduling cost model specificed "
+                 << "(" << cost_model << ")";
+  }
+}
+
+FlowGraph::~FlowGraph() {
+  delete cost_model_;
 }
 
 void FlowGraph::AddArcsForTask(FlowGraphNode* task_node,
                                FlowGraphNode* unsched_agg_node) {
   // We always have an edge to the cluster aggregator node
   FlowGraphArc* cluster_agg_arc = AddArcInternal(task_node, cluster_agg_node_);
-  // TODO(malte): stub, read value from runtime config here
-  cluster_agg_arc->cost_ = 2;
+  // Assign cost to the (task -> cluster agg) edge from cost model
+  cluster_agg_arc->cost_ =
+      cost_model_->TaskToClusterAggCost(task_node->task_id_);
   // We also always have an edge to our job's unscheduled node
   FlowGraphArc* unsched_arc = AddArcInternal(task_node, unsched_agg_node);
   // Add this task's potential flow to the per-job unscheduled
   // aggregator's outgoing edge
   AdjustUnscheduledAggToSinkCapacity(task_node->job_id_, 1);
-  // TODO(malte): stub, read value from runtime config here
-  //TODO(gustafa) insert cost policy
 
-  unsched_arc->cost_ = 5;
+  // Assign cost to the (task -> unscheduled agg) edge from cost model
+  unsched_arc->cost_ =
+      cost_model_->TaskToUnscheduledAggCost(task_node->task_id_);
 }
 
 FlowGraphArc* FlowGraph::AddArcInternal(uint64_t src, uint64_t dst) {
@@ -125,7 +146,9 @@ void FlowGraph::AddJobNodes(JobDescriptor* jd) {
     unsched_agg_node->comment_ = comment;
     // ... and connect it directly to the sink
     unsched_agg_to_sink_arc = AddArcInternal(unsched_agg_node, sink_node_);
-    unsched_agg_to_sink_arc->cap_upper_bound_ = 0;
+    unsched_agg_to_sink_arc->cap_upper_bound_ = 0; 
+    unsched_agg_to_sink_arc->cost_ =
+        cost_model_->UnscheduledAggToSinkCost(JobIDFromString(jd->uuid()));
     // Record this for the future in the job <-> node ID lookup table
     CHECK(InsertIfNotPresent(&job_to_nodeid_map_, JobIDFromString(jd->uuid()),
                              unsched_agg_node->id_));
@@ -248,6 +271,8 @@ void FlowGraph::AddResourceNode(ResourceTopologyNodeDescriptor* rtnd,
     // Arc from cluster aggregator to resource topo root node
     cluster_agg_into_res_topo_arc_ = AddArcInternal(cluster_agg_node_,
                                                     root_node);
+    cluster_agg_into_res_topo_arc_->cost_ =
+        cost_model_->ClusterAggToResourceNodeCost(root_node->resource_id_);
   }
   if (rtnd->children_size() > 0) {
     // 2) Node inside the tree with non-zero children (i.e. no leaf node)
@@ -281,6 +306,9 @@ void FlowGraph::AddResourceNode(ResourceTopologyNodeDescriptor* rtnd,
         // Set initial capacity to 0; this will be updated as leaves are added
         // below this node!
         arc->cap_upper_bound_ = 0;
+        arc->cost_ =
+            cost_model_->ResourceNodeToResourceNodeCost(
+                cur_node->resource_id_, child_node->resource_id_);
       } else {
         LOG(ERROR) << "Found child without parent_id set! This will lead to an "
                    << "inconsistent flow graph!";
@@ -302,13 +330,15 @@ void FlowGraph::AddResourceNode(ResourceTopologyNodeDescriptor* rtnd,
     CHECK(cur_node != NULL) << "Could not find leaf node with ID "
                             << rtnd->resource_desc().uuid();
     cur_node->type_.set_type(FlowNodeType::PU);
-    AddArcInternal(cur_node->id_, sink_node_->id_);
+    FlowGraphArc* arc = AddArcInternal(cur_node->id_, sink_node_->id_);
+    arc->cost_ =
+        cost_model_->LeafResourceNodeToSinkCost(cur_node->resource_id_);
     leaf_nodes_.insert(cur_node->id_);
     // Add flow capacity to parent nodes until we hit the root node
     FlowGraphNode* parent = cur_node;
     ResourceID_t* parent_id;
     while ((parent_id = FindOrNull(resource_to_parent_map_,
-                                  parent->resource_id_)) != NULL) {
+                                   parent->resource_id_)) != NULL) {
       uint64_t cur_id = parent->id_;
       parent = NodeForResourceID(*parent_id);
       FlowGraphArc** arc = FindOrNull(parent->outgoing_arc_map_, cur_id);
@@ -384,17 +414,27 @@ void FlowGraph::PinTaskToNode(FlowGraphNode* task_node,
                               FlowGraphNode* res_node) {
   // Remove all arcs apart from the task -> resource mapping;
   // note that this effectively disables preemption!
+  // ----
+  // N.B.: we need to collect a set of pointers here rather than
+  // deleting things inside the loop, as otherwise the iterator
+  // gets confused
+  set<TaskID_t> to_delete;
   for (unordered_map<TaskID_t, FlowGraphArc*>::iterator it =
        task_node->outgoing_arc_map_.begin();
        it != task_node->outgoing_arc_map_.end();
        ++it) {
     VLOG(2) << "Deleting arc from " << it->second->src_ << " to "
             << it->second->dst_;
-    // N.B. This is a little dodgy, as it mutates the collection inside the
-    // loop. However, since nobody else is reading from it at the same time,
-    // this should be fine.
-    task_node->outgoing_arc_map_.erase(it->first);
     DeleteArc(it->second);
+    to_delete.insert(it->first);
+  }
+  // N.B. This is a little dodgy, as it mutates the collection inside the
+  // loop. However, since nobody else is reading from it at the same time,
+  // this should be fine.
+  for (set<TaskID_t>::iterator it = to_delete.begin();
+       it != to_delete.end();
+       ++it) {
+    task_node->outgoing_arc_map_.erase(*it);
   }
   // Remove this task's potential flow from the per-job unscheduled
   // aggregator's outgoing edge
