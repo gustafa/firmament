@@ -163,6 +163,7 @@ bool StreamSocketsChannel<T>::Establish(const string& endpoint_uri) {
 
 template <typename T>
 const string StreamSocketsChannel<T>::LocalEndpointString() {
+  printf("LocalEndpointString()\n");
   if (client_connection_)
     return client_connection_->LocalEndpointString();
   string address;
@@ -172,9 +173,14 @@ const string StreamSocketsChannel<T>::LocalEndpointString() {
   boost::system::error_code ec;
   switch (type_) {
     case SS_TCP:
+      printf("FOUND TCP\n");
       protocol = "tcp:";
+      printf("ADDRESS: %s\n", address.c_str());
+
       address = client_socket_->local_endpoint(ec).address().to_string();
+      printf("ADDRESS: %s\n", address.c_str());
       port = to_string<uint64_t>(client_socket_->local_endpoint(ec).port());
+      printf("PORT: %s\n", port.c_str());
       if (ec)
         return "";
       else
@@ -189,6 +195,7 @@ const string StreamSocketsChannel<T>::LocalEndpointString() {
       //address = client_socket_->remote_endpoint().path();
       return protocol + address;
     default:
+      printf("FAILED TO FIND SOCKET TYPE\n");
       LOG(FATAL) << "Unknown stream socket type " << type_;
       return "";
   }

@@ -31,12 +31,14 @@ DEFINE_int32(heartbeat_interval, 1,
 
 namespace firmament {
 
+
+// TODO(gustafa) fix these envs.
   TaskLib::TaskLib()
   : m_adapter_(new StreamSocketsAdapter<BaseMessage>()),
     chan_(new StreamSocketsChannel<BaseMessage>(
         StreamSocketsChannel<BaseMessage>::SS_TCP)),
-    coordinator_uri_(FLAGS_coordinator_uri),
-    resource_id_(ResourceIDFromString(FLAGS_resource_id)),
+    coordinator_uri_(getenv("FLAGS_coordinator_uri")),
+    resource_id_(ResourceIDFromString(getenv("FLAGS_resource_id"))),
     pid_(getpid()),
     task_error_(false),
     task_running_(false),
@@ -164,28 +166,36 @@ bool TaskLib::PullTaskInformationFromCoordinator(TaskID_t task_id,
 }
 
 void TaskLib::RunMonitor(boost::thread::id main_thread_id) {
+  ConnectToCoordinator(coordinator_uri_);
+  printf("Setting up storage engine\n");
   setUpStorageEngine();
+  printf("Finished setting up storage engine\n");
 
   // boost::thread task_thread(boost::bind(task_main, this, task_id_,
   //         task_arg_vec));
 
   //sleep(60000);
 
+
   task_running_ = true;
   ProcFSMonitor::ProcessStatistics_t current_stats;
+
+  int FLAGS_heartbeat_interval = 1;
+
   // // This will check if the task thread has joined once every heartbeat
   // // interval, and go back to sleep if it has not.
   // // TODO(malte): think about whether we'd like some kind of explicit
   // // notification scheme in case the heartbeat interval is large.
   // while (!main_thread.timed_join(
   //         boost::posix_time::seconds(FLAGS_heartbeat_interval))) {
-     while (true) {
+  while (true) {
       sleep(FLAGS_heartbeat_interval);
           // TODO(malte): Check if we've exited with an error
     // if(error)
     //   task_error_ = true;
     // Notify the coordinator that we're still running happily
       VLOG(1) << "Task thread has not yet joined, sending heartbeat...";
+      printf("HEARTHEATIN\n");
       task_perf_monitor_.ProcessInformation(pid_, &current_stats);
       SendHeartbeat(current_stats);
     // TODO(malte): We'll need to receive any potential messages from the
@@ -217,15 +227,23 @@ void TaskLib::SendFinalizeMessage(bool success) {
 void TaskLib::SendHeartbeat(
     const ProcFSMonitor::ProcessStatistics_t& proc_stats) {
   BaseMessage bm;
+  printf("Writing bytes\n");
   SUBMSG_WRITE(bm, task_heartbeat, task_id, task_id_);
   // Add current set of procfs statistics
+
+  printf("Creating stats\n");
   TaskPerfStatisticsSample* stats =
       bm.mutable_task_heartbeat()->mutable_stats();
+      printf("Adding sats to heartbeat\n");
   AddTaskStatisticsToHeartbeat(proc_stats, stats);
   // TODO(malte): we do not always need to send the location string; it
   // sufficies to send it if our location changed (which should be rare).
+  printf("Local endpoint\n");
   SUBMSG_WRITE(bm, task_heartbeat, location, chan_->LocalEndpointString());
+  printf("Something else\n");
   SUBMSG_WRITE(bm, task_heartbeat, sequence_number, heartbeat_seq_number_++);
+
+  printf("SENDING HEARTBEAT\n");
   VLOG(1) << "Sending heartbeat message!";
   SendMessageToCoordinator(&bm);
 }
@@ -240,7 +258,8 @@ bool TaskLib::SendMessageToCoordinator(BaseMessage* msg) {
 }
 
 void TaskLib::setUpStorageEngine() {
-  VLOG(1) << "Setting Up Storage Engine (TaskLib)" << endl;
+
+    VLOG(1) << "Setting Up Storage Engine (TaskLib)" << endl;
   /* Contact coordinator to ask where storage engine is for this resource
    As currently, only assume that is local, don't currently need it
    Also need */

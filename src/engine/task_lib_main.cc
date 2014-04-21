@@ -25,11 +25,10 @@ void LaunchTasklib()
 {
   printf("hello from free function\n");
 
-  sleep(6);
-  printf("Creating task_lib\n");
+  //sleep(6);
 
   
-  string sargs = "--fromenv=coordinator_uri";
+  string sargs = "";
   string progargs = "nginxy";
 
 
@@ -57,6 +56,9 @@ void LaunchTasklib()
   TaskLib task_lib;
 
   task_lib.RunMonitor(main_thread_id);
+
+  //   printf("Creating task_lib\n");
+
 
   //TaskLib task;
   while (true) {
