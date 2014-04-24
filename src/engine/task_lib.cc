@@ -178,7 +178,11 @@ void TaskLib::RunMonitor(boost::thread::id main_thread_id) {
 
 
   task_running_ = true;
+  printf("Setting up stats\n");
+
   ProcFSMonitor::ProcessStatistics_t current_stats;
+  printf("Finished setting up stats\n");
+
 
   int FLAGS_heartbeat_interval = 1;
 

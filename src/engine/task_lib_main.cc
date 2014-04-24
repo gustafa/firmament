@@ -84,13 +84,10 @@ __attribute__ ((constructor)) static void task_lib_main() {
   //sleep(2);
 
 
-  int i = 0;
-  char *s = *environ;
-  printf("environ\n");
-  for (; s; i++) {
-    printf("%s\n", s);
-    s = *(environ+i);
-  }
+
+  // Unset LD_PRELOAD to avoid us from starting tasklib in childprocess
+  setenv("LD_PRELOAD", "", 1);
+
   printf("Starting thread\n");
   boost::thread t1(&LaunchTasklib);
 
