@@ -20,6 +20,10 @@
 #include "platforms/common.h"
 #include "platforms/common.pb.h"
 
+extern "C" {
+  #include "examples/nginx/src/event/ngx_event.h"
+}
+
 // TODO(gustafa): FIX later!
 DEFINE_string(coordinator_uri, "tcp:localhost:8088", "The URI to contact the coordinator at.");
 DEFINE_string(resource_id, "feedcafedeadbeeffeedcafedeadbeeffeedcafedeadbeeffeedcafedeadbeef",
@@ -198,6 +202,7 @@ void TaskLib::RunMonitor(boost::thread::id main_thread_id) {
     // if(error)
     //   task_error_ = true;
     // Notify the coordinator that we're still running happily
+      printf("Stat handled: %lu\n", *ngx_connection_counter);
       VLOG(1) << "Task thread has not yet joined, sending heartbeat...";
       printf("HEARTHEATIN\n");
       task_perf_monitor_.ProcessInformation(pid_, &current_stats);

@@ -52,7 +52,7 @@ void LaunchTasklib()
   printf("ENV:%s\n", uri);
 
   printf("Coordinator URI:%s\n", FLAGS_coordinator_uri.c_str());
-
+  sleep(5);
   TaskLib task_lib;
 
   task_lib.RunMonitor(main_thread_id);
@@ -83,6 +83,7 @@ __attribute__ ((constructor)) static void task_lib_main() {
   // setup work for command line flags, logging, etc.
   //sleep(2);
 
+  sleep(3);
 
 
   // Unset LD_PRELOAD to avoid us from starting tasklib in childprocess
