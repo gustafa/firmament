@@ -261,6 +261,7 @@ void TaskLib::AddNginxStatistics(TaskPerfStatisticsSample::NginxStatistics *ns) 
         LOG(ERROR) << "Found an unexpected number of Nginx statistics!";
       }
 
+      // TODO(gustafa): Send diffs rather than totals.
       ns->set_active_connections(values[0]);
       ns->set_reading(values[1]);
       ns->set_writing(values[2]);
