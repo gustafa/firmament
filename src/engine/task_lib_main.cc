@@ -8,6 +8,8 @@
 
 #include "base/common.h"
 #include "engine/task_lib.h"
+#include <curl/curl.h>
+
 //#include "platforms/common.h"
 
 //#include "platforms/common.pb.h"

@@ -10,6 +10,8 @@
 
 #include <string>
 #include <vector>
+#include <curl/curl.h>
+
 #ifdef __PLATFORM_HAS_BOOST__
 #include <boost/uuid/uuid.hpp>
 #include <boost/uuid/uuid_io.hpp>
@@ -113,7 +115,13 @@ class TaskLib {
   void SendHeartbeat(const ProcFSMonitor::ProcessStatistics_t& stats);
   bool SendMessageToCoordinator(BaseMessage* msg);
 
+  CURLcode GetWebpageContents(const char *uri);
+  static size_t StoreWebsite(void *ptr, size_t size, size_t nmemb, void *stream);
   void setUpStorageEngine();
+
+  void AddNginxStatistics(TaskPerfStatisticsSample::NginxStatistics *ns);
+
+
 
  private:
   pid_t pid_;
@@ -121,6 +129,9 @@ class TaskLib {
   bool task_running_;
   uint64_t heartbeat_seq_number_;
   ProcFSMonitor task_perf_monitor_;
+
+  static string web_contents; 
+
 
   Cache_t* cache;
   string storage_uri;

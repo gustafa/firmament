@@ -20,9 +20,8 @@
 #include "platforms/common.h"
 #include "platforms/common.pb.h"
 
-extern "C" {
-  #include "examples/nginx/src/event/ngx_event.h"
-}
+#include "examples/nginx/src/event/ngx_event.h"
+
 
 // TODO(gustafa): FIX later!
 DEFINE_string(coordinator_uri, "tcp:localhost:8088", "The URI to contact the coordinator at.");
@@ -33,7 +32,12 @@ DEFINE_int32(heartbeat_interval, 1,
         "The interval, in seconds, between heartbeats sent to the"
         "coordinator.");
 
+DEFINE_string(tasklib_application, "", "The application running alongside tasklib");
+
+
+
 namespace firmament {
+string TaskLib::web_contents = "";
 
 
 // TODO(gustafa) fix these envs.
@@ -50,9 +54,13 @@ namespace firmament {
     task_perf_monitor_(1000000) {
   const char* task_id_env;
   if (FLAGS_task_id.empty())
-    task_id_env = getenv("TASK_ID");
+    task_id_env = getenv("FLAGS_task_id");
   else
     task_id_env = FLAGS_task_id.c_str();
+
+  if (FLAGS_tasklib_application.empty())
+    FLAGS_tasklib_application = getenv("FLAGS_tasklib_application");
+
   VLOG(1) << "Task ID is " << task_id_env;
   CHECK_NOTNULL(task_id_env);
   task_id_ = TaskIDFromString(task_id_env);
@@ -71,6 +79,12 @@ void TaskLib::AddTaskStatisticsToHeartbeat(
   // Scheduler statistics
   stats->set_sched_run(proc_stats.sched_run_ticks);
   stats->set_sched_wait(proc_stats.sched_wait_runnable_ticks);
+
+
+
+  if (FLAGS_tasklib_application == "nginx") {
+    AddNginxStatistics(stats->mutable_nginx_stats());
+  }
 }
 
 void TaskLib::AwaitNextMessage() {
@@ -169,16 +183,12 @@ bool TaskLib::PullTaskInformationFromCoordinator(TaskID_t task_id,
   return true;
 }
 
+
 void TaskLib::RunMonitor(boost::thread::id main_thread_id) {
   ConnectToCoordinator(coordinator_uri_);
-  printf("Setting up storage engine\n");
+  VLOG(3) << "Setting up storage engine";
   setUpStorageEngine();
-  printf("Finished setting up storage engine\n");
-
-  // boost::thread task_thread(boost::bind(task_main, this, task_id_,
-  //         task_arg_vec));
-
-  //sleep(60000);
+  VLOG(2) << "Finished setting up storage engine";
 
 
   task_running_ = true;
@@ -202,7 +212,11 @@ void TaskLib::RunMonitor(boost::thread::id main_thread_id) {
     // if(error)
     //   task_error_ = true;
     // Notify the coordinator that we're still running happily
-      printf("Stat handled: %lu\n", *ngx_connection_counter);
+      //printf("Stat handled: %lu\n", *ngx_connection_counter);
+      //printf("my_shared from tasklib: %d\n",my_shared);
+      // TODO(gustafa): Move to a different function, do not assume nginx!
+
+
       VLOG(1) << "Task thread has not yet joined, sending heartbeat...";
       printf("HEARTHEATIN\n");
       task_perf_monitor_.ProcessInformation(pid_, &current_stats);
@@ -214,6 +228,50 @@ void TaskLib::RunMonitor(boost::thread::id main_thread_id) {
 
   task_running_ = false;
 
+}
+
+void TaskLib::AddNginxStatistics(TaskPerfStatisticsSample::NginxStatistics *ns) { 
+    CURLcode curl_code = GetWebpageContents("localhost/nginx_status");
+    if (curl_code == CURLE_OK) {
+      printf("%s\n", web_contents.c_str());
+      ns->set_status(TaskPerfStatisticsSample_NginxStatistics_Status_OK);
+
+      const string delimiter = ",";
+      
+      string token;
+      int pos = 0;
+      int i = 0;
+
+      const int num_stats = 4;
+      unsigned long values[num_stats];
+
+
+
+
+      while ((pos = web_contents.find(delimiter)) != std::string::npos) {
+        token = web_contents.substr(0, pos);
+        std::cout << token << std::endl;
+        web_contents.erase(0, pos + delimiter.length());
+
+        values[i] = strtoul(token.c_str(), NULL, 0);
+        ++i;
+      }
+
+      if (i != num_stats) {
+        LOG(ERROR) << "Found an unexpected number of Nginx statistics!";
+      }
+
+      ns->set_active_connections(values[0]);
+      ns->set_reading(values[1]);
+      ns->set_writing(values[2]);
+      ns->set_waiting(values[3]);
+
+      for (int i = 0; i < num_stats; ++i) {
+        printf("%lu\n", values[i]);
+      }
+   } else {
+      ns->set_status(TaskPerfStatisticsSample_NginxStatistics_Status_DOWN);
+   }
 }
 
 
@@ -233,18 +291,20 @@ void TaskLib::SendFinalizeMessage(bool success) {
   boost::this_thread::sleep(boost::posix_time::seconds(1));
 }
 
-void TaskLib::SendHeartbeat(
-    const ProcFSMonitor::ProcessStatistics_t& proc_stats) {
+
+void TaskLib::SendHeartbeat(const ProcFSMonitor::ProcessStatistics_t& proc_stats) {
   BaseMessage bm;
   printf("Writing bytes\n");
   SUBMSG_WRITE(bm, task_heartbeat, task_id, task_id_);
   // Add current set of procfs statistics
 
   printf("Creating stats\n");
-  TaskPerfStatisticsSample* stats =
+  TaskPerfStatisticsSample* taskperf_stats =
       bm.mutable_task_heartbeat()->mutable_stats();
       printf("Adding sats to heartbeat\n");
-  AddTaskStatisticsToHeartbeat(proc_stats, stats);
+
+  AddTaskStatisticsToHeartbeat(proc_stats, taskperf_stats);
+
   // TODO(malte): we do not always need to send the location string; it
   // sufficies to send it if our location changed (which should be rare).
   printf("Local endpoint\n");
@@ -255,6 +315,41 @@ void TaskLib::SendHeartbeat(
   printf("SENDING HEARTBEAT\n");
   VLOG(1) << "Sending heartbeat message!";
   SendMessageToCoordinator(&bm);
+}
+
+
+size_t TaskLib::StoreWebsite(void *ptr, size_t size, size_t nmemb, void *stream)  { 
+    int numbytes = size*nmemb; 
+    // The data is not null-terminated, so get the last character, and replace 
+    // it with '\0'. 
+    char lastchar = *((char *) ptr + numbytes - 1); 
+    *((char *) ptr + numbytes - 1) = '\0'; 
+    web_contents.append((char *)ptr); 
+    web_contents.append(1,lastchar); 
+    *((char *) ptr + numbytes - 1) = lastchar;  // Might not be necessary. 
+    return size*nmemb; 
+} 
+
+
+CURLcode TaskLib::GetWebpageContents(const char *uri) {
+  // Clear any old contents.
+  web_contents = "";
+  CURL *curl;
+  CURLcode res;
+
+  curl = curl_easy_init();
+
+  if (curl) {
+    curl_easy_setopt(curl, CURLOPT_URL, uri);
+    curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, StoreWebsite);
+    CURLcode res = curl_easy_perform(curl); 
+
+    curl_easy_cleanup(curl);
+    return res;
+  } else {
+    LOG(ERROR) << "Failed to instantiate curl!";
+    exit(1);
+  }
 }
 
 bool TaskLib::SendMessageToCoordinator(BaseMessage* msg) {

@@ -6,10 +6,26 @@
 package firmament;
 
 message TaskPerfStatisticsSample {
+  message NginxStatistics {
+    enum Status {
+      OK = 0;
+      DOWN = 1;
+      FORBIDDEN = 2;
+    }
+  
+    required Status status = 1;
+    optional uint64 active_connections = 2;
+    optional uint64 reading = 3;
+    optional uint64 writing = 4;
+    optional uint64 waiting = 5;
+  }
+
+
   required uint64 task_id = 1;
   required uint64 timestamp = 2;
   optional uint64 vsize = 3;
   optional uint64 rsize = 4;
   optional uint64 sched_run = 5;
   optional uint64 sched_wait = 6;
+  optional NginxStatistics nginx_stats = 7;
 }
