@@ -36,9 +36,6 @@ using google::protobuf::RepeatedField;
 #define SUBMSG_WRITE_PTR(obj, submsg, member, val) \
     obj->mutable ## _ ## submsg()->set_ ## member(val)
 
-#define MSG_WRITE_PTR(obj, member, val) \
-    obj->set_ ## member(val)
-
 // Helper function to convert an arbitrary object to a string via the
 // stringstream standard library class.
 template <class T> inline string to_string(const T& t) {

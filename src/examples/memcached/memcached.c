@@ -5469,10 +5469,11 @@ int main (int argc, char **argv) {
     }
 
     /* lose root privileges if we have them */
-    if (getuid() == 0 || geteuid() == 0) {
+/*    if (getuid() == 0 || geteuid() == 0) {
+        // TODO Reinstate
         if (username == 0 || *username == '\0') {
             fprintf(stderr, "can't run as root without the -u switch\n");
-            exit(EX_USAGE);
+            //exit(EX_USAGE);
         }
         if ((pw = getpwnam(username)) == 0) {
             fprintf(stderr, "can't find the user %s to switch to\n", username);
@@ -5482,7 +5483,7 @@ int main (int argc, char **argv) {
             fprintf(stderr, "failed to assume identity of user %s\n", username);
             exit(EX_OSERR);
         }
-    }
+    } */
 
     /* Initialize Sasl if -S was specified */
     if (settings.sasl) {

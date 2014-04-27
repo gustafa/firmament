@@ -35,11 +35,13 @@ DEFINE_int32(heartbeat_interval, 1,
 
 DEFINE_string(tasklib_application, "", "The application running alongside tasklib");
 
+#define SET_PROTO_IF_DICT_HAS_INT(proto, dict, member, val) \
+  val = json_object_get(dict, # member); \
+  if (val) proto->set ## _ ## member(json_integer_value(val));
 
-#define SET_PROTO_IF_DICT_HAS_INT(proto, dict, member) \
-  json_t *val = json_object_get(dict, "member"); \
-  if (val) proto->set_ ## member(json_integer_value(val));
-
+#define SET_PROTO_IF_DICT_HAS_DOUBLE(proto, dict, member, val) \
+  val = json_object_get(dict, # member); \
+  if (val) proto->set ## _ ## member(json_real_value(val));
 // #define SET_PROTO_IF_DICT_HAS_DOUBLE(proto, dict, member) \
 //   json_t *val = json_object_get(dict, member); \
 //   if (val) proto->set_ ## memberjson_integer_valueval);
@@ -94,7 +96,7 @@ void TaskLib::AddTaskStatisticsToHeartbeat(
   stats->set_sched_wait(proc_stats.sched_wait_runnable_ticks);
 
 
-
+  printf("FLAGNAME: %s\n", FLAGS_tasklib_application.c_str());
   if (FLAGS_tasklib_application == "nginx") {
     AddNginxStatistics(stats->mutable_nginx_stats());
   } else if (FLAGS_tasklib_application == "memcached") {
@@ -289,8 +291,12 @@ void TaskLib::AddNginxStatistics(TaskPerfStatisticsSample::NginxStatistics *ns) 
 
 
 void TaskLib::AddMemcachedStatistics(TaskPerfStatisticsSample::MemcachedStatistics *ms) { 
+    printf("Getting memcached stats!\n");
     FILE* pipe = popen("memcached-tool localhost stats", "r");
-    if (!pipe) printf("ERROR\n");
+    if (!pipe) {
+      printf("ERROR\n");
+      exit(1);
+    }
     char buffer[128];
     std::string result = "";
     while(!feof(pipe)) {
@@ -321,17 +327,31 @@ void TaskLib::AddMemcachedStatistics(TaskPerfStatisticsSample::MemcachedStatisti
       json_t *value;
 
 
-      SET_PROTO_IF_DICT_HAS_INT(ms, json_result, bytes);
-
-      // json_object_foreach(json_result, key, value) {
-        
-
-      //   //printf("KEY: %s", key);
-      // }
+      //
 
 
+      // Used by the macro as a temporary variable holding the current variable.
+      json_t *val;
 
-
+      // TODO(gustafa): Decide which ones are important, potentially doing processing
+      // before sending them off.
+      SET_PROTO_IF_DICT_HAS_INT(ms, json_result, accepting_conns, val);
+      SET_PROTO_IF_DICT_HAS_INT(ms, json_result, curr_connections, val);
+      SET_PROTO_IF_DICT_HAS_INT(ms, json_result, bytes_read, val);
+      SET_PROTO_IF_DICT_HAS_INT(ms, json_result, bytes_written, val);
+      SET_PROTO_IF_DICT_HAS_INT(ms, json_result, cas_hits, val);
+      SET_PROTO_IF_DICT_HAS_INT(ms, json_result, cas_misses, val);
+      SET_PROTO_IF_DICT_HAS_INT(ms, json_result, decr_hits, val);
+      SET_PROTO_IF_DICT_HAS_INT(ms, json_result, decr_misses, val);
+      SET_PROTO_IF_DICT_HAS_INT(ms, json_result, evictions, val);
+      SET_PROTO_IF_DICT_HAS_INT(ms, json_result, get_hits, val);
+      SET_PROTO_IF_DICT_HAS_INT(ms, json_result, get_misses, val)
+      SET_PROTO_IF_DICT_HAS_INT(ms, json_result, total_items, val);
+      SET_PROTO_IF_DICT_HAS_INT(ms, json_result, malloc_fails, val)
+      SET_PROTO_IF_DICT_HAS_INT(ms, json_result, touch_hits, val);
+      SET_PROTO_IF_DICT_HAS_INT(ms, json_result, touch_misses, val);
+      SET_PROTO_IF_DICT_HAS_DOUBLE(ms, json_result, rusage_system, val);
+      SET_PROTO_IF_DICT_HAS_DOUBLE(ms, json_result, rusage_user, val);
 
     }
 
@@ -369,7 +389,7 @@ void TaskLib::SendHeartbeat(const ProcFSMonitor::ProcessStatistics_t& proc_stats
   printf("Creating stats\n");
   TaskPerfStatisticsSample* taskperf_stats =
       bm.mutable_task_heartbeat()->mutable_stats();
-      printf("Adding sats to heartbeat\n");
+  printf("Adding sats to heartbeat\n");
 
   AddTaskStatisticsToHeartbeat(proc_stats, taskperf_stats);
 
