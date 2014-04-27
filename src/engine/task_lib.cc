@@ -8,6 +8,7 @@
 #include "engine/task_lib.h"
 
 #include <vector>
+#include <jansson.h>
 
 #include "base/common.h"
 #include "base/data_object.h"
@@ -34,6 +35,18 @@ DEFINE_int32(heartbeat_interval, 1,
 
 DEFINE_string(tasklib_application, "", "The application running alongside tasklib");
 
+
+#define SET_PROTO_IF_DICT_HAS_INT(proto, dict, member) \
+  json_t *val = json_object_get(dict, "member"); \
+  if (val) proto->set_ ## member(json_integer_value(val));
+
+// #define SET_PROTO_IF_DICT_HAS_DOUBLE(proto, dict, member) \
+//   json_t *val = json_object_get(dict, member); \
+//   if (val) proto->set_ ## memberjson_integer_valueval);
+
+// #define SET_PROTO_IF_DICT_HAS_STRING(proto, dict, member) \
+//   json_t *val = json_object_get(dict, member); \
+//   if (val) proto->set_ ## member(*val);
 
 
 namespace firmament {
@@ -84,6 +97,8 @@ void TaskLib::AddTaskStatisticsToHeartbeat(
 
   if (FLAGS_tasklib_application == "nginx") {
     AddNginxStatistics(stats->mutable_nginx_stats());
+  } else if (FLAGS_tasklib_application == "memcached") {
+    AddMemcachedStatistics(stats->mutable_memcached_stats());
   }
 }
 
@@ -245,9 +260,6 @@ void TaskLib::AddNginxStatistics(TaskPerfStatisticsSample::NginxStatistics *ns) 
       const int num_stats = 4;
       unsigned long values[num_stats];
 
-
-
-
       while ((pos = web_contents.find(delimiter)) != std::string::npos) {
         token = web_contents.substr(0, pos);
         std::cout << token << std::endl;
@@ -274,6 +286,61 @@ void TaskLib::AddNginxStatistics(TaskPerfStatisticsSample::NginxStatistics *ns) 
       ns->set_status(TaskPerfStatisticsSample_NginxStatistics_Status_DOWN);
    }
 }
+
+
+void TaskLib::AddMemcachedStatistics(TaskPerfStatisticsSample::MemcachedStatistics *ms) { 
+    FILE* pipe = popen("memcached-tool localhost stats", "r");
+    if (!pipe) printf("ERROR\n");
+    char buffer[128];
+    std::string result = "";
+    while(!feof(pipe)) {
+      if(fgets(buffer, 128, pipe) != NULL)
+        result += buffer;
+    }
+    pclose(pipe);
+
+    printf("Output:%s", result.c_str());
+    //json_t *json_loads(const char *input, size_t flags, json_error_t *error)
+    json_error_t errors;
+    json_t * json_result = json_loads(result.c_str(), JSON_REJECT_DUPLICATES, &errors);
+
+
+    if (!json_result) {
+      ms->set_status(TaskPerfStatisticsSample_MemcachedStatistics_Status_DOWN);
+
+        // Failed to connect to memcached, report status as memcached down.
+    } else {
+
+      if (!json_is_object(json_result)) {
+        LOG(ERROR) << "Got non-dictionary json object!";
+      }
+
+
+      ms->set_status(TaskPerfStatisticsSample_MemcachedStatistics_Status_OK);
+      const char *key;
+      json_t *value;
+
+
+      SET_PROTO_IF_DICT_HAS_INT(ms, json_result, bytes);
+
+      // json_object_foreach(json_result, key, value) {
+        
+
+      //   //printf("KEY: %s", key);
+      // }
+
+
+
+
+
+    }
+
+
+
+}
+
+
+
 
 
 void TaskLib::SendFinalizeMessage(bool success) {

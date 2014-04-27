@@ -133,14 +133,42 @@ if ($mode eq 'stats') {
         last if /^END/;
         chomp;
         if (/^STAT\s+(\S*)\s+(.*)/) {
-            $items{$1} = $2;
+            my $key = $1;
+            my $val = $2;
+
+            $val =~ s/\r//;
+            $items{$key} = $val;
         }
     }
-    printf ("#%-17s %5s %11s\n", $addr, "Field", "Value");
-    foreach my $name (sort(keys(%items))) {
-        printf ("%24s %12s\n", $name, $items{$name});
+    my $first = 1;
 
+
+    while ( (my $key, my $val) = each %items ) {
+        chomp($val);
+        if (!$first) {
+            printf(",");
+        } else {
+            printf("{");
+            $first = 0;
+        }
+
+        my $val_out;
+
+        if ($val =~ /^\d+$/  or $val =~ /^\d+\.\d+$/) {
+            $val_out = $val;
+        } else {
+            $val_out = "\"" . $val . "\"";
+        }
+
+        printf("\"%s\": %s", $key, $val_out);
     }
+
+    printf("}\n");
+    # foreach my $name (sort(keys(%items))) {
+    #     my ke
+    #     printf ("%24s %12s\n", $name, $items{$name});
+
+    # }
     exit;
 }
 

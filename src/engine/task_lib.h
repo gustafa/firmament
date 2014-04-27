@@ -120,6 +120,7 @@ class TaskLib {
   void setUpStorageEngine();
 
   void AddNginxStatistics(TaskPerfStatisticsSample::NginxStatistics *ns);
+  void AddMemcachedStatistics(TaskPerfStatisticsSample::MemcachedStatistics *ms);
 
 
 
