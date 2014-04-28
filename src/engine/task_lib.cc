@@ -209,38 +209,33 @@ void TaskLib::RunMonitor(boost::thread::id main_thread_id) {
 
 
   task_running_ = true;
-  printf("Setting up stats\n");
+  VLOG(3) << "Setting up process statistics\n");
 
   ProcFSMonitor::ProcessStatistics_t current_stats;
-  printf("Finished setting up stats\n");
+  VLOG(3) << "Finished setting up process statistics\n";
 
 
   int FLAGS_heartbeat_interval = 1;
 
-  // // This will check if the task thread has joined once every heartbeat
-  // // interval, and go back to sleep if it has not.
-  // // TODO(malte): think about whether we'd like some kind of explicit
-  // // notification scheme in case the heartbeat interval is large.
-  // while (!main_thread.timed_join(
-  //         boost::posix_time::seconds(FLAGS_heartbeat_interval))) {
+  // This will check if the task thread has joined once every heartbeat
+  // interval, and go back to sleep if it has not.
+  // TODO(malte): think about whether we'd like some kind of explicit
+  // notification scheme in case the heartbeat interval is large.
+
+
   while (true) {
       sleep(FLAGS_heartbeat_interval);
-          // TODO(malte): Check if we've exited with an error
-    // if(error)
-    //   task_error_ = true;
-    // Notify the coordinator that we're still running happily
-      //printf("Stat handled: %lu\n", *ngx_connection_counter);
-      //printf("my_shared from tasklib: %d\n",my_shared);
-      // TODO(gustafa): Move to a different function, do not assume nginx!
-
+      // TODO(malte): Check if we've exited with an error
+      // if(error)
+      //   task_error_ = true;
+      // Notify the coordinator that we're still running happily
 
       VLOG(1) << "Task thread has not yet joined, sending heartbeat...";
-      printf("HEARTHEATIN\n");
       task_perf_monitor_.ProcessInformation(pid_, &current_stats);
       SendHeartbeat(current_stats);
-    // TODO(malte): We'll need to receive any potential messages from the
-    // coordinator here, too. This is probably best done by a simple RecvA on
-    // the channel.
+      // TODO(malte): We'll need to receive any potential messages from the
+      // coordinator here, too. This is probably best done by a simple RecvA on
+      // the channel.
     }
 
   task_running_ = false;
@@ -305,15 +300,13 @@ void TaskLib::AddMemcachedStatistics(TaskPerfStatisticsSample::MemcachedStatisti
     }
     pclose(pipe);
 
-    printf("Output:%s", result.c_str());
-    //json_t *json_loads(const char *input, size_t flags, json_error_t *error)
     json_error_t errors;
-    json_t * json_result = json_loads(result.c_str(), JSON_REJECT_DUPLICATES, &errors);
-
+    json_t * json_result = json_loads(result.c_str(),
+      JSON_REJECT_DUPLICATES, &errors);
 
     if (!json_result) {
       ms->set_status(TaskPerfStatisticsSample_MemcachedStatistics_Status_DOWN);
-
+      VLOG(2) << "Failed to get memcached statistics";
         // Failed to connect to memcached, report status as memcached down.
     } else {
 
@@ -333,8 +326,8 @@ void TaskLib::AddMemcachedStatistics(TaskPerfStatisticsSample::MemcachedStatisti
       // Used by the macro as a temporary variable holding the current variable.
       json_t *val;
 
-      // TODO(gustafa): Decide which ones are important, potentially doing processing
-      // before sending them off.
+      // TODO(gustafa): Decide which ones are important,
+      // potentially doing processing before sending them off.
       SET_PROTO_IF_DICT_HAS_INT(ms, json_result, accepting_conns, val);
       SET_PROTO_IF_DICT_HAS_INT(ms, json_result, curr_connections, val);
       SET_PROTO_IF_DICT_HAS_INT(ms, json_result, bytes_read, val);
@@ -380,7 +373,8 @@ void TaskLib::SendFinalizeMessage(bool success) {
 }
 
 
-void TaskLib::SendHeartbeat(const ProcFSMonitor::ProcessStatistics_t& proc_stats) {
+void TaskLib::SendHeartbeat(
+  const ProcFSMonitor::ProcessStatistics_t& proc_stats) {
   BaseMessage bm;
   printf("Writing bytes\n");
   SUBMSG_WRITE(bm, task_heartbeat, task_id, task_id_);
@@ -406,7 +400,8 @@ void TaskLib::SendHeartbeat(const ProcFSMonitor::ProcessStatistics_t& proc_stats
 }
 
 
-size_t TaskLib::StoreWebsite(void *ptr, size_t size, size_t nmemb, void *stream)  { 
+size_t TaskLib::StoreWebsite(void *ptr, size_t size, size_t nmemb,
+  void *stream) { 
     int numbytes = size*nmemb; 
     // The data is not null-terminated, so get the last character, and replace 
     // it with '\0'. 

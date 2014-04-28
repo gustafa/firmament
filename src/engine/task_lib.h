@@ -116,11 +116,12 @@ class TaskLib {
   bool SendMessageToCoordinator(BaseMessage* msg);
 
   CURLcode GetWebpageContents(const char *uri);
-  static size_t StoreWebsite(void *ptr, size_t size, size_t nmemb, void *stream);
+  static size_t StoreWebsite(void *ptr, size_t size, size_t nmemb,
+    void *stream);
   void setUpStorageEngine();
 
   void AddNginxStatistics(TaskPerfStatisticsSample::NginxStatistics *ns);
-  void AddMemcachedStatistics(TaskPerfStatisticsSample::MemcachedStatistics *ms);
+  void AddMemcachedStatistics(TaskPerfStatisticsSample::MemcachedStatistics *ms); // NOLINT
 
 
 
