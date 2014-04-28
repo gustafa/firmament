@@ -50,8 +50,9 @@ DEFINE_string(tasklib_application, "",
 
 
 namespace firmament {
-string TaskLib::web_contents = "";
 
+// Variable holding contents for webserver statistics.
+string TaskLib::web_stats = ""; // NOLINT
 
 // TODO(gustafa) fix these envs.
 TaskLib::TaskLib()
@@ -253,9 +254,9 @@ void TaskLib::AddNginxStatistics(TaskPerfStatisticsSample::NginxStatistics *ns) 
     const int num_stats = 4;
     uint64_t values[num_stats];
     string token;
-    while ((pos = web_contents.find(delimiter)) != string::npos) {
-      token = web_contents.substr(0, pos);
-      web_contents.erase(0, pos + delimiter.length());
+    while ((pos = web_stats.find(delimiter)) != string::npos) {
+      token = web_stats.substr(0, pos);
+      web_stats.erase(0, pos + delimiter.length());
       values[i] = strtoul(token.c_str(), NULL, 0);
       ++i;
     }
@@ -343,7 +344,6 @@ void TaskLib::SendFinalizeMessage(bool success) {
   boost::this_thread::sleep(boost::posix_time::seconds(1));
 }
 
-
 void TaskLib::SendHeartbeat(
   const ProcFSMonitor::ProcessStatistics_t& proc_stats) {
   BaseMessage bm;
@@ -370,24 +370,23 @@ void TaskLib::SendHeartbeat(
   SendMessageToCoordinator(&bm);
 }
 
+size_t TaskLib::StoreWebsite(void *ptr, size_t size, size_t nmemb, void *stream) { // NOLINT
+  int numbytes = size*nmemb;
+  char *char_ptr = reinterpret_cast<char *>(ptr);
 
-size_t TaskLib::StoreWebsite(void *ptr, size_t size, size_t nmemb,
-  void *stream) {
-    int numbytes = size*nmemb;
-    // The data is not null-terminated, so get the last character, and replace
-    // it with '\0'.
-    char lastchar = *((char *) ptr + numbytes - 1);
-    *((char *) ptr + numbytes - 1) = '\0';
-    web_contents.append((char *)ptr);
-    web_contents.append(1,lastchar);
-    *((char *) ptr + numbytes - 1) = lastchar;  // Might not be necessary.
-    return size*nmemb;
+  // The data is not null-terminated, so get the last character, and replace
+  // it with '\0'.
+  char lastchar = *(char_ptr + numbytes - 1);
+  *(char_ptr + numbytes - 1) = '\0';
+  web_stats.append(char_ptr);
+  web_stats.append(1,lastchar);
+  *(char_ptr + numbytes - 1) = lastchar;  // Might not be necessary.
+  return size*nmemb;
 }
-
 
 CURLcode TaskLib::GetWebpageContents(const char *uri) {
   // Clear any old contents.
-  web_contents = "";
+  web_stats = "";
   CURL *curl;
   CURLcode res;
 
@@ -416,7 +415,6 @@ bool TaskLib::SendMessageToCoordinator(BaseMessage* msg) {
 }
 
 void TaskLib::setUpStorageEngine() {
-
     VLOG(1) << "Setting Up Storage Engine (TaskLib)" << endl;
   /* Contact coordinator to ask where storage engine is for this resource
    As currently, only assume that is local, don't currently need it
@@ -514,7 +512,7 @@ void* TaskLib::GetObjectStart(const DataObjectID_t& id) {
                                                 // only one waiting on this
 
       while (!reference_not_t->writable ||
-             !(reference_not_t->request_type == GET_OBJECT )) {
+             !(reference_not_t->request_type == GET_OBJECT)) {
         cout << "Wait for reply " << endl;
         reference_not_t->cond_read.wait(lock_ref);
       }

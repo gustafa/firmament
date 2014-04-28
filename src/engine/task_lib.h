@@ -132,8 +132,7 @@ class TaskLib {
   uint64_t heartbeat_seq_number_;
   ProcFSMonitor task_perf_monitor_;
 
-  static string web_contents;
-
+  static string web_stats;
 
   Cache_t* cache;
   string storage_uri;
