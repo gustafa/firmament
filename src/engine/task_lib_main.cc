@@ -35,19 +35,21 @@ void LaunchTasklib() {
 
 
   TaskLib task_lib;
-  // TODO(gustafa): Send the main thread id and join neatly in the tasklib monitor.
+  // TODO(gustafa): Send the main thread id and join neatly in the
+  // tasklib monitor.
   task_lib.RunMonitor(task_thread_id);
 }
 
 
-__attribute__ ((constructor)) static void task_lib_main() {
+__attribute__((constructor)) static void task_lib_main() {
   /*
   Launched through the LD_PRELOAD environment variable.
   Starts a new thread to run the TaskLib monitoring and lets
   the main program continue execution in the current thread.
   */
 
-  // Unset LD_PRELOAD to avoid us from starting launching monitors in childprocesses.
+  // Unset LD_PRELOAD to avoid us from starting launching monitors in
+  // childprocesses.
   setenv("LD_PRELOAD", "", 1);
 
   VLOG(2) << "Starting tasklib monitor thread\n";
