@@ -209,7 +209,7 @@ void TaskLib::RunMonitor(boost::thread::id main_thread_id) {
 
 
   task_running_ = true;
-  VLOG(3) << "Setting up process statistics\n");
+  VLOG(3) << "Setting up process statistics\n";
 
   ProcFSMonitor::ProcessStatistics_t current_stats;
   VLOG(3) << "Finished setting up process statistics\n";

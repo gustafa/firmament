@@ -20,33 +20,36 @@ using namespace firmament;  // NOLINT
 void LaunchTasklib() {
   /* Sets up and runs a TaskLib monitor in the current thread. */
   VLOG(3) << "Tasklib thread launched";
-  firmament::common::InitFirmament(2, argv);
 
 
   string sargs = "";
   string progargs = "nginxy";
-  boost::thread::id main_thread_id = boost::this_thread::get_id();
+  boost::thread::id task_thread_id = boost::this_thread::get_id();
 
-  char *argv[2];
-  argv[0] = const_cast<char*>(progargs.c_str());
+  char *argv;
+  //argv[0] = const_cast<char*>(progargs.c_str());
 
-  argv[1] = const_cast<char*>(sargs.c_str());
+  //argv[1] = const_cast<char*>(sargs.c_str());
+    firmament::common::InitFirmament(0, &argv);
+
 
 
   TaskLib task_lib;
-  task_lib.RunMonitor(main_thread_id);
+  // TODO(gustafa): Send the main thread id and join neatly in the tasklib monitor.
+  task_lib.RunMonitor(task_thread_id);
 }
 
 
-_attribute__ ((constructor)) static void task_lib_main() {
+__attribute__ ((constructor)) static void task_lib_main() {
   /*
-  Launched through LD_PRELOAD. Starts a new thread to run the TaskLib
-  monitoring and lets the main program continue execution in the current thread.
+  Launched through the LD_PRELOAD environment variable.
+  Starts a new thread to run the TaskLib monitoring and lets
+  the main program continue execution in the current thread.
   */
 
   // Unset LD_PRELOAD to avoid us from starting launching monitors in childprocesses.
   setenv("LD_PRELOAD", "", 1);
 
-  VLOG(2) << "Starting tasklib monitor thread\n");
+  VLOG(2) << "Starting tasklib monitor thread\n";
   boost::thread t1(&LaunchTasklib);
 }
