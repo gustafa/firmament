@@ -25,15 +25,20 @@
 
 
 // TODO(gustafa): FIX later!
-DEFINE_string(coordinator_uri, "tcp:localhost:8088", "The URI to contact the coordinator at.");
-DEFINE_string(resource_id, "feedcafedeadbeeffeedcafedeadbeeffeedcafedeadbeeffeedcafedeadbeef",
-        "The resource ID that is running this task.");
-DEFINE_string(task_id, "feedcafedeadbeeffeedcafedeadbeeffeedcafedeadbeeffeedcafedeadbeef", "The ID of this task.");
+DEFINE_string(coordinator_uri, "tcp:localhost:8088",
+              "The URI to contact the coordinator at.");
+DEFINE_string(resource_id,
+              "feedcafedeadbeeffeedcafedeadbeeffeedcafedeadbeeffeedcafedeadbeef", // NOLINT
+              "The resource ID that is running this task.");
+DEFINE_string(task_id,
+              "feedcafedeadbeeffeedcafedeadbeeffeedcafedeadbeeffeedcafedeadbeef", // NOLINT
+              "The ID of this task.");
 DEFINE_int32(heartbeat_interval, 1,
         "The interval, in seconds, between heartbeats sent to the"
         "coordinator.");
 
-DEFINE_string(tasklib_application, "", "The application running alongside tasklib");
+DEFINE_string(tasklib_application, "",
+              "The application running alongside tasklib");
 
 #define SET_PROTO_IF_DICT_HAS_INT(proto, dict, member, val) \
   val = json_object_get(dict, # member); \
@@ -42,13 +47,6 @@ DEFINE_string(tasklib_application, "", "The application running alongside taskli
 #define SET_PROTO_IF_DICT_HAS_DOUBLE(proto, dict, member, val) \
   val = json_object_get(dict, # member); \
   if (val) proto->set ## _ ## member(json_real_value(val));
-// #define SET_PROTO_IF_DICT_HAS_DOUBLE(proto, dict, member) \
-//   json_t *val = json_object_get(dict, member); \
-//   if (val) proto->set_ ## memberjson_integer_valueval);
-
-// #define SET_PROTO_IF_DICT_HAS_STRING(proto, dict, member) \
-//   json_t *val = json_object_get(dict, member); \
-//   if (val) proto->set_ ## member(*val);
 
 
 namespace firmament {
@@ -239,91 +237,71 @@ void TaskLib::RunMonitor(boost::thread::id main_thread_id) {
     }
 
   task_running_ = false;
-
 }
 
-void TaskLib::AddNginxStatistics(TaskPerfStatisticsSample::NginxStatistics *ns) { 
-    CURLcode curl_code = GetWebpageContents("localhost/nginx_status");
-    if (curl_code == CURLE_OK) {
-      printf("%s\n", web_contents.c_str());
-      ns->set_status(TaskPerfStatisticsSample_NginxStatistics_Status_OK);
-
-      const string delimiter = ",";
-      
-      string token;
-      int pos = 0;
-      int i = 0;
-
-      const int num_stats = 4;
-      unsigned long values[num_stats];
-
-      while ((pos = web_contents.find(delimiter)) != std::string::npos) {
-        token = web_contents.substr(0, pos);
-        std::cout << token << std::endl;
-        web_contents.erase(0, pos + delimiter.length());
-
-        values[i] = strtoul(token.c_str(), NULL, 0);
-        ++i;
-      }
-
-      if (i != num_stats) {
-        LOG(ERROR) << "Found an unexpected number of Nginx statistics!";
-      }
-
-      // TODO(gustafa): Send diffs rather than totals.
-      ns->set_active_connections(values[0]);
-      ns->set_reading(values[1]);
-      ns->set_writing(values[2]);
-      ns->set_waiting(values[3]);
-
-      for (int i = 0; i < num_stats; ++i) {
-        printf("%lu\n", values[i]);
-      }
-   } else {
-      ns->set_status(TaskPerfStatisticsSample_NginxStatistics_Status_DOWN);
-   }
-}
-
-
-void TaskLib::AddMemcachedStatistics(TaskPerfStatisticsSample::MemcachedStatistics *ms) { 
-    printf("Getting memcached stats!\n");
-    FILE* pipe = popen("memcached-tool localhost stats", "r");
-    if (!pipe) {
-      printf("ERROR\n");
-      exit(1);
+void TaskLib::AddNginxStatistics(TaskPerfStatisticsSample::NginxStatistics *ns) { // NOLINT
+  CURLcode curl_code = GetWebpageContents("localhost/nginx_status");
+  if (curl_code != CURLE_OK) {
+    // Report inability to retrieve nginx statistics when.
+    ns->set_status(TaskPerfStatisticsSample_NginxStatistics_Status_DOWN);
+  }
+  else {
+    ns->set_status(TaskPerfStatisticsSample_NginxStatistics_Status_OK);
+    const string delimiter = ",";
+    int pos = 0;
+    int i = 0;
+    const int num_stats = 4;
+    uint64_t values[num_stats];
+    string token;
+    while ((pos = web_contents.find(delimiter)) != string::npos) {
+      token = web_contents.substr(0, pos);
+      web_contents.erase(0, pos + delimiter.length());
+      values[i] = strtoul(token.c_str(), NULL, 0);
+      ++i;
     }
+    if (i != num_stats) {
+      LOG(ERROR) << "Found an unexpected number of Nginx statistics!";
+    }
+    // TODO(gustafa): Send diffs rather than totals.
+    ns->set_active_connections(values[0]);
+    ns->set_reading(values[1]);
+    ns->set_writing(values[2]);
+    ns->set_waiting(values[3]);
+  }
+}
+
+
+void TaskLib::AddMemcachedStatistics(TaskPerfStatisticsSample::MemcachedStatistics *ms) { // NOLINT
+  VLOG(3) << "Getting memcached stats!\n";
+  FILE* pipe = popen("memcached-tool localhost stats", "r");
+  if (!pipe) {
+    LOG(ERROR) <<  "Unable to get memcached statistics";
+    ms->set_status(TaskPerfStatisticsSample_MemcachedStatistics_Status_DOWN);
+  } else {
     char buffer[128];
     std::string result = "";
-    while(!feof(pipe)) {
-      if(fgets(buffer, 128, pipe) != NULL)
+    while (!feof(pipe)) {
+      if (fgets(buffer, 128, pipe) != NULL) {
         result += buffer;
+      }
     }
     pclose(pipe);
-
     json_error_t errors;
     json_t * json_result = json_loads(result.c_str(),
       JSON_REJECT_DUPLICATES, &errors);
-
     if (!json_result) {
       ms->set_status(TaskPerfStatisticsSample_MemcachedStatistics_Status_DOWN);
       VLOG(2) << "Failed to get memcached statistics";
         // Failed to connect to memcached, report status as memcached down.
     } else {
-
       if (!json_is_object(json_result)) {
         LOG(ERROR) << "Got non-dictionary json object!";
+        // This should really not happen.
+        // Should be either a JSON dict or a failed parse.
+        exit(1);
       }
-
-
       ms->set_status(TaskPerfStatisticsSample_MemcachedStatistics_Status_OK);
-      const char *key;
-      json_t *value;
-
-
-      //
-
-
-      // Used by the macro as a temporary variable holding the current variable.
+      // Used by the macro as a temporary variable holding the current stat.
       json_t *val;
 
       // TODO(gustafa): Decide which ones are important,
@@ -345,11 +323,8 @@ void TaskLib::AddMemcachedStatistics(TaskPerfStatisticsSample::MemcachedStatisti
       SET_PROTO_IF_DICT_HAS_INT(ms, json_result, touch_misses, val);
       SET_PROTO_IF_DICT_HAS_DOUBLE(ms, json_result, rusage_system, val);
       SET_PROTO_IF_DICT_HAS_DOUBLE(ms, json_result, rusage_user, val);
-
     }
-
-
-
+  }
 }
 
 
@@ -401,17 +376,17 @@ void TaskLib::SendHeartbeat(
 
 
 size_t TaskLib::StoreWebsite(void *ptr, size_t size, size_t nmemb,
-  void *stream) { 
-    int numbytes = size*nmemb; 
-    // The data is not null-terminated, so get the last character, and replace 
-    // it with '\0'. 
-    char lastchar = *((char *) ptr + numbytes - 1); 
-    *((char *) ptr + numbytes - 1) = '\0'; 
-    web_contents.append((char *)ptr); 
-    web_contents.append(1,lastchar); 
-    *((char *) ptr + numbytes - 1) = lastchar;  // Might not be necessary. 
-    return size*nmemb; 
-} 
+  void *stream) {
+    int numbytes = size*nmemb;
+    // The data is not null-terminated, so get the last character, and replace
+    // it with '\0'.
+    char lastchar = *((char *) ptr + numbytes - 1);
+    *((char *) ptr + numbytes - 1) = '\0';
+    web_contents.append((char *)ptr);
+    web_contents.append(1,lastchar);
+    *((char *) ptr + numbytes - 1) = lastchar;  // Might not be necessary.
+    return size*nmemb;
+}
 
 
 CURLcode TaskLib::GetWebpageContents(const char *uri) {
@@ -425,7 +400,7 @@ CURLcode TaskLib::GetWebpageContents(const char *uri) {
   if (curl) {
     curl_easy_setopt(curl, CURLOPT_URL, uri);
     curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, StoreWebsite);
-    CURLcode res = curl_easy_perform(curl); 
+    CURLcode res = curl_easy_perform(curl);
 
     curl_easy_cleanup(curl);
     return res;
