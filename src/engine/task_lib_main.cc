@@ -26,11 +26,11 @@ void LaunchTasklib() {
   string progargs = "nginxy";
   boost::thread::id task_thread_id = boost::this_thread::get_id();
 
-  char *argv;
-  //argv[0] = const_cast<char*>(progargs.c_str());
+  char *argv[2];
+  argv[0] = const_cast<char*>(progargs.c_str());
 
-  //argv[1] = const_cast<char*>(sargs.c_str());
-    firmament::common::InitFirmament(0, &argv);
+  argv[1] = const_cast<char*>(sargs.c_str());
+    firmament::common::InitFirmament(2, argv);
 
 
 

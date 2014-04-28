@@ -112,7 +112,7 @@ static ngx_int_t ngx_http_status_handler(ngx_http_request_t *r)
         }
     }
 
-    size = sizeof(",,,") + 3 * NGX_ATOMIC_T_LEN;
+    size = sizeof(";;;;") + 3 * NGX_ATOMIC_T_LEN;
 
     b = ngx_create_temp_buf(r->pool, size);
     if (b == NULL) {
@@ -132,7 +132,7 @@ static ngx_int_t ngx_http_status_handler(ngx_http_request_t *r)
 
 
     // Active connections, reading, writing, waiting
-    b->last = ngx_sprintf(b->last, "%uA,%uA,%uA,%uA", ac, ap, hn, rq);
+    b->last = ngx_sprintf(b->last, "%uA;%uA;%uA;%uA;", ac, ap, hn, rq);
 
     // b->last = ngx_sprintf(b->last, "Active connections: %uA \n", ac);
 

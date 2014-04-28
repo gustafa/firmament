@@ -54,7 +54,7 @@ string TaskLib::web_contents = "";
 
 
 // TODO(gustafa) fix these envs.
-  TaskLib::TaskLib()
+TaskLib::TaskLib()
   : m_adapter_(new StreamSocketsAdapter<BaseMessage>()),
     chan_(new StreamSocketsChannel<BaseMessage>(
         StreamSocketsChannel<BaseMessage>::SS_TCP)),
@@ -247,7 +247,7 @@ void TaskLib::AddNginxStatistics(TaskPerfStatisticsSample::NginxStatistics *ns) 
   }
   else {
     ns->set_status(TaskPerfStatisticsSample_NginxStatistics_Status_OK);
-    const string delimiter = ",";
+    const string delimiter = ";";
     int pos = 0;
     int i = 0;
     const int num_stats = 4;
@@ -259,6 +259,7 @@ void TaskLib::AddNginxStatistics(TaskPerfStatisticsSample::NginxStatistics *ns) 
       values[i] = strtoul(token.c_str(), NULL, 0);
       ++i;
     }
+
     if (i != num_stats) {
       LOG(ERROR) << "Found an unexpected number of Nginx statistics!";
     }
@@ -269,7 +270,6 @@ void TaskLib::AddNginxStatistics(TaskPerfStatisticsSample::NginxStatistics *ns) 
     ns->set_waiting(values[3]);
   }
 }
-
 
 void TaskLib::AddMemcachedStatistics(TaskPerfStatisticsSample::MemcachedStatistics *ms) { // NOLINT
   VLOG(3) << "Getting memcached stats!\n";
@@ -326,10 +326,6 @@ void TaskLib::AddMemcachedStatistics(TaskPerfStatisticsSample::MemcachedStatisti
     }
   }
 }
-
-
-
-
 
 void TaskLib::SendFinalizeMessage(bool success) {
   BaseMessage bm;
@@ -704,6 +700,5 @@ void TaskLib::PutObjectEnd(const DataObjectID_t& id, size_t size) {
     VLOG(1) << "Error: PutObjectEnd " << endl;
   }
 }
-
 
 } // namespace firmament
