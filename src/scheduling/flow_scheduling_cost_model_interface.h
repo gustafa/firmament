@@ -19,6 +19,7 @@ typedef uint64_t Cost_t;
 enum FlowSchedulingCostModelType {
   COST_MODEL_TRIVIAL = 0,
   COST_MODEL_QUINCY = 1,
+  COST_MODEL_ENERGY = 2,
 };
 
 class FlowSchedulingCostModelInterface {

@@ -21,6 +21,8 @@
 #include "scheduling/flow_scheduling_cost_model_interface.h"
 #include "scheduling/trivial_cost_model.h"
 #include "scheduling/quincy_cost_model.h"
+#include "scheduling/energy_cost_model.h"
+
 
 namespace firmament {
 
@@ -35,10 +37,13 @@ FlowGraph::FlowGraph(FlowSchedulingCostModelType cost_model)
           << cost_model << "\"";
   switch (cost_model) {
     case FlowSchedulingCostModelType::COST_MODEL_TRIVIAL:
-      cost_model_ = new TrivialCostModel(); 
+      cost_model_ = new TrivialCostModel();
       break;
     case FlowSchedulingCostModelType::COST_MODEL_QUINCY:
-      cost_model_ = new QuincyCostModel(); 
+      cost_model_ = new QuincyCostModel();
+      break;
+    case FlowSchedulingCostModelType::COST_MODEL_ENERGY:
+      cost_model_ = new EnergyCostModel();
       break;
     default:
       LOG(FATAL) << "Unknown flow scheduling cost model specificed "
@@ -146,7 +151,7 @@ void FlowGraph::AddJobNodes(JobDescriptor* jd) {
     unsched_agg_node->comment_ = comment;
     // ... and connect it directly to the sink
     unsched_agg_to_sink_arc = AddArcInternal(unsched_agg_node, sink_node_);
-    unsched_agg_to_sink_arc->cap_upper_bound_ = 0; 
+    unsched_agg_to_sink_arc->cap_upper_bound_ = 0;
     unsched_agg_to_sink_arc->cost_ =
         cost_model_->UnscheduledAggToSinkCost(JobIDFromString(jd->uuid()));
     // Record this for the future in the job <-> node ID lookup table
@@ -190,7 +195,7 @@ void FlowGraph::AddJobNodes(JobDescriptor* jd) {
       // XXX(malte): hack to add equiv class aggregator nodes
       VLOG(2) << "Equiv class for task " << cur->uid() << " is "
               << GenerateTaskEquivClass(*cur);
-      FlowGraphNode* ec_node = 
+      FlowGraphNode* ec_node =
           AddEquivClassAggregator(GenerateTaskEquivClass(*cur));
       FlowGraphArc* ec_arc = AddArcInternal(task_node->id_,
                                             ec_node->id_);

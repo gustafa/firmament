@@ -71,6 +71,7 @@ class QuincyScheduler : public EventDrivenScheduler {
       int fd, uint64_t num_vertices);
   void RegisterLocalResource(ResourceID_t res_id);
   void RegisterRemoteResource(ResourceID_t res_id);
+  void HandleNginxJob();
   uint64_t RunSchedulingIteration();
 
   TaskDescriptor* ProducingTaskForDataObjectID(DataObjectID_t id);

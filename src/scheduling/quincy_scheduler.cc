@@ -184,6 +184,11 @@ uint64_t QuincyScheduler::ScheduleJob(JobDescriptor* job_desc) {
   }
 }
 
+
+void QuincyScheduler::HandleNginxJob() {
+  // Additions have to be made before modification, deletions after.. HMM!
+}
+
 // Returns a vector containing a nodes arcs with flow > 0.
 // In the returned graph the arcs are the inverse of the arcs in the file.
 // If there is (i,j) with flow 1 then in the graph we will have (j,i).
