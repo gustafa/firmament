@@ -5,7 +5,11 @@
 
 #include <string>
 
+#include "misc/map-util.h"
+#include "misc/utils.h"
+
 #include "scheduling/energy_cost_model.h"
+
 
 namespace firmament {
 
@@ -16,10 +20,8 @@ EnergyCostModel::EnergyCostModel(shared_ptr<ResourceMap_t> resource_map, shared_
   task_map_(task_map) {
   unordered_map<ResourceID_t, ApplicationStatistics*> *nginx_stats =
       new unordered_map<ResourceID_t, ApplicationStatistics*>();
-  //SetInitialNginxStats(nginx_stats);
+  SetInitialNginxStats(nginx_stats);
   application_host_stats_["nginx"] = nginx_stats;
-
-
 }
 
 Cost_t EnergyCostModel::TaskToUnscheduledAggCost(TaskID_t task_id) {
@@ -38,6 +40,13 @@ Cost_t EnergyCostModel::TaskToClusterAggCost(TaskID_t task_id) {
 
 Cost_t EnergyCostModel::TaskToResourceNodeCost(TaskID_t task_id,
                                                ResourceID_t resource_id) {
+  // Lookup the type of the task.
+  TaskDescriptor **td = FindOrNull(*task_map_, task_id);
+  CHECK_NOTNULL(td);
+  string app_name = (*td)->name();
+  VLOG(2) << "APPNAME: " << app_name;
+
+
   return 0ULL;
 }
 
@@ -66,10 +75,9 @@ Cost_t EnergyCostModel::TaskPreemptionCost(TaskID_t task_id) {
 
 void EnergyCostModel::SetInitialNginxStats(unordered_map<ResourceID_t, ApplicationStatistics*> *nginx_map) {
   // Dummy vars.
-  // (*nginx_map)["titanic"] = new ApplicationStatistics(ApplicationStatistics::REAL_TIME, 5, 100);
-  // (*nginx_map)["pandaboard"] = new ApplicationStatistics(ApplicationStatistics::REAL_TIME, 2, 80);
-  // (*nginx_map)["michael"] = new ApplicationStatistics(ApplicationStatistics::REAL_TIME, 4, 300);
-
+  (*nginx_map)[FindResourceID("titanic")] = new ApplicationStatistics(ApplicationStatistics::REAL_TIME, 5, 100);
+  (*nginx_map)[FindResourceID("pandaboard")] = new ApplicationStatistics(ApplicationStatistics::REAL_TIME, 2, 80);
+  (*nginx_map)[FindResourceID("michael")] = new ApplicationStatistics(ApplicationStatistics::REAL_TIME, 4, 300);
 }
 
 }  // namespace firmament5

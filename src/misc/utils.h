@@ -49,6 +49,10 @@ JobID_t GenerateJobID();
 DataObjectID_t GenerateDataObjectID(const TaskDescriptor& task_descriptor);
 DataObjectID_t GenerateDataObjectID(TaskID_t producing_task,
                                     TaskOutputID_t output_id);
+
+// Returns the resource ID for the given host.
+ResourceID_t FindResourceID(string hostname);
+
 // XXX(malte): This is a hack. Figure out a proper hashing function compatible
 // with root tasks.
 TaskID_t GenerateRootTaskID(const JobDescriptor& job_desc);

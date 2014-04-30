@@ -57,8 +57,6 @@ ResourceID_t GenerateUUID() {
   return GenerateResourceID();
 }
 
-
-
 ResourceID_t GenerateResourceID() {
   if (!resource_id_rg_init_) {
     // TODO(malte): This crude method captures the first 100 chars of the
@@ -85,7 +83,6 @@ void SetupResourceID(boost::mt19937 *resource_id, const char *hostname) {
           << hn;
   resource_id->seed(hash);
 }
-
 
 ResourceID_t FindResourceID(string hostname) {
   unordered_map<string, ResourceID_t>::const_iterator got =

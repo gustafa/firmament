@@ -21,7 +21,9 @@
 #ifndef FIRMAMENT_MISC_MAP_UTIL_H
 #define FIRMAMENT_MISC_MAP_UTIL_H
 
+#include "base/types.h"
 #include <utility>
+
 
 namespace firmament {
 
