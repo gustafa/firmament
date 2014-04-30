@@ -44,6 +44,7 @@ uint64_t MakeEnsembleUID(Ensemble *ens);*/
 
 ResourceID_t GenerateUUID();  // DEPRECATED, exists only for backwards compat
 ResourceID_t GenerateResourceID();
+void SetupResourceID(boost::mt19937 *resource_id, const char *hostname);
 JobID_t GenerateJobID();
 DataObjectID_t GenerateDataObjectID(const TaskDescriptor& task_descriptor);
 DataObjectID_t GenerateDataObjectID(TaskID_t producing_task,

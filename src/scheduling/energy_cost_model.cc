@@ -10,6 +10,9 @@
 namespace firmament {
 
 EnergyCostModel::EnergyCostModel() {
+  unordered_map<string, ApplicationStatistics*> *nginx_stats = new unordered_map<string, ApplicationStatistics*>();
+  SetInitialNginxStats(nginx_stats);
+  application_host_stats_["nginx"] = nginx_stats;
 
 
 }
@@ -56,8 +59,12 @@ Cost_t EnergyCostModel::TaskPreemptionCost(TaskID_t task_id) {
   return 0ULL;
 }
 
-void EnergyCostModel::SetInitialNginxStats(unordered_map<string, ApplicationStatistics> *nginx_map) {
+void EnergyCostModel::SetInitialNginxStats(unordered_map<string, ApplicationStatistics*> *nginx_map) {
+  // Dummy vars.
+  (*nginx_map)["titanic"] = new ApplicationStatistics(ApplicationStatistics::REAL_TIME, 5, 100);
+  (*nginx_map)["pandaboard"] = new ApplicationStatistics(ApplicationStatistics::REAL_TIME, 2, 80);
+  (*nginx_map)["michael"] = new ApplicationStatistics(ApplicationStatistics::REAL_TIME, 4, 300);
 
 }
 
-}  // namespace firmament
+}  // namespace firmament5

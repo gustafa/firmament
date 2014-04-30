@@ -39,10 +39,10 @@ class EnergyCostModel : public FlowSchedulingCostModelInterface {
   Cost_t TaskContinuationCost(TaskID_t task_id);
   Cost_t TaskPreemptionCost(TaskID_t task_id);
 
-  static void SetInitialNginxStats(unordered_map<string, ApplicationStatistics> *nginx_map);
+  static void SetInitialNginxStats(unordered_map<string, ApplicationStatistics*> *nginx_map);
 
  private:
-  unordered_map<string, unordered_map<string, ApplicationStatistics>> application_host_stats_;
+  unordered_map<string, unordered_map<string, ApplicationStatistics*>*> application_host_stats_;
 };
 
 }  // namespace firmament

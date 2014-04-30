@@ -12,10 +12,13 @@ extern "C" {
 #include <sys/wait.h>
 #include <sys/time.h>
 #include <openssl/sha.h>
+
 }
 #include <set>
 #include <string>
+#include <unordered_map>
 #include <vector>
+
 
 #include "misc/utils.h"
 
@@ -23,6 +26,10 @@ namespace firmament {
 
 boost::mt19937 resource_id_rg_;
 boost::mt19937 job_id_rg_;
+
+unordered_map<string, ResourceID_t> hostname_to_uuid_;
+
+
 bool resource_id_rg_init_ = false;
 bool job_id_rg_init_ = false;
 
@@ -50,24 +57,54 @@ ResourceID_t GenerateUUID() {
   return GenerateResourceID();
 }
 
+
+
 ResourceID_t GenerateResourceID() {
   if (!resource_id_rg_init_) {
     // TODO(malte): This crude method captures the first 100 chars of the
     // hostname (not the FQDN). It remains to be seen if it is sufficient.
-    size_t hash = 0;
-    char hn[100];
-    bzero(&hn, 100);
-    gethostname(hn, 100);
-    // Hash the hostname (truncated to 100 characters)
-    boost::hash_combine(hash, hn);
-    VLOG(2) << "Seeing resource ID RNG with " << hash << " from hostname "
-            << hn;
-    resource_id_rg_.seed(hash);
+    SetupResourceID(&resource_id_rg_, NULL);
     resource_id_rg_init_ = true;
   }
   boost::uuids::basic_random_generator<boost::mt19937> gen(&resource_id_rg_);
   return gen();
 }
+
+void SetupResourceID(boost::mt19937 *resource_id, const char *hostname) {
+  size_t hash = 0;
+  char hn[100];
+  bzero(&hn, 100);
+  if (hostname == NULL) {
+    gethostname(hn, 100);
+  } else {
+    strcpy(hn, hostname);
+  }
+  // Hash the hostname (truncated to 100 characters)
+  boost::hash_combine(hash, hn);
+  VLOG(2) << "Seeing resource ID RNG with " << hash << " from hostname "
+          << hn;
+  resource_id->seed(hash);
+}
+
+
+ResourceID_t FindResourceID(string hostname) {
+  unordered_map<string, ResourceID_t>::const_iterator got =
+      hostname_to_uuid_.find(hostname);
+
+  // If the UUID is already cached return it.
+  if (got != hostname_to_uuid_.end()) {
+    return got->second;
+  } else {
+  // Otherwise compute it and insert it into the cache.
+    boost::mt19937 resource_id_rg;
+    SetupResourceID(&resource_id_rg, hostname.c_str());
+    boost::uuids::basic_random_generator<boost::mt19937> gen(&resource_id_rg);
+    ResourceID_t uuid = gen();
+    hostname_to_uuid_[hostname] = uuid;
+    return uuid;
+  }
+}
+
 
 JobID_t GenerateJobID() {
   if (!job_id_rg_init_) {
