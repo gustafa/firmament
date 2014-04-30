@@ -19,36 +19,17 @@
 #include "misc/utils.h"
 #include "scheduling/flow_graph.h"
 #include "scheduling/flow_scheduling_cost_model_interface.h"
-#include "scheduling/trivial_cost_model.h"
-#include "scheduling/quincy_cost_model.h"
-#include "scheduling/energy_cost_model.h"
-
 
 namespace firmament {
 
 using machine::topology::TopologyManager;
 
-FlowGraph::FlowGraph(FlowSchedulingCostModelType cost_model)
-    : current_id_(1) {
+FlowGraph::FlowGraph(FlowSchedulingCostModelInterface *cost_model)
+    : cost_model_(cost_model),
+    current_id_(1) {
   // Add sink and cluster aggregator node
   AddSpecialNodes();
   // Set up cost model for flow graph
-  VLOG(1) << "Set cost model to use in flow graph to \""
-          << cost_model << "\"";
-  switch (cost_model) {
-    case FlowSchedulingCostModelType::COST_MODEL_TRIVIAL:
-      cost_model_ = new TrivialCostModel();
-      break;
-    case FlowSchedulingCostModelType::COST_MODEL_QUINCY:
-      cost_model_ = new QuincyCostModel();
-      break;
-    case FlowSchedulingCostModelType::COST_MODEL_ENERGY:
-      cost_model_ = new EnergyCostModel();
-      break;
-    default:
-      LOG(FATAL) << "Unknown flow scheduling cost model specificed "
-                 << "(" << cost_model << ")";
-  }
 }
 
 FlowGraph::~FlowGraph() {

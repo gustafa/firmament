@@ -9,9 +9,14 @@
 
 namespace firmament {
 
-EnergyCostModel::EnergyCostModel() {
-  unordered_map<string, ApplicationStatistics*> *nginx_stats = new unordered_map<string, ApplicationStatistics*>();
-  SetInitialNginxStats(nginx_stats);
+EnergyCostModel::EnergyCostModel(shared_ptr<ResourceMap_t> resource_map, shared_ptr<JobMap_t> job_map,
+                  shared_ptr<TaskMap_t> task_map)
+  : resource_map_(resource_map),
+  job_map_(job_map),
+  task_map_(task_map) {
+  unordered_map<ResourceID_t, ApplicationStatistics*> *nginx_stats =
+      new unordered_map<ResourceID_t, ApplicationStatistics*>();
+  //SetInitialNginxStats(nginx_stats);
   application_host_stats_["nginx"] = nginx_stats;
 
 
@@ -59,11 +64,11 @@ Cost_t EnergyCostModel::TaskPreemptionCost(TaskID_t task_id) {
   return 0ULL;
 }
 
-void EnergyCostModel::SetInitialNginxStats(unordered_map<string, ApplicationStatistics*> *nginx_map) {
+void EnergyCostModel::SetInitialNginxStats(unordered_map<ResourceID_t, ApplicationStatistics*> *nginx_map) {
   // Dummy vars.
-  (*nginx_map)["titanic"] = new ApplicationStatistics(ApplicationStatistics::REAL_TIME, 5, 100);
-  (*nginx_map)["pandaboard"] = new ApplicationStatistics(ApplicationStatistics::REAL_TIME, 2, 80);
-  (*nginx_map)["michael"] = new ApplicationStatistics(ApplicationStatistics::REAL_TIME, 4, 300);
+  // (*nginx_map)["titanic"] = new ApplicationStatistics(ApplicationStatistics::REAL_TIME, 5, 100);
+  // (*nginx_map)["pandaboard"] = new ApplicationStatistics(ApplicationStatistics::REAL_TIME, 2, 80);
+  // (*nginx_map)["michael"] = new ApplicationStatistics(ApplicationStatistics::REAL_TIME, 4, 300);
 
 }
 

@@ -22,7 +22,8 @@ namespace firmament {
 
 class FlowGraph {
  public:
-  FlowGraph(FlowSchedulingCostModelType cost_model);
+
+  FlowGraph(FlowSchedulingCostModelInterface* cost_model);
   virtual ~FlowGraph();
   void AddJobNodes(JobDescriptor* jd);
   void AddResourceNode(ResourceTopologyNodeDescriptor* rtnd,
@@ -99,6 +100,13 @@ class FlowGraph {
       boost::hash<boost::uuids::uuid> > job_to_nodeid_map_;
   unordered_set<uint64_t> leaf_nodes_;
   unordered_set<uint64_t> task_nodes_;
+
+
+  shared_ptr<JobMap_t> job_table_;
+  // A map of all tasks that the coordinator currently knows about.
+  // TODO(malte): Think about GC'ing this.
+  shared_ptr<TaskMap_t> task_table_;
+
 };
 
 }  // namespace firmament

@@ -11,6 +11,7 @@
 
 #include "base/common.h"
 #include "base/types.h"
+#include "misc/utils.h"
 #include "scheduling/application_statistics.h"
 #include "scheduling/flow_scheduling_cost_model_interface.h"
 
@@ -21,7 +22,8 @@ typedef uint64_t Cost_t;
 
 class EnergyCostModel : public FlowSchedulingCostModelInterface {
  public:
-  EnergyCostModel();
+  EnergyCostModel(shared_ptr<ResourceMap_t> resource_map, shared_ptr<JobMap_t> job_map,
+                  shared_ptr<TaskMap_t> task_map);
 
   // Costs pertaining to leaving tasks unscheduled
   Cost_t TaskToUnscheduledAggCost(TaskID_t task_id);
@@ -39,10 +41,15 @@ class EnergyCostModel : public FlowSchedulingCostModelInterface {
   Cost_t TaskContinuationCost(TaskID_t task_id);
   Cost_t TaskPreemptionCost(TaskID_t task_id);
 
-  static void SetInitialNginxStats(unordered_map<string, ApplicationStatistics*> *nginx_map);
+  static void SetInitialNginxStats(unordered_map<ResourceID_t, ApplicationStatistics*> *nginx_map);
 
  private:
-  unordered_map<string, unordered_map<string, ApplicationStatistics*>*> application_host_stats_;
+  unordered_map<string, unordered_map<ResourceID_t, ApplicationStatistics*>*> application_host_stats_;
+
+  // Lookup maps for various resources from the scheduler.
+  shared_ptr<ResourceMap_t> resource_map_;
+  shared_ptr<JobMap_t> job_map_;
+  shared_ptr<TaskMap_t> task_map_;
 };
 
 }  // namespace firmament
