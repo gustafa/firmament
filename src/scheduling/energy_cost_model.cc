@@ -1,7 +1,7 @@
 // The Firmament project
 // Copyright (c) 2014 Malte Schwarzkopf <malte.schwarzkopf@cl.cam.ac.uk>
 //
-// Quincy scheduling cost model, as described in the SOSP 2009 paper.
+// Energy based cost model.
 
 #include <string>
 
@@ -12,6 +12,8 @@ namespace firmament {
 EnergyCostModel::EnergyCostModel() { }
 
 Cost_t EnergyCostModel::TaskToUnscheduledAggCost(TaskID_t task_id) {
+  // TODO should be inversely proportional to deadline - estimated run-time
+  // and > than cheapest place to schedule task.
   return 5ULL;
 }
 
@@ -35,6 +37,7 @@ Cost_t EnergyCostModel::ClusterAggToResourceNodeCost(ResourceID_t target) {
 Cost_t EnergyCostModel::ResourceNodeToResourceNodeCost(
     ResourceID_t source,
     ResourceID_t destination) {
+
   return 0ULL;
 }
 

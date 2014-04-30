@@ -302,6 +302,11 @@ uint64_t QuincyScheduler::RunSchedulingIteration() {
                   flow_graph_.sink_node().id_);
   map<uint64_t, uint64_t>::iterator it;
   vector<SchedulingDelta*> deltas;
+
+
+  // TODO(gustafa): Place to handle Nginx proxy configurations.
+
+
   for (it = task_mappings->begin();
        it != task_mappings->end(); it++) {
     VLOG(1) << "Bind " << it->first << " to " << it->second << endl;
