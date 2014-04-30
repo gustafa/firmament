@@ -9,7 +9,10 @@
 
 namespace firmament {
 
-EnergyCostModel::EnergyCostModel() { }
+EnergyCostModel::EnergyCostModel() {
+
+
+}
 
 Cost_t EnergyCostModel::TaskToUnscheduledAggCost(TaskID_t task_id) {
   // TODO should be inversely proportional to deadline - estimated run-time
@@ -51,6 +54,10 @@ Cost_t EnergyCostModel::TaskContinuationCost(TaskID_t task_id) {
 
 Cost_t EnergyCostModel::TaskPreemptionCost(TaskID_t task_id) {
   return 0ULL;
+}
+
+void EnergyCostModel::SetInitialNginxStats(unordered_map<string, ApplicationStatistics> *nginx_map) {
+
 }
 
 }  // namespace firmament

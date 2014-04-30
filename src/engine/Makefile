@@ -62,7 +62,7 @@ OBJ_LIB = $(addprefix $(OBJ_DIR)/, $(LIB))
 #TESTS_OBJS = $(addprefix $(TEST_OBJ_DIR)/, $(TESTS))
 TESTS_BIN = $(addprefix $(TEST_OBJ_DIR)/, $(TESTS))
 
-all: protobufs $(OBJ_BIN) $(TESTS_BIN) $(OBJ_LIB) task_lib_main.so .setup
+all: protobufs $(OBJ_BIN) $(TESTS_BIN) $(OBJ_LIB) $(BUILD_DIR)/engine/task_lib_main.so .setup
 
 protobufs: $(addprefix $(OBJ_DIR)/, $(PBS))
 
@@ -163,8 +163,7 @@ ALL_O=$(addprefix $(BUILD_DIR)/, scheduling/trivial_cost_model.o scheduling/sche
 
 TASK_LIB_LIBS := $(LIBS) -lcurl -ljansson
 
-task_lib_main.so:	task_lib_main.cc
+$(BUILD_DIR)/engine/task_lib_main.so:	task_lib_main.cc
 	# echo $(NGINX_INCLUDES) #echo $(addprefix(-I $(SRC_ROOT_DIR)/examples/nginx/src, core))
 	$(CC) -fPIC  -shared -std=c++11 -fvisibility=default $(OPTFLAGS) $(TASK_LIB_LIBS) $(INCLUDES)  $(NGINX_INCLUDES) $(DEFINES)  -o $(BUILD_DIR)/engine/task_lib_main.so    task_lib_main.cc task_lib.cc $(ALL_O) -ldl
 
-	

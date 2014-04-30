@@ -7,10 +7,13 @@
 #define FIRMAMENT_SCHEDULING_ENERGY_COST_MODEL_H
 
 #include <string>
+#include <unordered_map>
 
 #include "base/common.h"
 #include "base/types.h"
+#include "scheduling/application_statistics.h"
 #include "scheduling/flow_scheduling_cost_model_interface.h"
+
 
 namespace firmament {
 
@@ -35,6 +38,11 @@ class EnergyCostModel : public FlowSchedulingCostModelInterface {
   // Costs pertaining to preemption (i.e. already running tasks)
   Cost_t TaskContinuationCost(TaskID_t task_id);
   Cost_t TaskPreemptionCost(TaskID_t task_id);
+
+  static void SetInitialNginxStats(unordered_map<string, ApplicationStatistics> *nginx_map);
+
+ private:
+  unordered_map<string, unordered_map<string, ApplicationStatistics>> application_host_stats_;
 };
 
 }  // namespace firmament
