@@ -18,6 +18,8 @@ TESTS_task_graph_DEPS = $(OBJ_DIR)/data_object.o \
 		        $(OBJ_DIR)/reference_desc.pb.o \
 		        $(OBJ_DIR)/task_desc.pb.o
 
+LIBS += -lboost_system
+
 
 OBJ_LIB = $(addprefix $(OBJ_DIR)/, $(LIB))
 #TESTS_OBJS = $(addprefix $(TEST_OBJ_DIR)/, $(TESTS))

@@ -19,10 +19,8 @@ using namespace firmament;  // NOLINT
 
 void LaunchTasklib() {
   /* Sets up and runs a TaskLib monitor in the current thread. */
-  VLOG(3) << "Tasklib thread launched";
-
-
-  string sargs = "";
+  // Read these important variables from the environment.
+  string sargs = "--fromenv=coordinator_uri,resource_id,task_id,heartbeat_interval,tasklib_application";
   string progargs = "nginxy";
   boost::thread::id task_thread_id = boost::this_thread::get_id();
 
@@ -33,6 +31,7 @@ void LaunchTasklib() {
     firmament::common::InitFirmament(2, argv);
 
 
+//VLOG(3) << "Tasklib thread launched";
 
   TaskLib task_lib;
   // TODO(gustafa): Send the main thread id and join neatly in the

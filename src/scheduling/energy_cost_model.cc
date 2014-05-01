@@ -18,9 +18,9 @@ EnergyCostModel::EnergyCostModel(shared_ptr<ResourceMap_t> resource_map, shared_
   : resource_map_(resource_map),
   job_map_(job_map),
   task_map_(task_map) {
-  unordered_map<ResourceID_t, ApplicationStatistics*> *nginx_stats =
-      new unordered_map<ResourceID_t, ApplicationStatistics*>();
-  SetInitialNginxStats(nginx_stats);
+  unordered_map<ResourceID_t, ApplicationStatistics*, boost::hash<boost::uuids::uuid>> *nginx_stats =
+      new unordered_map<ResourceID_t, ApplicationStatistics*, boost::hash<boost::uuids::uuid>>();
+  //SetInitialNginxStats(nginx_stats);
   application_host_stats_["nginx"] = nginx_stats;
 }
 
@@ -73,11 +73,11 @@ Cost_t EnergyCostModel::TaskPreemptionCost(TaskID_t task_id) {
   return 0ULL;
 }
 
-void EnergyCostModel::SetInitialNginxStats(unordered_map<ResourceID_t, ApplicationStatistics*> *nginx_map) {
-  // Dummy vars.
-  (*nginx_map)[FindResourceID("titanic")] = new ApplicationStatistics(ApplicationStatistics::REAL_TIME, 5, 100);
-  (*nginx_map)[FindResourceID("pandaboard")] = new ApplicationStatistics(ApplicationStatistics::REAL_TIME, 2, 80);
-  (*nginx_map)[FindResourceID("michael")] = new ApplicationStatistics(ApplicationStatistics::REAL_TIME, 4, 300);
-}
+// void EnergyCostModel::SetInitialNginxStats(unordered_map<ResourceID_t, ApplicationStatistics*> *nginx_map) {
+//   // Dummy vars.
+//   (*nginx_map)[FindResourceID("titanic")] = new ApplicationStatistics(ApplicationStatistics::REAL_TIME, 5, 100);
+//   (*nginx_map)[FindResourceID("pandaboard")] = new ApplicationStatistics(ApplicationStatistics::REAL_TIME, 2, 80);
+//   (*nginx_map)[FindResourceID("michael")] = new ApplicationStatistics(ApplicationStatistics::REAL_TIME, 4, 300);
+// }
 
 }  // namespace firmament5

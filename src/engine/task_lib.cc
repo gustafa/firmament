@@ -7,8 +7,9 @@
 
 #include "engine/task_lib.h"
 
-#include <vector>
 #include <jansson.h>
+#include <vector>
+#include <stdlib.h>
 
 #include "base/common.h"
 #include "base/data_object.h"
@@ -59,21 +60,19 @@ TaskLib::TaskLib()
   : m_adapter_(new StreamSocketsAdapter<BaseMessage>()),
     chan_(new StreamSocketsChannel<BaseMessage>(
         StreamSocketsChannel<BaseMessage>::SS_TCP)),
-    coordinator_uri_(getenv("FLAGS_coordinator_uri")),
-    resource_id_(ResourceIDFromString(getenv("FLAGS_resource_id"))),
+
+
+    coordinator_uri_(FLAGS_coordinator_uri), //getenv("FLAGS_coordinator_uri")
+
+
+    resource_id_(ResourceIDFromString(FLAGS_resource_id)),
     pid_(getpid()),
     task_error_(false),
     task_running_(false),
     heartbeat_seq_number_(0),
     task_perf_monitor_(1000000) {
-  const char* task_id_env;
-  if (FLAGS_task_id.empty())
-    task_id_env = getenv("FLAGS_task_id");
-  else
-    task_id_env = FLAGS_task_id.c_str();
+  const char* task_id_env = FLAGS_task_id.c_str();
 
-  if (FLAGS_tasklib_application.empty())
-    FLAGS_tasklib_application = getenv("FLAGS_tasklib_application");
 
   VLOG(1) << "Task ID is " << task_id_env;
   CHECK_NOTNULL(task_id_env);
@@ -201,6 +200,7 @@ bool TaskLib::PullTaskInformationFromCoordinator(TaskID_t task_id,
 
 
 void TaskLib::RunMonitor(boost::thread::id main_thread_id) {
+  printf("COORDINATOR URI%s\n",FLAGS_coordinator_uri.c_str());
   ConnectToCoordinator(coordinator_uri_);
   VLOG(3) << "Setting up storage engine";
   setUpStorageEngine();
