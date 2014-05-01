@@ -19,6 +19,7 @@
 #include "scheduling/scheduler_interface.h"
 #include "storage/reference_interface.h"
 
+
 namespace firmament {
 namespace scheduler {
 

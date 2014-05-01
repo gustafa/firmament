@@ -53,6 +53,7 @@
 #ifdef __HTTP_UI__
 #include "engine/coordinator_http_ui.h"
 #endif
+#include "scheduling/energy_scheduler.h"
 #include "scheduling/simple_scheduler.h"
 #include "scheduling/quincy_scheduler.h"
 #include "storage/object_store_interface.h"
@@ -71,6 +72,7 @@ using platform_unix::streamsockets::StreamSocketsChannel;
 using platform_unix::streamsockets::StreamSocketsAdapter;
 using platform_unix::ProcFSMachine;
 using scheduler::SchedulerInterface;
+using scheduler::EnergyScheduler;
 using scheduler::SimpleScheduler;
 using scheduler::QuincyScheduler;
 using store::ObjectStoreInterface;

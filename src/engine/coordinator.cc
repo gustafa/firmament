@@ -27,6 +27,7 @@
 #include "misc/map-util.h"
 #include "misc/utils.h"
 #include "scheduling/scheduling_parameters.pb.h"
+#include "scheduling/energy_scheduler.h"
 #include "scheduling/simple_scheduler.h"
 #include "scheduling/quincy_scheduler.h"
 #include "messages/storage_registration_message.pb.h"
@@ -82,6 +83,12 @@ Coordinator::Coordinator(PlatformID platform_id)
     LOG(INFO) << "Using Quincy-style min cost flow-based scheduler.";
     SchedulingParameters params;
     scheduler_ = new QuincyScheduler(
+        job_table_, associated_resources_, object_store_, task_table_,
+        topology_manager_, m_adapter_, uuid_, FLAGS_listen_uri,
+        params);
+  } else if (FLAGS_scheduler == "energy") {
+        SchedulingParameters params;
+    scheduler_ = new EnergyScheduler(
         job_table_, associated_resources_, object_store_, task_table_,
         topology_manager_, m_adapter_, uuid_, FLAGS_listen_uri,
         params);

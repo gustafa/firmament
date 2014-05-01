@@ -4,7 +4,7 @@
 //
 // Implementation of a Quincy-style min-cost flow scheduler.
 
-#include "scheduling/quincy_scheduler.h"
+#include "scheduling/energy_scheduler.h"
 
 #include <cstdio>
 #include <map>
@@ -28,11 +28,8 @@
 #include "scheduling/quincy_cost_model.h"
 #include "scheduling/energy_cost_model.h"
 
-DEFINE_bool(debug_flow_graph, true, "Write out a debug copy of the scheduling"
-            " flow graph to /tmp/debug.dm.");
-DEFINE_int32(flow_scheduling_cost_model, 0,
-             "Flow scheduler cost model to use. "
-             "Values: 0 = TRIVIAL, 1 = QUINCY, 2 = ENERGY");
+DECLARE_bool(debug_flow_graph);
+DECLARE_int32(flow_scheduling_cost_model);
 
 namespace firmament {
 namespace scheduler {
@@ -45,7 +42,7 @@ using executor::RemoteExecutor;
 using common::pb_to_set;
 using store::ObjectStoreInterface;
 
-QuincyScheduler::QuincyScheduler(
+EnergyScheduler::EnergyScheduler(
     shared_ptr<JobMap_t> job_map,
     shared_ptr<ResourceMap_t> resource_map,
     shared_ptr<ObjectStoreInterface> object_store,
@@ -60,7 +57,7 @@ QuincyScheduler::QuincyScheduler(
                            coordinator_uri),
       parameters_(params),
       debug_seq_num_(0) {
-  LOG(INFO) << "QuincyScheduler initiated; parameters: "
+  LOG(INFO) << "EnergyScheduler initiated; parameters: "
             << parameters_.ShortDebugString();
   // Generate the initial flow graph
   ResourceTopologyNodeDescriptor* root = new ResourceTopologyNodeDescriptor;
@@ -93,18 +90,18 @@ QuincyScheduler::QuincyScheduler(
   flow_graph_->AddResourceTopology(root, topo_mgr->NumProcessingUnits());
 }
 
-QuincyScheduler::~QuincyScheduler() {
+EnergyScheduler::~EnergyScheduler() {
   // XXX(ionel): stub
   delete flow_graph_;
 }
 
-const ResourceID_t* QuincyScheduler::FindResourceForTask(
+const ResourceID_t* EnergyScheduler::FindResourceForTask(
     TaskDescriptor*) {
   // XXX(ionel): stub
   return NULL;
 }
 
-uint64_t QuincyScheduler::ApplySchedulingDeltas(
+uint64_t EnergyScheduler::ApplySchedulingDeltas(
     const vector<SchedulingDelta*>& deltas) {
   // Perform the necessary actions to apply the scheduling changes passed to the
   // method
@@ -136,7 +133,7 @@ uint64_t QuincyScheduler::ApplySchedulingDeltas(
   return deltas.size();
 }
 
-void QuincyScheduler::HandleTaskCompletion(TaskDescriptor* td_ptr,
+void EnergyScheduler::HandleTaskCompletion(TaskDescriptor* td_ptr,
                                            TaskFinalReport* report) {
   {
     boost::lock_guard<boost::mutex> lock(scheduling_lock_);
@@ -150,7 +147,7 @@ void QuincyScheduler::HandleTaskCompletion(TaskDescriptor* td_ptr,
   EventDrivenScheduler::HandleTaskCompletion(td_ptr, report);
 }
 
-void QuincyScheduler::NodeBindingToSchedulingDelta(
+void EnergyScheduler::NodeBindingToSchedulingDelta(
     const FlowGraphNode& src, const FlowGraphNode& dst,
     SchedulingDelta* delta) {
   // Figure out what type of scheduling change this is
@@ -192,7 +189,7 @@ void QuincyScheduler::NodeBindingToSchedulingDelta(
   }
 }
 
-uint64_t QuincyScheduler::ScheduleJob(JobDescriptor* job_desc) {
+uint64_t EnergyScheduler::ScheduleJob(JobDescriptor* job_desc) {
   boost::lock_guard<boost::mutex> lock(scheduling_lock_);
   LOG(INFO) << "START SCHEDULING " << job_desc->uuid();
   // Check if we have any runnable tasks in this job
@@ -212,14 +209,14 @@ uint64_t QuincyScheduler::ScheduleJob(JobDescriptor* job_desc) {
   }
 }
 
-void QuincyScheduler::HandleNginxJob() {
+void EnergyScheduler::HandleNginxJob() {
   // Additions have to be made before modification, deletions after.. HMM!
 }
 
 // Returns a vector containing a nodes arcs with flow > 0.
 // In the returned graph the arcs are the inverse of the arcs in the file.
 // If there is (i,j) with flow 1 then in the graph we will have (j,i).
-vector<map< uint64_t, uint64_t> >* QuincyScheduler::ReadFlowGraph(
+vector<map< uint64_t, uint64_t> >* EnergyScheduler::ReadFlowGraph(
     int fd, uint64_t num_vertices) {
   vector<map< uint64_t, uint64_t > >* adj_list =
       new vector<map<uint64_t, uint64_t> >(num_vertices + 1);
@@ -286,7 +283,7 @@ vector<map< uint64_t, uint64_t> >* QuincyScheduler::ReadFlowGraph(
   return adj_list;
 }
 
-uint64_t QuincyScheduler::RunSchedulingIteration() {
+uint64_t EnergyScheduler::RunSchedulingIteration() {
   // Blow away any old exporter state
   exporter_.Reset();
   // Export the current flow graph to DIMACS format
@@ -351,7 +348,7 @@ uint64_t QuincyScheduler::RunSchedulingIteration() {
   return num_scheduled;
 }
 
-void QuincyScheduler::PrintGraph(vector< map<uint64_t, uint64_t> > adj_map) {
+void EnergyScheduler::PrintGraph(vector< map<uint64_t, uint64_t> > adj_map) {
   for (vector< map<uint64_t, uint64_t> >::size_type i = 1;
        i < adj_map.size(); ++i) {
     map<uint64_t, uint64_t>::iterator it;
@@ -362,7 +359,7 @@ void QuincyScheduler::PrintGraph(vector< map<uint64_t, uint64_t> > adj_map) {
   }
 }
 
-bool QuincyScheduler::CheckNodeType(uint64_t node, FlowNodeType_NodeType type) {
+bool EnergyScheduler::CheckNodeType(uint64_t node, FlowNodeType_NodeType type) {
   FlowNodeType_NodeType node_type = flow_graph_->Node(node)->type_.type();
   return (node_type == type);
 }
@@ -370,7 +367,7 @@ bool QuincyScheduler::CheckNodeType(uint64_t node, FlowNodeType_NodeType type) {
 // Assigns a leaf node to a worker|root task. At each step it checks if there is
 // an arc to a worker|root task, if not then it goes one layer up in the graph.
 // NOTE: The extracted_flow is changed by the method.
-uint64_t QuincyScheduler::AssignNode(
+uint64_t EnergyScheduler::AssignNode(
     vector< map< uint64_t, uint64_t > >* extracted_flow,
     uint64_t node) {
   map<uint64_t, uint64_t>::iterator map_it;
@@ -416,7 +413,7 @@ uint64_t QuincyScheduler::AssignNode(
 
 // Maps worker|root tasks to leaves. It expects a extracted_flow containing only
 // the arcs with positive flow (i.e. what ReadFlowGraph returns).
-map<uint64_t, uint64_t>* QuincyScheduler::GetMappings(
+map<uint64_t, uint64_t>* EnergyScheduler::GetMappings(
     vector< map< uint64_t, uint64_t > >* extracted_flow,
     unordered_set<uint64_t> leaves,
     uint64_t sink) {
