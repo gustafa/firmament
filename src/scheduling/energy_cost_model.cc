@@ -47,7 +47,7 @@ Cost_t EnergyCostModel::TaskToResourceNodeCost(TaskID_t task_id,
   VLOG(2) << "APPNAME: " << app_name;
 
 
-  return 3ULL;
+  return 0ULL;
 }
 
 Cost_t EnergyCostModel::ClusterAggToResourceNodeCost(ResourceID_t target) {

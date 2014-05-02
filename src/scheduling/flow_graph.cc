@@ -43,6 +43,17 @@ void FlowGraph::AddArcsForTask(FlowGraphNode* task_node,
   // Assign cost to the (task -> cluster agg) edge from cost model
   cluster_agg_arc->cost_ =
       cost_model_->TaskToClusterAggCost(task_node->task_id_);
+
+  // Adding arcs to the individual machines in the topology.
+  for (auto &keyval : cluster_agg_node_->outgoing_arc_map_) {
+    uint64_t node_id = keyval.first;
+    FlowGraphNode *node = Node(node_id);
+    FlowGraphArc *task_node_arc = AddArcInternal(task_node, node);
+    task_node_arc->cost_ = cost_model_->TaskToResourceNodeCost(task_node->task_id_, node->resource_id_);
+  }
+
+
+
   // We also always have an edge to our job's unscheduled node
   FlowGraphArc* unsched_arc = AddArcInternal(task_node, unsched_agg_node);
   // Add this task's potential flow to the per-job unscheduled
