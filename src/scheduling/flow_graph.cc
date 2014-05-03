@@ -260,7 +260,7 @@ void FlowGraph::AddResourceNode(ResourceTopologyNodeDescriptor* rtnd,
     uint64_t id = next_id();
     VLOG(2) << "Adding node " << id << " for root resource "
             << rtnd->resource_desc().uuid();
-    //FlowGraphNode* root_node = AddNodeInternal(id);
+    FlowGraphNode* root_node = AddNodeInternal(id);
     root_node->type_.set_type(FlowNodeType::MACHINE);
     InsertIfNotPresent(&resource_to_nodeid_map_,
                        ResourceIDFromString(rtnd->resource_desc().uuid()),
