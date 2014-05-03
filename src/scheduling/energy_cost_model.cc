@@ -51,14 +51,14 @@ Cost_t EnergyCostModel::TaskToResourceNodeCost(TaskID_t task_id,
 }
 
 Cost_t EnergyCostModel::ClusterAggToResourceNodeCost(ResourceID_t target) {
-  return 0ULL;
+  return 5ULL;
 }
 
 Cost_t EnergyCostModel::ResourceNodeToResourceNodeCost(
     ResourceID_t source,
     ResourceID_t destination) {
 
-  return 4ULL;
+  return 0ULL;
 }
 
 Cost_t EnergyCostModel::LeafResourceNodeToSinkCost(ResourceID_t resource_id) {

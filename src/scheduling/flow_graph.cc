@@ -38,11 +38,11 @@ FlowGraph::~FlowGraph() {
 
 void FlowGraph::AddArcsForTask(FlowGraphNode* task_node,
                                FlowGraphNode* unsched_agg_node) {
-  // We always have an edge to the cluster aggregator node
-  FlowGraphArc* cluster_agg_arc = AddArcInternal(task_node, cluster_agg_node_);
-  // Assign cost to the (task -> cluster agg) edge from cost model
-  cluster_agg_arc->cost_ =
-      cost_model_->TaskToClusterAggCost(task_node->task_id_);
+  // // We always have an edge to the cluster aggregator node
+  // FlowGraphArc* cluster_agg_arc = AddArcInternal(task_node, cluster_agg_node_);
+  // // Assign cost to the (task -> cluster agg) edge from cost model
+  // cluster_agg_arc->cost_ =
+  //     cost_model_->TaskToClusterAggCost(task_node->task_id_);
 
   // Adding arcs to the individual machines in the topology.
   for (auto &keyval : cluster_agg_node_->outgoing_arc_map_) {
@@ -260,7 +260,7 @@ void FlowGraph::AddResourceNode(ResourceTopologyNodeDescriptor* rtnd,
     uint64_t id = next_id();
     VLOG(2) << "Adding node " << id << " for root resource "
             << rtnd->resource_desc().uuid();
-    FlowGraphNode* root_node = AddNodeInternal(id);
+    //FlowGraphNode* root_node = AddNodeInternal(id);
     root_node->type_.set_type(FlowNodeType::MACHINE);
     InsertIfNotPresent(&resource_to_nodeid_map_,
                        ResourceIDFromString(rtnd->resource_desc().uuid()),
