@@ -16,6 +16,7 @@
 #include "base/job_desc.pb.h"
 #include "base/task_desc.pb.h"
 #include "engine/executor_interface.h"
+#include "engine/haproxy_controller.h"
 #include "scheduling/dimacs_exporter.h"
 #include "scheduling/event_driven_scheduler.h"
 #include "scheduling/flow_graph.h"
@@ -73,6 +74,9 @@ class EnergyScheduler : public EventDrivenScheduler {
   void RegisterRemoteResource(ResourceID_t res_id);
   void HandleNginxJob();
   uint64_t RunSchedulingIteration();
+
+
+  HAProxyController haproxy_controller_;
 
   TaskDescriptor* ProducingTaskForDataObjectID(DataObjectID_t id);
   // Cached sets of runnable and blocked tasks; these are updated on each

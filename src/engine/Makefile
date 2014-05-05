@@ -10,7 +10,7 @@ HTTP_UI_LIBS += $(PION_LIB) $(PB2JSON_LIB) -llog4cpp -ljansson -lctemplate
 
 LIB = libfirmament_task_lib.a
 BINS = coordinator worker coordinator_sim
-OBJS = coordinator_http_ui.o coordinator.o knowledge_base.o local_executor.o node.o remote_executor.o worker.o topology_manager.o
+OBJS = coordinator_http_ui.o coordinator.o knowledge_base.o local_executor.o node.o remote_executor.o worker.o topology_manager.o haproxy_controller.o
 PBS =
 TESTS = coordinator_test local_executor_test simple_scheduler_test topology_manager_test worker_test
 TESTS_DEPS = $(BUILD_DIR)/misc/libfirmament_misc.a \
@@ -27,6 +27,7 @@ TESTS_coordinator_DEPS = $(BUILD_DIR)/engine/coordinator_http_ui.o \
 	                 $(BUILD_DIR)/engine/node.o \
 	                 $(BUILD_DIR)/engine/knowledge_base.o \
 	                 $(BUILD_DIR)/platforms/unix/libfirmament_unix.a \
+	                 $(BUILD_DIR)/engine/haproxy_controller.o \
 	                 $(BUILD_DIR)/engine/local_executor.o \
 	                 $(BUILD_DIR)/engine/remote_executor.o \
 	                 $(BUILD_DIR)/engine/topology_manager.o \
@@ -81,6 +82,7 @@ $(OBJ_DIR)/coordinator: $(addprefix $(OBJ_DIR)/, $(OBJS)) \
 		$(SRC_ROOT_DIR)/engine/coordinator_main.cc \
 		$(OPTFLAGS) $(DEFINES) \
 		$(BUILD_DIR)/engine/coordinator.o \
+		$(BUILD_DIR)/engine/haproxy_controller.o \
 		$(BUILD_DIR)/engine/knowledge_base.o \
 		$(BUILD_DIR)/engine/node.o \
 		$(BUILD_DIR)/engine/coordinator_http_ui.o \
@@ -106,12 +108,14 @@ $(OBJ_DIR)/coordinator_sim: \
 	$(BUILD_DIR)/messages/libfirmament_messages.a \
 	$(BUILD_DIR)/scheduling/libfirmament_scheduling.a \
 	$(BUILD_DIR)/storage/libfirmament_storage.a \
+	$(BUILD_DIR)/engine/haproxy_controller.o \
 	$(BUILD_DIR)/platforms/unix/libfirmament_unix.a
 	$(call quiet-command, \
 		$(CXX) $(CPPFLAGS) \
 		$(SRC_ROOT_DIR)/engine/coordinator_main.cc \
 		$(OPTFLAGS) $(DEFINES) \
 		$(SRC_ROOT_DIR)/engine/coordinator.cc \
+		$(BUILD_DIR)/engine/haproxy_controller.o \
 		$(BUILD_DIR)/engine/node.o \
 		$(BUILD_DIR)/engine/knowledge_base.o \
 		$(BUILD_DIR)/engine/coordinator_http_ui.o \

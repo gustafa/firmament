@@ -88,6 +88,8 @@ EnergyScheduler::EnergyScheduler(
   }
 
   flow_graph_->AddResourceTopology(root, topo_mgr->NumProcessingUnits());
+
+  haproxy_controller_.GetStatistics();
 }
 
 EnergyScheduler::~EnergyScheduler() {
