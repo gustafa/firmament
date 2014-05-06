@@ -49,6 +49,7 @@ job_desc.output_ids.append(output_id)
 job_desc.output_ids.append(output2_id)
 #job_desc.root_task.binary = "/bin/echo"
 #job_desc.root_task.args.append("Hello World!")
+
 input_desc = job_desc.root_task.dependencies.add()
 input_desc.id = input_id
 input_desc.scope = reference_desc_pb2.ReferenceDescriptor.PUBLIC

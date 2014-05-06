@@ -50,6 +50,8 @@ class EnergyScheduler : public EventDrivenScheduler {
                    << parameters_.DebugString() << ">";
   }
 
+  void IssueWebserverJobs();
+
  protected:
   const ResourceID_t* FindResourceForTask(TaskDescriptor* task_desc);
 
@@ -76,7 +78,7 @@ class EnergyScheduler : public EventDrivenScheduler {
   uint64_t RunSchedulingIteration();
 
 
-  HAProxyController haproxy_controller_;
+ // HAProxyController haproxy_controller_;
 
   TaskDescriptor* ProducingTaskForDataObjectID(DataObjectID_t id);
   // Cached sets of runnable and blocked tasks; these are updated on each

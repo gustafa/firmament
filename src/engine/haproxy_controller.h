@@ -2,6 +2,7 @@
 #define FIRMAMENT_HAPROXY_CONTROLLER
 
 #include "base/job_desc.pb.h"
+#include "base/types.h"
 
 #include <boost/shared_ptr.hpp>
 #include <unordered_map>
@@ -24,7 +25,7 @@ class HAProxyController {
 
   bool EnableServer(string hostname);
 
-  JobDescriptor *GetJobs(uint64_t next_seconds);
+  void GetJobs(vector<JobDescriptor*> &jobs, uint64_t next_seconds);
 
  private:
   string HAProxyCommand(string args);

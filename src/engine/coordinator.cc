@@ -217,6 +217,8 @@ void Coordinator::Run() {
     InformStorageEngineNewResource(&resource_desc_);
   }
 
+
+  bool first = true;
   uint64_t cur_time = 0;
   uint64_t last_heartbeat_time = 0;
   // Main loop
@@ -239,6 +241,12 @@ void Coordinator::Run() {
         SendHeartbeatToParent(stats);
       }
       last_heartbeat_time = cur_time;
+
+      if (first) {
+        IssueWebserverJobs();
+        first = false;
+      }
+
     }
     //boost::this_thread::sleep(boost::posix_time::milliseconds(100));
   }
@@ -739,6 +747,16 @@ void Coordinator::SendHeartbeatToParent(
   bm.mutable_heartbeat()->mutable_load()->CopyFrom(stats);
   VLOG(1) << "Sending heartbeat to parent coordinator!";
   SendMessageToRemote(parent_chan_, &bm);
+}
+
+
+void Coordinator::IssueWebserverJobs() {
+  vector<JobDescriptor *> webserver_jobs;
+  haproxy_controller_.GetJobs(webserver_jobs, 1);
+
+  for (auto job : webserver_jobs) {
+    SubmitJob(*job);
+  }
 }
 
 const string Coordinator::SubmitJob(const JobDescriptor& job_descriptor) {

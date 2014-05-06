@@ -54,6 +54,11 @@ EventDrivenScheduler::~EventDrivenScheduler() {
   executors_.clear();
 }
 
+
+void EventDrivenScheduler::IssueWebserverJobs() {
+
+}
+
 void EventDrivenScheduler::BindTaskToResource(
     TaskDescriptor* task_desc,
     ResourceDescriptor* res_desc) {

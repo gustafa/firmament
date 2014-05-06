@@ -89,7 +89,7 @@ EnergyScheduler::EnergyScheduler(
 
   flow_graph_->AddResourceTopology(root, topo_mgr->NumProcessingUnits());
 
-  haproxy_controller_.GetStatistics();
+  //haproxy_controller_.GetStatistics();
 }
 
 EnergyScheduler::~EnergyScheduler() {
@@ -348,6 +348,10 @@ uint64_t EnergyScheduler::RunSchedulingIteration() {
   }
   uint64_t num_scheduled = ApplySchedulingDeltas(deltas);
   return num_scheduled;
+}
+
+void EnergyScheduler::IssueWebserverJobs() {
+
 }
 
 void EnergyScheduler::PrintGraph(vector< map<uint64_t, uint64_t> > adj_map) {

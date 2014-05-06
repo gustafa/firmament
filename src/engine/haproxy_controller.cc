@@ -1,8 +1,14 @@
-#include "base/common.h"
+
 #include "haproxy_controller.h"
+
+#include "base/common.h"
+#include "base/task_desc.pb.h"
 #include "misc/map-util.h"
-#include <boost/asio.hpp>
+
+#include <fcntl.h>
 #include <stdio.h>
+#include <sys/stat.h>
+
 
 
 DEFINE_string(haproxy_conf_file, "/home/gjrh2/haproxy.conf",
@@ -11,8 +17,6 @@ DEFINE_string(haproxy_conf_file, "/home/gjrh2/haproxy.conf",
 DEFINE_string(haproxy_socket_file, "/home/gjrh2/haproxy.socket",
               "The path of the HA proxy socket file used for "
               "stats extraction.");
-
-using boost::asio::local::stream_protocol;
 
 namespace firmament {
 
@@ -49,16 +53,13 @@ void HAProxyController::GetStatistics() {
 
   stats_string.erase(0, pos + 1);
 
-  cout << "SIZE: " << stats_headers->size() << "\n";
 
   if (!(stats_headers->size())) {
     while ((pos = headers.find(inner_delimiter)) != string::npos) {
       stats_headers->push_back(headers.substr(0, pos));
-      cout << "HEAD: "  << headers.substr(0, pos) << "\n";
+      //cout << "HEAD: "  << headers.substr(0, pos) << "\n";
       headers.erase(0, pos + 1);
     }
-
-    cout << "SIZE: " << stats_headers->size() << "\n";
   }
 
   int64_t i;
@@ -83,7 +84,7 @@ void HAProxyController::GetStatistics() {
       continue;
     }
 
-          cout << "INNER_KEY" << inner_key << "\n";
+    // cout << "INNER_KEY" << inner_key << "\n";
 
     while ((inner_pos = stat_row.find(inner_delimiter)) != string::npos) {
 
@@ -105,29 +106,77 @@ void HAProxyController::GetStatistics() {
 }
 
 string HAProxyController::HAProxyCommand(string args) {
-    std::stringstream ss;
+  std::stringstream ss;
 
-    string command = string("haproxyctl ") + args;
+  string command = string("haproxyctl ") + args;
 
-    FILE *in;
-    char buff[512];
+  FILE *in;
+  char buff[512];
 
-    struct sockaddr_in serv_addr;
   if(!(in = popen(command.c_str(), "r"))){
     // ERROR
-    }
-
-  while(fgets(buff, sizeof(buff), in)!=NULL){
-        ss << buff;
   }
+
+  while (fgets(buff, sizeof(buff), in)!=NULL) {
+    ss << buff;
+  }
+
   pclose(in);
   return ss.str();
 }
 
 
 
-JobDescriptor *GetJobs(uint64_t next_seconds) {
+void HAProxyController::GetJobs(vector<JobDescriptor*> &jobs, uint64_t next_seconds) {
+  // Get statistics and approximate how many webserver jobs we need to create.
+  GetStatistics();
 
+  // TODO(gustafa): Compute how many we should actually have!
+  int64_t num_of_tasks = 3;
+  const int64_t name_size = 32;
+
+  char buffer[name_size];
+  char input_buffer[name_size];
+
+  int fd = open("/dev/urandom", O_RDONLY);
+
+  read(fd, buffer, name_size);
+
+
+  for (int64_t i = 0; i < num_of_tasks; ++i) {
+    JobDescriptor *job_desc = new JobDescriptor();
+    TaskDescriptor *root_task = job_desc->mutable_root_task();
+    job_desc->set_uuid("");
+    job_desc->set_name("webserver_job");
+    root_task->set_name("webserver_task");
+    root_task->set_state(TaskDescriptor_TaskState_CREATED);
+    root_task->set_binary("nginx_firmament");
+
+    ReferenceDescriptor *input_desc = root_task->add_dependencies();
+    read(fd, input_buffer, name_size);
+    input_desc->set_id(input_buffer, name_size);
+    input_desc->set_scope(ReferenceDescriptor_ReferenceScope_PUBLIC);
+    input_desc->set_type(ReferenceDescriptor_ReferenceType_CONCRETE);
+    input_desc->set_location("blob:/tmp/fib_in");
+    input_desc->set_non_deterministic(false);
+
+
+    for (int64_t j = 0; j < 2; ++j) {
+      read(fd, buffer, name_size);
+      ReferenceDescriptor *output_desc = root_task->add_outputs();
+      output_desc->set_id(buffer, name_size);
+      output_desc->set_scope(ReferenceDescriptor_ReferenceScope_PUBLIC);
+      output_desc->set_type(ReferenceDescriptor_ReferenceType_FUTURE);
+      output_desc->set_location("blob:/tmp/out" + std::to_string(j));
+      output_desc->set_non_deterministic(false);
+    }
+
+    jobs.push_back(job_desc);
+
+
+//    read(fd, input_buffer, 256);
+
+  }
 }
 
 

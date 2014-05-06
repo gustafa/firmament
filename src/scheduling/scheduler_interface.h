@@ -71,6 +71,12 @@ class SchedulerInterface : public PrintableInterface {
   // TODO(malte): Determine if the need this, given the reactive design of the
   // scheduler.
   //void ScheduleAllJobs();
+
+
+  // Issues webserver jobs on the scheduler.
+  virtual void IssueWebserverJobs() = 0;
+
+
  protected:
   // Binds a task to a resource, i.e. effects a scheduling assignment. This will
   // modify various bits of meta-data tracking assignments. It will then

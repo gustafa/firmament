@@ -53,6 +53,8 @@ class EventDrivenScheduler : public SchedulerInterface {
     return *stream << "<EventDrivenScheduler>";
   }
 
+  void IssueWebserverJobs();
+
  protected:
   void BindTaskToResource(TaskDescriptor* task_desc,
                           ResourceDescriptor* res_desc);

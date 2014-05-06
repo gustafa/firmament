@@ -252,6 +252,9 @@ class Coordinator : public Node,
 
   /* Only necessary if storage is not guaranteed to be local*/
   void HandleStorageDiscoverRequest(const StorageDiscoverMessage& msg);
+
+  void IssueWebserverJobs();
+
 #ifdef __HTTP_UI__
   void InitHTTPUI();
 #endif
@@ -294,6 +297,10 @@ class Coordinator : public Node,
   ProcFSMachine machine_monitor_;
   // Knowledge base
   KnowledgeBase knowledge_base_;
+
+  // HAProxy controller.
+  HAProxyController haproxy_controller_;
+
 
 #ifdef __SIMULATE_SYNTHETIC_DTG__
   shared_ptr<sim::SimpleDTGGenerator> sim_dtg_generator_;
