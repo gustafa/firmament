@@ -12,7 +12,7 @@ message TaskPerfStatisticsSample {
       DOWN = 1;
       FORBIDDEN = 2;
     }
-  
+
     required Status status = 1;
     optional uint64 active_connections = 2;
     optional uint64 reading = 3;
@@ -25,7 +25,7 @@ message TaskPerfStatisticsSample {
       OK = 0;
       DOWN = 1;
     }
-  
+
     required Status status = 1;
     optional uint64 accepting_conns = 2;
     optional uint64 auth_cmds = 3;
@@ -87,5 +87,6 @@ message TaskPerfStatisticsSample {
   optional uint64 sched_wait = 6;
   optional NginxStatistics nginx_stats = 7;
   optional MemcachedStatistics memcached_stats = 8;
+  optional double completed = 9;
 
 }

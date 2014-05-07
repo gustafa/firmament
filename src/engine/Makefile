@@ -159,7 +159,7 @@ $(OBJ_DIR)/worker: $(addprefix $(OBJ_DIR)/, $(OBJS)) \
 # Task interface library
 # ---------------------------
 # This needs to be linked into task binaries.
-#$(OBJ_LIB): $(addprefix $(OBJ_DIR)/, task_lib.o)
+$(OBJ_LIB): $(addprefix $(OBJ_DIR)/, task_lib.o)
 NGINX_INCLUDES := -I $(SRC_ROOT_DIR)/examples/nginx/src/core  -I $(SRC_ROOT_DIR)/examples/nginx/objs -I $(SRC_ROOT_DIR)/examples/nginx/src/os/unix -I $(SRC_ROOT_DIR)/examples/nginx/src/event #$(addprefix("-I ", core))
 NGINX_DEF := -D__FIRMAMENT__-DNGX_STAT_STUB=1
 

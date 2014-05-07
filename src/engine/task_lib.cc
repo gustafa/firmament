@@ -22,7 +22,7 @@
 #include "platforms/common.h"
 #include "platforms/common.pb.h"
 
-#include "examples/nginx/src/event/ngx_event.h"
+//#include "examples/nginx/src/event/ngx_event.h"
 
 
 // TODO(gustafa): FIX later!
@@ -70,7 +70,9 @@ TaskLib::TaskLib()
     task_error_(false),
     task_running_(false),
     heartbeat_seq_number_(0),
-    task_perf_monitor_(1000000) {
+    completed_(0),
+    task_perf_monitor_(1000000)
+ {
   const char* task_id_env = FLAGS_task_id.c_str();
 
 
@@ -99,12 +101,18 @@ void TaskLib::AddTaskStatisticsToHeartbeat(
     AddNginxStatistics(stats->mutable_nginx_stats());
   } else if (FLAGS_tasklib_application == "memcached") {
     AddMemcachedStatistics(stats->mutable_memcached_stats());
+  } else {
+    stats->set_completed(completed_);
   }
 }
 
 void TaskLib::AwaitNextMessage() {
   // Finally, call back into ourselves.
   //AwaitNextMessage();
+}
+
+void TaskLib::SetCompleted(double completed) {
+  completed_ = completed;
 }
 
 bool TaskLib::ConnectToCoordinator(const string& coordinator_uri) {
@@ -238,8 +246,8 @@ void TaskLib::RunMonitor(boost::thread::id main_thread_id) {
     }
 
   task_running_ = false;
-}
 
+}
 void TaskLib::AddNginxStatistics(TaskPerfStatisticsSample::NginxStatistics *ns) { // NOLINT
   CURLcode curl_code = GetWebpageContents("localhost/nginx_status");
   if (curl_code != CURLE_OK) {
@@ -249,7 +257,7 @@ void TaskLib::AddNginxStatistics(TaskPerfStatisticsSample::NginxStatistics *ns) 
   else {
     ns->set_status(TaskPerfStatisticsSample_NginxStatistics_Status_OK);
     const string delimiter = ";";
-    int pos = 0;
+    size_t pos = 0;
     int i = 0;
     const int num_stats = 4;
     uint64_t values[num_stats];

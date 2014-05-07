@@ -89,6 +89,8 @@ class TaskLib {
   void PutObjectEnd(const DataObjectID_t& id, size_t size);
   void* Extend(const DataObjectID_t& id, size_t old_size, size_t new_size);
 
+  void SetCompleted(double completed);
+
   Cache_t* getCache() {
     return cache;
   }
@@ -123,13 +125,16 @@ class TaskLib {
   void AddNginxStatistics(TaskPerfStatisticsSample::NginxStatistics *ns);
   void AddMemcachedStatistics(TaskPerfStatisticsSample::MemcachedStatistics *ms); // NOLINT
 
-
-
  private:
   pid_t pid_;
   bool task_error_;
   bool task_running_;
   uint64_t heartbeat_seq_number_;
+
+
+  // If set gives the fraction of task completed.
+  volatile double completed_;
+
   ProcFSMonitor task_perf_monitor_;
 
   static string web_stats;

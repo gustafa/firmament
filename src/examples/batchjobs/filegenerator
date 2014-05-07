@@ -1,0 +1,13 @@
+#!/bin/bash
+# Generates the given number of given sized files in the output directory.
+if [[ $# -ne 3 ]]; then
+  echo "USAGE: filegenerator power2_size_in_mb num_files output_dir"
+  exit 1
+fi
+
+MULTIPLIER=$((20 + $1))
+
+for (( i = 0; i < $2; i++ )); do
+  echo "Generating file $(($i + 1)) of $2"
+  openssl rand -out $3/input$i  $(( 2**$MULTIPLIER ))
+done
