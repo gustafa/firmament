@@ -203,8 +203,8 @@ int32_t LocalExecutor::RunProcessSync(const string& cmdline,
   }
   argv.push_back((char*)(cmdline.c_str()));  // NOLINT
   if (default_args)
-    argv.push_back(
-        (char*)"--tryfromenv=coordinator_uri,resource_id,task_id");  // NOLINT
+    //argv.push_back(
+    //    (char*)"--tryfromenv=coordinator_uri,resource_id,task_id");  // NOLINT
   for (uint32_t i = 0; i < args.size(); ++i) {
     // N.B.: This casts away the const qualifier on the c_str() result.
     // This is joyfully unsafe, of course.

@@ -41,7 +41,7 @@ DEFINE_int32(heartbeat_interval, 1,
 DEFINE_string(tasklib_application, "",
               "The application running alongside tasklib");
 
-DEFINE_string(completion_file_name, "",
+DEFINE_string(completion_filename, "",
               "A file which to read completion status from.");
 
 #define SET_PROTO_IF_DICT_HAS_INT(proto, dict, member, val) \
@@ -63,11 +63,7 @@ TaskLib::TaskLib()
   : m_adapter_(new StreamSocketsAdapter<BaseMessage>()),
     chan_(new StreamSocketsChannel<BaseMessage>(
         StreamSocketsChannel<BaseMessage>::SS_TCP)),
-
-
     coordinator_uri_(FLAGS_coordinator_uri), //getenv("FLAGS_coordinator_uri")
-
-
     resource_id_(ResourceIDFromString(FLAGS_resource_id)),
     pid_(getpid()),
     task_error_(false),
@@ -75,14 +71,13 @@ TaskLib::TaskLib()
     heartbeat_seq_number_(0),
     stop_(false),
     completed_(0),
-    task_perf_monitor_(1000000),
-
+    task_perf_monitor_(1000000)
  {
   const char* task_id_env = FLAGS_task_id.c_str();
 
-  if (!FLAGS_completion_file_name.empty()) {
+  if (!FLAGS_completion_filename.empty()) {
     // Open a completion file if the flag is set.
-    completion_file_.reset(fopen(FLAGS_completion_file_name.c_str(), "r"));
+    completion_file_.reset(fopen(FLAGS_completion_filename.c_str(), "r"));
   }
 
   VLOG(1) << "Task ID is " << task_id_env;
@@ -119,7 +114,7 @@ void TaskLib::AddTaskStatisticsToHeartbeat(
     AddMemcachedStatistics(stats->mutable_memcached_stats());
   }
 
-  if (!FLAGS_completion_file_name.empty()) {
+  if (!FLAGS_completion_filename.empty()) {
     printf("Adding completion stats!\n");
     AddCompletionStatistics(stats);
   } else {

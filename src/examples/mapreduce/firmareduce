@@ -14,6 +14,14 @@ COMPLETION_FILE=$5
 export FLAGS_completion_filename=$COMPLETION_FILE
 export FLAGS_mr_inputfile=$INPUT_FILE
 export FLAGS_mr_outputfile=$OUTPUT_FILE
+export FLAGS_tasklib_application=mapreduce
+
+
+
+export FLAGS_coordinator_uri=tcp:localhost:8088
+export FLAGS_resource_id=db904ff2-688e-4d8e-900e-f363e11fd256
+export FLAGS_task_id=feedcafedeadbeeffeedcafedeadbeeffeedcafedeadbeeffeedcafedeadbeef
+export FLAGS_heartbeat_interval=1
 
 
 echo $FLAGS_completion_filename
@@ -22,7 +30,9 @@ echo $FLAGS_completion_filename
 echo "0.020" > $COMPLETION_FILE
 COMMAND="cat $INPUT_FILE |  $MAPPER | sort -k 1 | $REDUCER > $FLAGS_mr_outputfile"
 echo "RUNNING COMMAND: $COMMAND"
-cat $INPUT_FILE |  $MAPPER \| sort -k 1 | $REDUCER > $FLAGS_mr_outputfile
+
+# TODO NAMED PIPES! Get PIDS, pass to reducer.
+cat $INPUT_FILE | $MAPPER | sort -k 1 | LD_PRELOAD=/home/gustafa/firmament/build/engine/task_lib_main.so $REDUCER > $FLAGS_mr_outputfile
 
 rm $OUTPUT_FILE
 rm $COMPLETION_FILE

@@ -26,9 +26,10 @@ job_desc.root_task.uid = 0
 job_desc.root_task.name = "nginx"
 job_desc.root_task.state = task_desc_pb2.TaskDescriptor.CREATED
 job_desc.root_task.binary = sys.argv[3]
-job_desc.root_task.args.append("--v=2")
-job_desc.root_task.args.append("0")
-job_desc.root_task.args.append("100000")
+
+#job_desc.root_task.args.append("--v=2")
+#job_desc.root_task.args.append("0")
+#job_desc.root_task.args.append("100000")
 #root_input1 = job_desc.root_task.dependencies.add()
 #root_input1.id = 123456789
 #root_input1.type = reference_desc_pb2.ReferenceDescriptor.FUTURE
@@ -41,6 +42,10 @@ else:
   input_id = binascii.unhexlify(generateHexString(64))
 
 
+# Add the remaining as job arguments!
+if len(sys.argv) > 5:
+  for arg in sys.argv[5:]:
+    job_desc.root_task.args.append(arg)
 
 #input_id = binascii.unhexlify('feedcafedeadbeeffeedcafedeadbeeffeedcafedeadbeeffeedcafedeadbeef') #sys.argv[4])
 output_id = binascii.unhexlify('db33daba280d8e68eea6e490723b02cedb33daba280d8e68eea6e490723b02ce')
