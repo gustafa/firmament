@@ -41,6 +41,9 @@ DEFINE_int32(heartbeat_interval, 1,
 DEFINE_string(tasklib_application, "",
               "The application running alongside tasklib");
 
+DEFINE_string(completion_file_name, "",
+              "A file which to read completion status from.");
+
 #define SET_PROTO_IF_DICT_HAS_INT(proto, dict, member, val) \
   val = json_object_get(dict, # member); \
   if (val) proto->set ## _ ## member(json_integer_value(val));
@@ -70,16 +73,29 @@ TaskLib::TaskLib()
     task_error_(false),
     task_running_(false),
     heartbeat_seq_number_(0),
+    stop_(false),
     completed_(0),
-    task_perf_monitor_(1000000)
+    task_perf_monitor_(1000000),
+
  {
   const char* task_id_env = FLAGS_task_id.c_str();
 
+  if (!FLAGS_completion_file_name.empty()) {
+    // Open a completion file if the flag is set.
+    completion_file_.reset(fopen(FLAGS_completion_file_name.c_str(), "r"));
+  }
 
   VLOG(1) << "Task ID is " << task_id_env;
   CHECK_NOTNULL(task_id_env);
   task_id_ = TaskIDFromString(task_id_env);
   setUpStorageEngine();
+}
+
+TaskLib::~TaskLib() {
+  // Close the completion file if open
+  if (completion_file_) {
+    fclose(completion_file_.get());
+  }
 }
 
 void TaskLib::AddTaskStatisticsToHeartbeat(
@@ -101,8 +117,33 @@ void TaskLib::AddTaskStatisticsToHeartbeat(
     AddNginxStatistics(stats->mutable_nginx_stats());
   } else if (FLAGS_tasklib_application == "memcached") {
     AddMemcachedStatistics(stats->mutable_memcached_stats());
+  }
+
+  if (!FLAGS_completion_file_name.empty()) {
+    printf("Adding completion stats!\n");
+    AddCompletionStatistics(stats);
   } else {
-    stats->set_completed(completed_);
+    printf("NOT ADDING COMPLETION STATS :(\n");
+  }
+}
+
+void TaskLib::AddCompletionStatistics(TaskPerfStatisticsSample *ts) {
+  CHECK(completion_file_);
+
+  char str[20];
+  int num_bytes = fread(str, 1, 20, completion_file_.get());
+  rewind(completion_file_.get());
+  str[num_bytes] = '\0';
+
+  if (num_bytes) {
+    completed_ = strtod(str, NULL);
+  }
+
+  ts->set_completed(completed_);
+
+  // Mark ourselves as ready to stop once the task progress has been completed.
+  if (completed_ >= 1.0) {
+    exit_ = true;
   }
 }
 
@@ -230,7 +271,7 @@ void TaskLib::RunMonitor(boost::thread::id main_thread_id) {
   // notification scheme in case the heartbeat interval is large.
 
 
-  while (true) {
+  while (!stop_) {
       sleep(FLAGS_heartbeat_interval);
       // TODO(malte): Check if we've exited with an error
       // if(error)

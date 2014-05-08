@@ -8,9 +8,13 @@
 #ifndef FIRMAMENT_ENGINE_TASK_LIB_H
 #define FIRMAMENT_ENGINE_TASK_LIB_H
 
+#include <curl/curl.h>
+#include <memory>
+#include <stdio.h>
+#include <stdlib.h>
 #include <string>
 #include <vector>
-#include <curl/curl.h>
+
 
 #ifdef __PLATFORM_HAS_BOOST__
 #include <boost/uuid/uuid.hpp>
@@ -72,6 +76,8 @@ using store::FREE;
 class TaskLib {
  public:
   TaskLib();
+  ~TaskLib();
+
   void RunMonitor(boost::thread::id main_thread_id);
   void AwaitNextMessage();
   bool ConnectToCoordinator(const string& coordinator_uri);
@@ -124,12 +130,16 @@ class TaskLib {
 
   void AddNginxStatistics(TaskPerfStatisticsSample::NginxStatistics *ns);
   void AddMemcachedStatistics(TaskPerfStatisticsSample::MemcachedStatistics *ms); // NOLINT
+  void AddCompletionStatistics(TaskPerfStatisticsSample *ts);
+
 
  private:
   pid_t pid_;
   bool task_error_;
   bool task_running_;
   uint64_t heartbeat_seq_number_;
+
+  bool stop_;
 
 
   // If set gives the fraction of task completed.
@@ -145,6 +155,8 @@ class TaskLib {
   named_mutex* mutex;
   scoped_lock<named_mutex>* cache_lock;
   ReferenceNotification_t* reference_not_t;
+
+  unique_ptr<FILE> completion_file_;
 };
 
 }  // namespace firmament
