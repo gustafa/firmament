@@ -774,17 +774,29 @@ const string Coordinator::SubmitJob(const JobDescriptor& job_descriptor) {
   new_jd = FindOrNull(*job_table_, new_job_id);
   // Clone the JD and update it with some information
   new_jd->set_uuid(to_string(new_job_id));
+
+  // root task
+
+  TaskDescriptor *root_task = new_jd->mutable_root_task();
+
   // Set the root task ID (which is 0 or unset on submission)
-  new_jd->mutable_root_task()->set_uid(GenerateRootTaskID(*new_jd));
+  root_task->set_uid(GenerateRootTaskID(*new_jd));
+
+  // Compute the absolute deadline for the root task if it has a deadline
+  // set.
+  if (root_task->has_relative_deadline()) {
+    root_task->set_absolute_deadline(GetCurrentTimestamp() + root_task->relative_deadline());
+  }
+
   // Create a dynamic task graph for the job
-  TaskGraph* new_dtg = new TaskGraph(new_jd->mutable_root_task());
+  TaskGraph* new_dtg = new TaskGraph(root_task);
   // Store the task graph
   InsertIfNotPresent(&task_graph_table_, new_job_id, new_dtg);
   // Add itself and its spawned tasks (if any) to the relevant tables:
   // - tasks to the task_table_
   // - inputs/outputs to the object_table_
   // and set the job_id field on every task.
-  AddJobsTasksToTables(new_jd->mutable_root_task(), new_job_id);
+  AddJobsTasksToTables(root_task, new_job_id);
   // Set up job outputs
   for (RepeatedPtrField<string>::const_iterator output_iter =
        new_jd->output_ids().begin();

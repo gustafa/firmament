@@ -11,7 +11,7 @@ namespace firmament {
 
 TrivialCostModel::TrivialCostModel() { }
 
-Cost_t TrivialCostModel::TaskToUnscheduledAggCost(TaskID_t task_id) {
+Cost_t TrivialCostModel::TaskToUnscheduledAggCost(TaskID_t task_id, FlowSchedulingPriorityType priority) {
   return 5ULL;
 }
 

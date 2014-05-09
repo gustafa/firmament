@@ -15,6 +15,7 @@ extern "C" {
 #include "base/common.h"
 #include "base/types.h"
 #include "misc/equivclasses.h"
+#include "misc/utils.h"
 
 DEFINE_bool(debug_tasks, false,
             "Run tasks through a debugger (gdb).");
@@ -132,6 +133,9 @@ void LocalExecutor::RunTask(TaskDescriptor* td,
   boost::thread per_task_thread(
       boost::bind(&LocalExecutor::_RunTask, this, td, firmament_binary));
   exec_condvar_.wait(lock);
+
+  // Mark the start time of the task.
+  td->set_started(GetCurrentTimestamp());
 }
 
 bool LocalExecutor::_RunTask(TaskDescriptor* td,

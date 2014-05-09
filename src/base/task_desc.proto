@@ -28,5 +28,9 @@ message TaskDescriptor {
   repeated TaskDescriptor spawned = 10;
   optional string last_location = 11;
   optional string delegated_from = 12;
+  optional uint64 started = 13;
+  optional uint64 relative_deadline = 14;
+  optional uint64 absolute_deadline = 15;
+
 }
 

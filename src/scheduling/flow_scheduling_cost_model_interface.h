@@ -6,6 +6,7 @@
 #ifndef FIRMAMENT_SCHEDULING_FLOW_SCHEDULING_COST_MODEL_H
 #define FIRMAMENT_SCHEDULING_FLOW_SCHEDULING_COST_MODEL_H
 
+#include <limits>
 #include <string>
 
 #include "base/common.h"
@@ -22,13 +23,23 @@ enum FlowSchedulingCostModelType {
   COST_MODEL_ENERGY = 2,
 };
 
+// List of priorities supported
+enum FlowSchedulingPriorityType {
+  PRIORITY_LOW = 0,
+  PRIORITY_MEDIUM = 1,
+  PRIORITY_HIGH = 2,
+};
+
 class FlowSchedulingCostModelInterface {
  public:
   FlowSchedulingCostModelInterface() {};
+
+  const Cost_t POOR_SCHEDULING_CHOICE = std::numeric_limits<Cost_t>::max();
+
   virtual ~FlowSchedulingCostModelInterface() {};
 
   // Costs pertaining to leaving tasks unscheduled
-  virtual Cost_t TaskToUnscheduledAggCost(TaskID_t task_id) = 0;
+  virtual Cost_t TaskToUnscheduledAggCost(TaskID_t task_id, FlowSchedulingPriorityType priority) = 0;
   virtual Cost_t UnscheduledAggToSinkCost(JobID_t job_id) = 0;
   // Per-task costs (into the resource topology)
   virtual Cost_t TaskToClusterAggCost(TaskID_t task_id) = 0;

@@ -23,10 +23,19 @@ EnergyCostModel::EnergyCostModel(shared_ptr<ResourceMap_t> resource_map, shared_
   application_host_stats_["nginx"] = nginx_stats;
 }
 
-Cost_t EnergyCostModel::TaskToUnscheduledAggCost(TaskID_t task_id) {
+Cost_t EnergyCostModel::TaskToUnscheduledAggCost(TaskID_t task_id, FlowSchedulingPriorityType priority) {
   // TODO should be inversely proportional to deadline - estimated run-time
   // and > than cheapest place to schedule task.
-  return 5ULL;
+
+  if (priority == PRIORITY_HIGH) {
+    // If the priority is high we want to insert a very high cost related with not scheduling it.
+    // Currently set as 1 billion. TODO(gustafa): Make this value a multiplier of the energy cost
+    // at the worst machine.
+    return 1000000000;
+  } else {
+    return 5ULL;
+  }
+
 }
 
 Cost_t EnergyCostModel::UnscheduledAggToSinkCost(JobID_t job_id) {
@@ -54,6 +63,17 @@ Cost_t EnergyCostModel::TaskToResourceNodeCost(TaskID_t task_id,
 
     if (application_host_stat) {
       VLOG(2) << "FOUND APP HOST STAT";
+
+      // Check if we estimate we'll be able to satisfy the deadline set.
+      if ((*td)->has_absolute_deadline()) {
+        uint64_t expected_completion = GetCurrentTimestamp() + (*application_host_stat)->GetExpectedRuntime();
+
+        // Return this being a poor scheduling decision if we are predicted to miss the deadline.
+        if (expected_completion >(*td)->absolute_deadline()) {
+          return POOR_SCHEDULING_CHOICE;
+        }
+      }
+
       return (uint64_t((*application_host_stat)->GetExpectedEnergyUse()));
     }
   }
@@ -88,13 +108,14 @@ void EnergyCostModel::SetInitialNginxStats(ResourceStatsMap *nginx_map) {
 
 
 
-  // Dummy vars.
-  (*nginx_map)[FindResourceID("titanic")] = new ApplicationStatistics(ApplicationStatistics::REAL_TIME, 5, 100);
-  (*nginx_map)[FindResourceID("pandaboard")] = new ApplicationStatistics(ApplicationStatistics::REAL_TIME, 2, 80);
-  (*nginx_map)[FindResourceID("michael")] = new ApplicationStatistics(ApplicationStatistics::REAL_TIME, 4, 300);
+  // Dummy vars. For real-time applications set the time it takes to the frequency of rescheduling
+
+  (*nginx_map)[FindResourceID("titanic")] = new ApplicationStatistics(ApplicationStatistics::REAL_TIME, 5, 5);
+  (*nginx_map)[FindResourceID("pandaboard")] = new ApplicationStatistics(ApplicationStatistics::REAL_TIME, 2, 5);
+  (*nginx_map)[FindResourceID("michael")] = new ApplicationStatistics(ApplicationStatistics::REAL_TIME, 4, 5);
 
   VLOG(2) << "RESOURCE ID GUSTAFA: " << FindResourceID("gustafa");
-  (*nginx_map)[FindResourceID("gustafa")] = new ApplicationStatistics(ApplicationStatistics::REAL_TIME, 10, 300);
+  (*nginx_map)[FindResourceID("gustafa")] = new ApplicationStatistics(ApplicationStatistics::REAL_TIME, 10, 5);
 
 }
 

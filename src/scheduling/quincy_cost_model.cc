@@ -11,7 +11,7 @@ namespace firmament {
 
 QuincyCostModel::QuincyCostModel() { }
 
-Cost_t QuincyCostModel::TaskToUnscheduledAggCost(TaskID_t task_id) {
+Cost_t QuincyCostModel::TaskToUnscheduledAggCost(TaskID_t task_id, FlowSchedulingPriorityType priority) {
   return 5ULL;
 }
 
