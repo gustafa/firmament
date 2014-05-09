@@ -185,13 +185,14 @@ void FlowGraph::AddJobNodes(JobDescriptor* jd) {
       // Arcs for this node
       AddArcsForTask(task_node, unsched_agg_node);
       // XXX(malte): hack to add equiv class aggregator nodes
-      VLOG(2) << "Equiv class for task " << cur->uid() << " is "
-              << GenerateTaskEquivClass(*cur);
-      FlowGraphNode* ec_node =
-          AddEquivClassAggregator(GenerateTaskEquivClass(*cur));
-      FlowGraphArc* ec_arc = AddArcInternal(task_node->id_,
-                                            ec_node->id_);
-      ec_arc->cost_ = 0;
+
+      // VLOG(2) << "Equiv class for task " << cur->uid() << " is "
+      //         << GenerateTaskEquivClass(*cur);
+      // FlowGraphNode* ec_node =
+      //     AddEquivClassAggregator(GenerateTaskEquivClass(*cur));
+      // FlowGraphArc* ec_arc = AddArcInternal(task_node->id_,
+      //                                       ec_node->id_);
+      // ec_arc->cost_ = 0;
     } else if (cur->state() == TaskDescriptor::RUNNING ||
              cur->state() == TaskDescriptor::ASSIGNED) {
       // The task is already running, so it must have a node already
@@ -262,9 +263,14 @@ void FlowGraph::AddResourceNode(ResourceTopologyNodeDescriptor* rtnd,
             << rtnd->resource_desc().uuid();
     FlowGraphNode* root_node = AddNodeInternal(id);
     root_node->type_.set_type(FlowNodeType::MACHINE);
-    InsertIfNotPresent(&resource_to_nodeid_map_,
-                       ResourceIDFromString(rtnd->resource_desc().uuid()),
-                       root_node->id_);
+
+
+    VLOG(2) << "ROOT NODE RESOURCE UUID: " << rtnd->resource_desc().uuid();
+    ResourceID_t resource_id = ResourceIDFromString(rtnd->resource_desc().uuid());
+    // TODO(gustafa): Verify correctness!
+    root_node->resource_id_ = resource_id;
+    InsertIfNotPresent(&resource_to_nodeid_map_, resource_id, root_node->id_);
+
     // Arc from cluster aggregator to resource topo root node
     cluster_agg_into_res_topo_arc_ = AddArcInternal(cluster_agg_node_,
                                                     root_node);

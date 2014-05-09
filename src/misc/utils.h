@@ -50,8 +50,10 @@ DataObjectID_t GenerateDataObjectID(const TaskDescriptor& task_descriptor);
 DataObjectID_t GenerateDataObjectID(TaskID_t producing_task,
                                     TaskOutputID_t output_id);
 
-// Returns the resource ID for the given host.
+// Returns the (predictable) resource ID for the given host.
 ResourceID_t FindResourceID(string hostname);
+// Inserts a predicatable resource ID for a given host.
+void InsertResourceID(string hostname, string uuid_string);
 
 // XXX(malte): This is a hack. Figure out a proper hashing function compatible
 // with root tasks.

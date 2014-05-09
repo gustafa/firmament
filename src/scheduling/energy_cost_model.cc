@@ -52,7 +52,7 @@ Cost_t EnergyCostModel::TaskToResourceNodeCost(TaskID_t task_id,
     ApplicationStatistics **application_host_stat = FindOrNull(**application_stat, resource_id);
     VLOG(2) << "FOUND APPLICATION STAT";
 
-    if (application_stat) {
+    if (application_host_stat) {
       VLOG(2) << "FOUND APP HOST STAT";
       return (uint64_t((*application_host_stat)->GetExpectedEnergyUse()));
     }
@@ -85,10 +85,15 @@ Cost_t EnergyCostModel::TaskPreemptionCost(TaskID_t task_id) {
 }
 
 void EnergyCostModel::SetInitialNginxStats(ResourceStatsMap *nginx_map) {
+
+
+
   // Dummy vars.
   (*nginx_map)[FindResourceID("titanic")] = new ApplicationStatistics(ApplicationStatistics::REAL_TIME, 5, 100);
   (*nginx_map)[FindResourceID("pandaboard")] = new ApplicationStatistics(ApplicationStatistics::REAL_TIME, 2, 80);
   (*nginx_map)[FindResourceID("michael")] = new ApplicationStatistics(ApplicationStatistics::REAL_TIME, 4, 300);
+
+  VLOG(2) << "RESOURCE ID GUSTAFA: " << FindResourceID("gustafa");
   (*nginx_map)[FindResourceID("gustafa")] = new ApplicationStatistics(ApplicationStatistics::REAL_TIME, 10, 300);
 
 }

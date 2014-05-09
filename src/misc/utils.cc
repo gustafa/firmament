@@ -84,6 +84,10 @@ void SetupResourceID(boost::mt19937 *resource_id, const char *hostname) {
   resource_id->seed(hash);
 }
 
+
+
+// TODO the following two functions should be renamed, they are only used to get some reliable names
+// Find a resource UUID f
 ResourceID_t FindResourceID(string hostname) {
   unordered_map<string, ResourceID_t>::const_iterator got =
       hostname_to_uuid_.find(hostname);
@@ -101,6 +105,11 @@ ResourceID_t FindResourceID(string hostname) {
     return uuid;
   }
 }
+
+void InsertResourceID(string hostname, string uuid_string) {
+  hostname_to_uuid_[hostname] = ResourceIDFromString(uuid_string);
+}
+
 
 
 JobID_t GenerateJobID() {
