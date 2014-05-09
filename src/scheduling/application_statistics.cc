@@ -9,5 +9,8 @@ ApplicationStatistics::ApplicationStatistics(APPLICATION_TYPE type, double alone
     alone_runtime_stat_(alone_runtime_stat) {
 }
 
+double ApplicationStatistics::GetExpectedEnergyUse() {
+  return alone_delta_j_;
+}
 
 } // namespace firmament

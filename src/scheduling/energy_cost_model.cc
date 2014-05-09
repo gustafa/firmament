@@ -18,9 +18,8 @@ EnergyCostModel::EnergyCostModel(shared_ptr<ResourceMap_t> resource_map, shared_
   : resource_map_(resource_map),
   job_map_(job_map),
   task_map_(task_map) {
-  unordered_map<ResourceID_t, ApplicationStatistics*, boost::hash<boost::uuids::uuid>> *nginx_stats =
-      new unordered_map<ResourceID_t, ApplicationStatistics*, boost::hash<boost::uuids::uuid>>();
-  //SetInitialNginxStats(nginx_stats);
+ ResourceStatsMap *nginx_stats = new ResourceStatsMap();
+  SetInitialNginxStats(nginx_stats);
   application_host_stats_["nginx"] = nginx_stats;
 }
 
@@ -46,6 +45,18 @@ Cost_t EnergyCostModel::TaskToResourceNodeCost(TaskID_t task_id,
   string app_name = (*td)->name();
   VLOG(2) << "APPNAME: " << app_name;
 
+  VLOG(2) << "RESOURCE ID IS " << resource_id;
+  ResourceStatsMap **application_stat = FindOrNull(application_host_stats_, app_name);
+
+  if (application_stat) {
+    ApplicationStatistics **application_host_stat = FindOrNull(**application_stat, resource_id);
+    VLOG(2) << "FOUND APPLICATION STAT";
+
+    if (application_stat) {
+      VLOG(2) << "FOUND APP HOST STAT";
+      return (uint64_t((*application_host_stat)->GetExpectedEnergyUse()));
+    }
+  }
 
   return 0ULL;
 }
@@ -73,11 +84,13 @@ Cost_t EnergyCostModel::TaskPreemptionCost(TaskID_t task_id) {
   return 0ULL;
 }
 
-// void EnergyCostModel::SetInitialNginxStats(unordered_map<ResourceID_t, ApplicationStatistics*> *nginx_map) {
-//   // Dummy vars.
-//   (*nginx_map)[FindResourceID("titanic")] = new ApplicationStatistics(ApplicationStatistics::REAL_TIME, 5, 100);
-//   (*nginx_map)[FindResourceID("pandaboard")] = new ApplicationStatistics(ApplicationStatistics::REAL_TIME, 2, 80);
-//   (*nginx_map)[FindResourceID("michael")] = new ApplicationStatistics(ApplicationStatistics::REAL_TIME, 4, 300);
-// }
+void EnergyCostModel::SetInitialNginxStats(ResourceStatsMap *nginx_map) {
+  // Dummy vars.
+  (*nginx_map)[FindResourceID("titanic")] = new ApplicationStatistics(ApplicationStatistics::REAL_TIME, 5, 100);
+  (*nginx_map)[FindResourceID("pandaboard")] = new ApplicationStatistics(ApplicationStatistics::REAL_TIME, 2, 80);
+  (*nginx_map)[FindResourceID("michael")] = new ApplicationStatistics(ApplicationStatistics::REAL_TIME, 4, 300);
+  (*nginx_map)[FindResourceID("gustafa")] = new ApplicationStatistics(ApplicationStatistics::REAL_TIME, 10, 300);
+
+}
 
 }  // namespace firmament5

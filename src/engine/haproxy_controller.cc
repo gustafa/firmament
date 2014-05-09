@@ -148,7 +148,7 @@ void HAProxyController::GetJobs(vector<JobDescriptor*> &jobs, uint64_t next_seco
     TaskDescriptor *root_task = job_desc->mutable_root_task();
     job_desc->set_uuid("");
     job_desc->set_name("webserver_job");
-    root_task->set_name("webserver_task");
+    root_task->set_name("nginx");
     root_task->set_state(TaskDescriptor_TaskState_CREATED);
     root_task->set_binary("nginx_firmament");
 

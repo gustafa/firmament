@@ -21,6 +21,8 @@ public:
 
   ApplicationStatistics(APPLICATION_TYPE type, double alone_delta_j, uint64_t alone_runtime_stat);
 
+  double GetExpectedEnergyUse();
+
   const APPLICATION_TYPE application_type;
 
  private:
