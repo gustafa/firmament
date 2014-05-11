@@ -1,38 +1,42 @@
 #!/bin/bash
 
-if [[ $# -ne 5 ]]; then
-  echo "USAGE: firmareduce <mapper> <reducer> <input file> <output file> <completion file>"
+if [[ $# -ne 3 ]]; then
+  echo "USAGE: firmareduce <mapper> <reducer> <input file>"
   exit 1
 fi
 
 MAPPER=$1
 REDUCER=$2
-INPUT_FILE=$3
-OUTPUT_FILE=$4
-COMPLETION_FILE=$5
+export INPUT_FILE=$3
 
-export FLAGS_completion_filename=$COMPLETION_FILE
 export FLAGS_mr_inputfile=$INPUT_FILE
-export FLAGS_mr_outputfile=$OUTPUT_FILE
 export FLAGS_tasklib_application=mapreduce
-
-
 
 export FLAGS_coordinator_uri=tcp:localhost:8088
 export FLAGS_resource_id=db904ff2-688e-4d8e-900e-f363e11fd256
-export FLAGS_task_id=feedcafedeadbeeffeedcafedeadbeeffeedcafedeadbeeffeedcafedeadbeef
 export FLAGS_heartbeat_interval=1
 
 
-echo $FLAGS_completion_filename
+# For local test runs.
+if [[ -z "$FLAGS_task_id" ]]; then
+  export FLAGS_task_id=lolhaxtask
+fi
+
+export FLAGS_completion_filename=/tmp/${FLAGS_task_id}_completion
+
+export FLAGS_output_filename=/tmp/${FLAGS_task_id}_output
+export FLAGS_tuples_filename=/tmp/${FLAGS_task_id}_tuples
+
 
 # Set completion to 2%, that is we started executing.
-echo "0.020" > $COMPLETION_FILE
-COMMAND="cat $INPUT_FILE |  $MAPPER | sort -k 1 | $REDUCER > $FLAGS_mr_outputfile"
+echo "0.020" > $FLAGS_completion_filename
+COMMAND="cat $INPUT_FILE | $MAPPER | sort -k 1 | LD_PRELOAD=/home/gustafa/firmament/build/engine/task_lib_main.so $REDUCER > $FLAGS_output_filename
+"
 echo "RUNNING COMMAND: $COMMAND"
 
 # TODO NAMED PIPES! Get PIDS, pass to reducer.
-cat $INPUT_FILE | $MAPPER | sort -k 1 | LD_PRELOAD=/home/gustafa/firmament/build/engine/task_lib_main.so $REDUCER > $FLAGS_mr_outputfile
+cat $INPUT_FILE | $MAPPER | sort -k 1 | LD_PRELOAD=/home/gustafa/firmament/build/engine/task_lib_main.so $REDUCER > $FLAGS_output_filename
 
-rm $OUTPUT_FILE
-rm $COMPLETION_FILE
+rm $FLAGS_output_filename
+rm $FLAGS_completion_filename
+rm $FLAGS_tuple_filename

@@ -25,7 +25,7 @@ typedef unordered_map<ResourceID_t, ApplicationStatistics*, boost::hash<boost::u
 class EnergyCostModel : public FlowSchedulingCostModelInterface {
  public:
   EnergyCostModel(shared_ptr<ResourceMap_t> resource_map, shared_ptr<JobMap_t> job_map,
-                  shared_ptr<TaskMap_t> task_map);
+                  shared_ptr<TaskMap_t> task_map, shared_ptr<ResourceHostMap_t> resource_to_host );
 
   // Costs pertaining to leaving tasks unscheduled
   Cost_t TaskToUnscheduledAggCost(TaskID_t task_id, FlowSchedulingPriorityType priority);
@@ -56,6 +56,8 @@ class EnergyCostModel : public FlowSchedulingCostModelInterface {
   shared_ptr<ResourceMap_t> resource_map_;
   shared_ptr<JobMap_t> job_map_;
   shared_ptr<TaskMap_t> task_map_;
+  shared_ptr<ResourceHostMap_t> resource_to_host_;
+
 };
 
 }  // namespace firmament

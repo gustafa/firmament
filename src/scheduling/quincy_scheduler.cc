@@ -81,10 +81,6 @@ QuincyScheduler::QuincyScheduler(
       flow_graph_ = new FlowGraph(new QuincyCostModel());
       VLOG(1) << "Using the quincy cost model";
       break;
-    case FlowSchedulingCostModelType::COST_MODEL_ENERGY:
-      flow_graph_ = new FlowGraph(new EnergyCostModel(resource_map, job_map, task_map));
-      VLOG(1) << "Using the energy cost model";
-      break;
     default:
       LOG(FATAL) << "Unknown flow scheduling cost model specificed "
                  << "(" << FLAGS_flow_scheduling_cost_model << ")";

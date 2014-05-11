@@ -59,6 +59,7 @@ Coordinator::Coordinator(PlatformID platform_id)
     local_resource_topology_(new ResourceTopologyNodeDescriptor),
     job_table_(new JobMap_t),
     task_table_(new TaskMap_t),
+    resource_to_host_(new ResourceHostMap_t),
     topology_manager_(new TopologyManager()),
     object_store_(new store::SimpleObjectStore(uuid_)),
     parent_chan_(NULL) {
@@ -91,7 +92,7 @@ Coordinator::Coordinator(PlatformID platform_id)
     scheduler_ = new EnergyScheduler(
         job_table_, associated_resources_, object_store_, task_table_,
         topology_manager_, m_adapter_, uuid_, FLAGS_listen_uri,
-        params);
+        params, resource_to_host_);
   } else {
     // Unknown scheduler specified, error.
     LOG(FATAL) << "Unknown or unrecognized scheduler '" << FLAGS_scheduler
@@ -168,6 +169,8 @@ void Coordinator::AddResource(ResourceDescriptor* resource_desc,
   CHECK(InsertIfNotPresent(associated_resources_.get(), res_id,
           new ResourceStatus(resource_desc, endpoint_uri,
                              GetCurrentTimestamp())));
+  // Store the resource to host information in the lookup map.
+  (*resource_to_host_)[res_id] = endpoint_uri;
   // Register with scheduler if this resource is schedulable
   if (resource_desc->type() == ResourceDescriptor::RESOURCE_PU) {
     // TODO(malte): We make the assumption here that any local PU resource is

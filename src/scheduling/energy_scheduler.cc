@@ -51,11 +51,13 @@ EnergyScheduler::EnergyScheduler(
     MessagingAdapterInterface<BaseMessage>* m_adapter,
     ResourceID_t coordinator_res_id,
     const string& coordinator_uri,
-    const SchedulingParameters& params)
+    const SchedulingParameters& params,
+    shared_ptr<ResourceHostMap_t> resource_host_map)
     : EventDrivenScheduler(job_map, resource_map, object_store, task_map,
                            topo_mgr, m_adapter, coordinator_res_id,
                            coordinator_uri),
       parameters_(params),
+      resource_host_map_(resource_host_map),
       debug_seq_num_(0) {
   LOG(INFO) << "EnergyScheduler initiated; parameters: "
             << parameters_.ShortDebugString();
@@ -79,7 +81,7 @@ EnergyScheduler::EnergyScheduler(
       VLOG(1) << "Using the quincy cost model";
       break;
     case FlowSchedulingCostModelType::COST_MODEL_ENERGY:
-      flow_graph_ = new FlowGraph(new EnergyCostModel(resource_map, job_map, task_map));
+      flow_graph_ = new FlowGraph(new EnergyCostModel(resource_map, job_map, task_map, resource_host_map_));
       VLOG(1) << "Using the energy cost model";
       break;
     default:

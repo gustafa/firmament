@@ -107,7 +107,7 @@ void TaskLib::AddTaskStatisticsToHeartbeat(
   stats->set_sched_wait(proc_stats.sched_wait_runnable_ticks);
 
 
-  printf("FLAGNAME: %s\n", FLAGS_tasklib_application.c_str());
+  VLOG(2) << "Tasklib application " << FLAGS_tasklib_application;
   if (FLAGS_tasklib_application == "nginx") {
     AddNginxStatistics(stats->mutable_nginx_stats());
   } else if (FLAGS_tasklib_application == "memcached") {
@@ -115,10 +115,10 @@ void TaskLib::AddTaskStatisticsToHeartbeat(
   }
 
   if (!FLAGS_completion_filename.empty()) {
-    printf("Adding completion stats!\n");
+    VLOG(3) << "Adding completion stats!";
     AddCompletionStatistics(stats);
   } else {
-    printf("NOT ADDING COMPLETION STATS :(\n");
+    VLOG(3) << "NOT ADDING COMPLETION STATS :(";
   }
 }
 
@@ -244,7 +244,7 @@ bool TaskLib::PullTaskInformationFromCoordinator(TaskID_t task_id,
 
 
 void TaskLib::RunMonitor(boost::thread::id main_thread_id) {
-  printf("COORDINATOR URI%s\n",FLAGS_coordinator_uri.c_str());
+  VLOG(3) << "COORDINATOR URI: " << FLAGS_coordinator_uri;
   ConnectToCoordinator(coordinator_uri_);
   VLOG(3) << "Setting up storage engine";
   setUpStorageEngine();
@@ -391,25 +391,19 @@ void TaskLib::SendFinalizeMessage(bool success) {
 void TaskLib::SendHeartbeat(
   const ProcFSMonitor::ProcessStatistics_t& proc_stats) {
   BaseMessage bm;
-  printf("Writing bytes\n");
   SUBMSG_WRITE(bm, task_heartbeat, task_id, task_id_);
   // Add current set of procfs statistics
 
-  printf("Creating stats\n");
   TaskPerfStatisticsSample* taskperf_stats =
       bm.mutable_task_heartbeat()->mutable_stats();
-  printf("Adding sats to heartbeat\n");
 
   AddTaskStatisticsToHeartbeat(proc_stats, taskperf_stats);
 
   // TODO(malte): we do not always need to send the location string; it
   // sufficies to send it if our location changed (which should be rare).
-  printf("Local endpoint\n");
   SUBMSG_WRITE(bm, task_heartbeat, location, chan_->LocalEndpointString());
-  printf("Something else\n");
   SUBMSG_WRITE(bm, task_heartbeat, sequence_number, heartbeat_seq_number_++);
 
-  printf("SENDING HEARTBEAT\n");
   VLOG(1) << "Sending heartbeat message!";
   SendMessageToCoordinator(&bm);
 }

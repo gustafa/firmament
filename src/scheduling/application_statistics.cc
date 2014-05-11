@@ -20,20 +20,21 @@ ApplicationStatistics::ApplicationStatistics() {
 }
 
 // Get energy for the given machine with a fraction completed.
-double ApplicationStatistics::GetEnergy(string &machine, double completed) {
+double ApplicationStatistics::GetEnergy(string machine, double completed) {
   return (*machine_to_energy_)[machine] * (1 - completed);
 }
 
-void ApplicationStatistics::SetEnergy(string &machine, double energy) {
+void ApplicationStatistics::SetEnergy(string machine, double energy) {
+  // TODO consider whether we want energy / s or total energy here!
   SetStat(*machine_to_energy_, energy_stats_, machine, energy);
 }
 
 // Get Runtime for the given machine with a fraction completed.
-double ApplicationStatistics::GetRuntime(string &machine, double completed) {
+double ApplicationStatistics::GetRuntime(string machine, double completed) {
   return (*machine_to_runtime_)[machine] * (1 - completed);
 }
 
-void ApplicationStatistics::SetRuntime(string &machine, double runtime) {
+void ApplicationStatistics::SetRuntime(string machine, double runtime) {
   SetStat(*machine_to_runtime_, runtime_stats_, machine, runtime);
 }
 

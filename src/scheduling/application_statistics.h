@@ -26,11 +26,11 @@ struct MachineAppStat {
 public:
   ApplicationStatistics();
 
-  double GetEnergy(string &machine, double completed);
-  void SetEnergy(string &machine, double energy);
+  double GetEnergy(string machine, double completed);
+  void SetEnergy(string machine, double energy);
 
-  double GetRuntime(string &machine, double completed);
-  void SetRuntime(string &machine, double runtime);
+  double GetRuntime(string machine, double completed);
+  void SetRuntime(string machine, double runtime);
 
   double BestEnergy();
   double WorstEnergy();

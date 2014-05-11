@@ -14,10 +14,11 @@
 namespace firmament {
 
 EnergyCostModel::EnergyCostModel(shared_ptr<ResourceMap_t> resource_map, shared_ptr<JobMap_t> job_map,
-                  shared_ptr<TaskMap_t> task_map)
+                  shared_ptr<TaskMap_t> task_map, shared_ptr<ResourceHostMap_t> resource_to_host)
   : resource_map_(resource_map),
   job_map_(job_map),
-  task_map_(task_map) {
+  task_map_(task_map),
+  resource_to_host_(resource_to_host) {
  // ResourceStatsMap *nginx_stats = new ResourceStatsMap();
  //  SetInitialNginxStats(nginx_stats);
  //  application_host_stats_["nginx"] = nginx_stats;
@@ -50,6 +51,11 @@ Cost_t EnergyCostModel::TaskToResourceNodeCost(TaskID_t task_id,
                                                ResourceID_t resource_id) {
 
   string application = GetTaskApp(task_id);
+
+  string host = (*resource_to_host_)[resource_id];
+
+  VLOG(2) << "Estimating cost of " << application " on "  << host;
+
 
   // VLOG(2) << "RESOURCE ID IS " << resource_id;
   // ResourceStatsMap **application_stat = FindOrNull(application_host_stats_, app_name);
@@ -104,7 +110,10 @@ Cost_t EnergyCostModel::TaskPreemptionCost(TaskID_t task_id) {
 void EnergyCostModel::SetInitialStats() {
 
   ApplicationStatistics *wc_stats = new ApplicationStatistics();
+  application_stats_["wordcount"] = wc_stats;
 
+  wc_stats->SetEnergy("tcp:localhost:8088", 300);
+  wc_stats->SetRuntime("tcp:localhost:8088", 4000);
 
   // // Dummy vars. For real-time applications set the time it takes to the frequency of rescheduling
 

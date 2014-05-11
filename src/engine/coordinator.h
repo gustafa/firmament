@@ -282,6 +282,8 @@ class Coordinator : public Node,
   // TODO(malte): figure out if we need task_table_ and job_table_ in addition
   // to this.
   TaskGraphMap_t task_graph_table_;
+  // A lookup map to determine which host a given resource belongs to.
+  shared_ptr<ResourceHostMap_t> resource_to_host_;
   // The topology manager associated with this coordinator; responsible for the
   // local resources.
   shared_ptr<TopologyManager> topology_manager_;

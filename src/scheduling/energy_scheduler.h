@@ -40,7 +40,8 @@ class EnergyScheduler : public EventDrivenScheduler {
                   MessagingAdapterInterface<BaseMessage>* m_adapter,
                   ResourceID_t coordinator_res_id,
                   const string& coordinator_uri,
-                  const SchedulingParameters& params);
+                  const SchedulingParameters& params,
+                  shared_ptr<ResourceHostMap_t> resource_host_map);
   ~EnergyScheduler();
   void HandleTaskCompletion(TaskDescriptor* td_ptr,
                             TaskFinalReport* report);
@@ -106,6 +107,8 @@ class EnergyScheduler : public EventDrivenScheduler {
   FlowGraph *flow_graph_;
   // Flow scheduler parameters (passed in as protobuf to constructor)
   SchedulingParameters parameters_;
+  // Resource to hostname map.
+  shared_ptr<ResourceHostMap_t> resource_host_map_;
   // DIMACS exporter for interfacing to the solver
   DIMACSExporter exporter_;
   // Debug sequence number (for solver input/output files written to /tmp)
