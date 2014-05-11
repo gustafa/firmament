@@ -18,9 +18,9 @@ EnergyCostModel::EnergyCostModel(shared_ptr<ResourceMap_t> resource_map, shared_
   : resource_map_(resource_map),
   job_map_(job_map),
   task_map_(task_map) {
- ResourceStatsMap *nginx_stats = new ResourceStatsMap();
-  SetInitialNginxStats(nginx_stats);
-  application_host_stats_["nginx"] = nginx_stats;
+ // ResourceStatsMap *nginx_stats = new ResourceStatsMap();
+ //  SetInitialNginxStats(nginx_stats);
+ //  application_host_stats_["nginx"] = nginx_stats;
 }
 
 Cost_t EnergyCostModel::TaskToUnscheduledAggCost(TaskID_t task_id, FlowSchedulingPriorityType priority) {
@@ -31,7 +31,7 @@ Cost_t EnergyCostModel::TaskToUnscheduledAggCost(TaskID_t task_id, FlowSchedulin
     // If the priority is high we want to insert a very high cost related with not scheduling it.
     // Currently set as 1 billion. TODO(gustafa): Make this value a multiplier of the energy cost
     // at the worst machine.
-    return 1000000000;
+    return 1000000000ULL;
   } else {
     return 5ULL;
   }
@@ -48,35 +48,32 @@ Cost_t EnergyCostModel::TaskToClusterAggCost(TaskID_t task_id) {
 
 Cost_t EnergyCostModel::TaskToResourceNodeCost(TaskID_t task_id,
                                                ResourceID_t resource_id) {
-  // Lookup the type of the task.
-  TaskDescriptor **td = FindOrNull(*task_map_, task_id);
-  CHECK_NOTNULL(td);
-  string app_name = (*td)->name();
-  VLOG(2) << "APPNAME: " << app_name;
 
-  VLOG(2) << "RESOURCE ID IS " << resource_id;
-  ResourceStatsMap **application_stat = FindOrNull(application_host_stats_, app_name);
+  string application = GetTaskApp(task_id);
 
-  if (application_stat) {
-    ApplicationStatistics **application_host_stat = FindOrNull(**application_stat, resource_id);
-    VLOG(2) << "FOUND APPLICATION STAT";
+  // VLOG(2) << "RESOURCE ID IS " << resource_id;
+  // ResourceStatsMap **application_stat = FindOrNull(application_host_stats_, app_name);
 
-    if (application_host_stat) {
-      VLOG(2) << "FOUND APP HOST STAT";
+  // if (application_stat) {
+  //   ApplicationStatistics **application_host_stat = FindOrNull(**application_stat, resource_id);
+  //   VLOG(2) << "FOUND APPLICATION STAT";
 
-      // Check if we estimate we'll be able to satisfy the deadline set.
-      if ((*td)->has_absolute_deadline()) {
-        uint64_t expected_completion = GetCurrentTimestamp() + (*application_host_stat)->GetExpectedRuntime();
+  //   if (application_host_stat) {
+  //     VLOG(2) << "FOUND APP HOST STAT";
 
-        // Return this being a poor scheduling decision if we are predicted to miss the deadline.
-        if (expected_completion >(*td)->absolute_deadline()) {
-          return POOR_SCHEDULING_CHOICE;
-        }
-      }
+  //     // Check if we estimate we'll be able to satisfy the deadline set.
+  //     if ((*td)->has_absolute_deadline()) {
+  //       uint64_t expected_completion = GetCurrentTimestamp() + (*application_host_stat)->GetExpectedRuntime();
 
-      return (uint64_t((*application_host_stat)->GetExpectedEnergyUse()));
-    }
-  }
+  //       // Return this being a poor scheduling decision if we are predicted to miss the deadline.
+  //       if (expected_completion >(*td)->absolute_deadline()) {
+  //         return POOR_SCHEDULING_CHOICE;
+  //       }
+  //     }
+
+  //     return (uint64_t((*application_host_stat)->GetExpectedEnergyUse()));
+  //   }
+  // }
 
   return 0ULL;
 }
@@ -104,19 +101,26 @@ Cost_t EnergyCostModel::TaskPreemptionCost(TaskID_t task_id) {
   return 0ULL;
 }
 
-void EnergyCostModel::SetInitialNginxStats(ResourceStatsMap *nginx_map) {
+void EnergyCostModel::SetInitialStats() {
+
+  ApplicationStatistics *wc_stats = new ApplicationStatistics();
 
 
+  // // Dummy vars. For real-time applications set the time it takes to the frequency of rescheduling
 
-  // Dummy vars. For real-time applications set the time it takes to the frequency of rescheduling
+  // (*nginx_map)[FindResourceID("titanic")] = new ApplicationStatistics(ApplicationStatistics::REAL_TIME, 5, 5);
+  // (*nginx_map)[FindResourceID("pandaboard")] = new ApplicationStatistics(ApplicationStatistics::REAL_TIME, 2, 5);
+  // (*nginx_map)[FindResourceID("michael")] = new ApplicationStatistics(ApplicationStatistics::REAL_TIME, 4, 5);
 
-  (*nginx_map)[FindResourceID("titanic")] = new ApplicationStatistics(ApplicationStatistics::REAL_TIME, 5, 5);
-  (*nginx_map)[FindResourceID("pandaboard")] = new ApplicationStatistics(ApplicationStatistics::REAL_TIME, 2, 5);
-  (*nginx_map)[FindResourceID("michael")] = new ApplicationStatistics(ApplicationStatistics::REAL_TIME, 4, 5);
+  // VLOG(2) << "RESOURCE ID GUSTAFA: " << FindResourceID("gustafa");
+  // (*nginx_map)[FindResourceID("gustafa")] = new ApplicationStatistics(ApplicationStatistics::REAL_TIME, 10, 5);
 
-  VLOG(2) << "RESOURCE ID GUSTAFA: " << FindResourceID("gustafa");
-  (*nginx_map)[FindResourceID("gustafa")] = new ApplicationStatistics(ApplicationStatistics::REAL_TIME, 10, 5);
+}
 
+string EnergyCostModel::GetTaskApp(TaskID_t task_id) {
+  TaskDescriptor **td = FindOrNull(*task_map_, task_id);
+  CHECK_NOTNULL(td);
+  return (*td)->name();
 }
 
 }  // namespace firmament5

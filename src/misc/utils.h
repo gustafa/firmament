@@ -66,6 +66,8 @@ ResourceID_t ResourceIDFromString(const string& str);
 JobID_t JobIDFromString(const string& str);
 TaskID_t TaskIDFromString(const string& str);
 
+bool FindInsertPosition(const std::vector<double> &a, double key, uint64_t &position);
+
 int32_t ExecCommandSync(const string& cmdline, vector<string> args,
                         int infd[2], int outfd[2]);
 int32_t WaitForFinish(pid_t pid);

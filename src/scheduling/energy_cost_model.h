@@ -43,10 +43,14 @@ class EnergyCostModel : public FlowSchedulingCostModelInterface {
   Cost_t TaskContinuationCost(TaskID_t task_id);
   Cost_t TaskPreemptionCost(TaskID_t task_id);
 
-  static void SetInitialNginxStats(ResourceStatsMap *nginx_map);
+
+  string GetTaskApp(TaskID_t task_id);
+
+  void SetInitialStats();
+
 
  private:
-  unordered_map<string, ResourceStatsMap*> application_host_stats_;
+  unordered_map<string, ApplicationStatistics*> application_stats_;
 
   // Lookup maps for various resources from the scheduler.
   shared_ptr<ResourceMap_t> resource_map_;

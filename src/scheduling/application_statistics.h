@@ -13,29 +13,48 @@ namespace firmament {
 class ApplicationStatistics {
   // Runtime and energy statistics for an application (on a given host).
 
+typedef unordered_map<string, double> MachineStatMap;
+
+
+struct MachineAppStat {
+  string min_machine;
+  string max_machine;
+  double min_stat;
+  double max_stat;
+};
+
 public:
-  enum APPLICATION_TYPE {
-    REAL_TIME,
-    BATCH
-  };
+  ApplicationStatistics();
 
-  ApplicationStatistics(APPLICATION_TYPE type, double alone_delta_j, uint64_t alone_runtime_stat);
+  double GetEnergy(string &machine, double completed);
+  void SetEnergy(string &machine, double energy);
 
-  uint64_t GetExpectedEnergyUse();
+  double GetRuntime(string &machine, double completed);
+  void SetRuntime(string &machine, double runtime);
 
-  uint64_t GetExpectedRuntime();
+  double BestEnergy();
+  double WorstEnergy();
 
-  void SetDeltaJ(double delta_j);
+  double BestRuntime();
+  double WorstRuntime();
 
-  void SetExpectedRuntime(uint64_t runtime);
-
-  const APPLICATION_TYPE application_type;
+  double GetExpectedEnergyUse();
+  double GetExpectedRuntime();
 
  private:
-  double alone_delta_j_;
 
-  // Operations / s if a real-time application or runtime in the case of a batch application.
-  uint64_t alone_runtime_stat_;
+  MachineAppStat energy_stats_;
+  MachineAppStat runtime_stats_;
+
+  shared_ptr<MachineStatMap> machine_to_energy_;
+  shared_ptr<MachineStatMap> machine_to_runtime_;
+
+  void SetStat(MachineStatMap &stat_map, MachineAppStat &stats,
+              string &machine, double stat);
+
+  void RecomputeStats(MachineStatMap &stat_map, MachineAppStat &stats);
+
+
 };
 
 } // namespace firmament
