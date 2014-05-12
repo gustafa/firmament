@@ -51,6 +51,9 @@ DEFINE_int32(http_ui_port, 8080,
 DEFINE_uint64(heartbeat_interval, 1000000,
               "Heartbeat interval in microseconds.");
 
+DEFINE_uint64(sleep_time, 100,
+              "Sleep time interval in milliseconds.");
+
 namespace firmament {
 
 Coordinator::Coordinator(PlatformID platform_id)
@@ -251,7 +254,7 @@ void Coordinator::Run() {
       }
 
     }
-    //boost::this_thread::sleep(boost::posix_time::milliseconds(100));
+    boost::this_thread::sleep(boost::posix_time::milliseconds(FLAGS_sleep_time));
   }
 
   // We have dropped out of the main loop and are exiting
