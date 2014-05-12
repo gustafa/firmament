@@ -55,6 +55,12 @@ double ApplicationStatistics::WorstRuntime() {
   return runtime_stats_.max_stat;
 }
 
+
+bool ApplicationStatistics::HasStatistics() {
+  return machine_to_energy_->size() != 0;
+}
+
+
 void ApplicationStatistics::SetStat(MachineStatMap &stat_map, MachineAppStat &stats,
                                     string &machine, double stat) {
       // Update the value of the hashmap.

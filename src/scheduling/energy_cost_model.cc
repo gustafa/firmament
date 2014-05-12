@@ -27,20 +27,27 @@ EnergyCostModel::EnergyCostModel(shared_ptr<ResourceMap_t> resource_map, shared_
 Cost_t EnergyCostModel::TaskToUnscheduledAggCost(TaskID_t task_id, FlowSchedulingPriorityType priority) {
   // TODO should be inversely proportional to deadline - estimated run-time
   // and > than cheapest place to schedule task.
+  string application = GetTaskApp(task_id);
 
   if (priority == PRIORITY_HIGH) {
     // If the priority is high we want to insert a very high cost related with not scheduling it.
     // Currently set as 1 billion. TODO(gustafa): Make this value a multiplier of the energy cost
     // at the worst machine.
+    VLOG(2) << "Observing a high priority task, penalising unscheduled cost.";
     return 1000000000ULL;
   } else {
-    string application = GetTaskApp(task_id);
-
     ApplicationStatistics *app_stats = FindPtrOrNull(application_stats_, application);
 
-    if (app_stats) {
+
+    // See if we have application statistics setup with observable values.
+    if (app_stats && app_stats->HasStatistics()) {
+      VLOG(2) << "Found application " << application << " setting unscheduled cost proportional "
+              << "to the worst energy choice.";
+
       return app_stats->WorstEnergy(); // TODO multiplier?
     } else {
+      VLOG(2) << "New application found. Setting a high unscheduled cost to promote scheduling.";
+
       // TODO handle case when no application is found. Potentially ensure it gets scheduled somewhere
       // so we can estimate deadlines?
       return 1000ULL;
@@ -65,6 +72,8 @@ Cost_t EnergyCostModel::TaskToResourceNodeCost(TaskID_t task_id,
   ApplicationStatistics *app_stats = FindPtrOrNull(application_stats_, application);
 
   if (!app_stats) {
+    VLOG(2) << "Did not find application " << application << " in the database. "
+            << "Creating new.";
     app_stats = new ApplicationStatistics();
     // TODO setup the new, unseen program with defaults.
     application_stats_[application] = app_stats;
@@ -88,7 +97,7 @@ Cost_t EnergyCostModel::TaskToResourceNodeCost(TaskID_t task_id,
       // We are not expected to make the deadline, let the scheduler know.
       return POOR_SCHEDULING_CHOICE;
     } else {
-      return app_stats->GetEnergy(application, 0);
+      return app_stats->GetEnergy(host, 0);
     }
   }
 }
@@ -100,7 +109,6 @@ Cost_t EnergyCostModel::ClusterAggToResourceNodeCost(ResourceID_t target) {
 Cost_t EnergyCostModel::ResourceNodeToResourceNodeCost(
     ResourceID_t source,
     ResourceID_t destination) {
-
   return 0ULL;
 }
 

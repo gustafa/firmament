@@ -12,20 +12,22 @@ def generateHexString(length):
 
 if len(sys.argv) < 4:
   print "usage: job_submit.py <coordinator hostname> <web UI port> " \
-      "<task binary>"
+      "<task name> <task binary>"
   sys.exit(1)
 
 hostname = sys.argv[1]
 port = int(sys.argv[2])
+task_name = sys.argv[3]
+binary = sys.argv[4]
 
 job_desc = job_desc_pb2.JobDescriptor()
 
 job_desc.uuid = "" # UUID will be set automatically on submission
 job_desc.name = "testjob"
 job_desc.root_task.uid = 0
-job_desc.root_task.name = "nginx"
+job_desc.root_task.name = task_name
 job_desc.root_task.state = task_desc_pb2.TaskDescriptor.CREATED
-job_desc.root_task.binary = sys.argv[3]
+job_desc.root_task.binary =binary
 
 #job_desc.root_task.args.append("--v=2")
 #job_desc.root_task.args.append("0")
@@ -36,10 +38,10 @@ job_desc.root_task.binary = sys.argv[3]
 
 # Use the user supplied random identifier if provided or generate
 # a new, random one otherwise.
-if len(sys.argv) == 5:
-  input_id = binascii.unhexlify(sys.argv[4])
-else:
-  input_id = binascii.unhexlify(generateHexString(64))
+# if len(sys.argv) == 5:
+#   input_id = binascii.unhexlify(sys.argv[4])
+
+input_id = binascii.unhexlify(generateHexString(64))
 
 
 # Add the remaining as job arguments!

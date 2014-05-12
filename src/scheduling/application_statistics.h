@@ -41,6 +41,9 @@ public:
   double GetExpectedEnergyUse();
   double GetExpectedRuntime();
 
+  // Returns whether we have observable data.
+  bool HasStatistics();
+
  private:
 
   MachineAppStat energy_stats_;
