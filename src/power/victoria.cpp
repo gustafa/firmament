@@ -7,7 +7,7 @@
 #include <unistd.h>
 
 #include <netdb.h>
-#include <sys/types.h> 
+#include <sys/types.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
 
@@ -109,8 +109,15 @@ void Victoria::run() {
   double toWatts = 240 / (double) 3000;
   double prev[32] = {0};
 
-  CHECK(ConnectToCoordinator(coordinator_uri))
-          << "Failed to connect to coordinator; is it reachable?";
+
+  while (true) {
+    if (ConnectToCoordinator(coordinator_uri)) {
+      printf("Successfully connected to coordinator: %s\n", coordinator_uri.c_str());
+      break;
+    }
+      printf("Failed to connect to coordinator; is it reachable? Retrying");
+      sleep(2);
+  }
 
  unsigned char reqBuff[USBPACKLEN], rplyBuff[USBPACKLEN];
   getMeterStatsCmd_t *sCmd = (getMeterStatsCmd_t *) reqBuff;
@@ -166,7 +173,7 @@ void Victoria::run() {
         // }
 
         // We are reporting accumulated mA-secs - convert to kWh assuming
-        // in-phase 240V and divide by scaling factor 
+        // in-phase 240V and divide by scaling factor
 
         // energy = ((float) (sRply->accumCur) / scalingFactor); //  * 240.0; // / 1000.0 / 1000.0 / 3600.0;
         // double delta = energy - prev[port];
@@ -183,7 +190,7 @@ void Victoria::run() {
       nominalPollTime += pollInt;
 
     // sleep to make up to next interval
-    sleep (nominalPollTime - time(NULL));     
+    sleep (nominalPollTime - time(NULL));
     }
   }
 }
