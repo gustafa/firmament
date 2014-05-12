@@ -34,9 +34,18 @@ Cost_t EnergyCostModel::TaskToUnscheduledAggCost(TaskID_t task_id, FlowSchedulin
     // at the worst machine.
     return 1000000000ULL;
   } else {
-    return 5ULL;
-  }
+    string application = GetTaskApp(task_id);
 
+    ApplicationStatistics *app_stats = FindPtrOrNull(application_stats_, application);
+
+    if (app_stats) {
+      return app_stats->WorstEnergy(); // TODO multiplier?
+    } else {
+      // TODO handle case when no application is found. Potentially ensure it gets scheduled somewhere
+      // so we can estimate deadlines?
+      return 1000ULL;
+    }
+  }
 }
 
 Cost_t EnergyCostModel::UnscheduledAggToSinkCost(JobID_t job_id) {
@@ -49,39 +58,39 @@ Cost_t EnergyCostModel::TaskToClusterAggCost(TaskID_t task_id) {
 
 Cost_t EnergyCostModel::TaskToResourceNodeCost(TaskID_t task_id,
                                                ResourceID_t resource_id) {
-
   string application = GetTaskApp(task_id);
-
   string host = (*resource_to_host_)[resource_id];
+  VLOG(2) << "Estimating cost of " << application  << " on "  << host;
 
-  VLOG(2) << "Estimating cost of " << application " on "  << host;
+  ApplicationStatistics *app_stats = FindPtrOrNull(application_stats_, application);
+
+  if (!app_stats) {
+    app_stats = new ApplicationStatistics();
+    // TODO setup the new, unseen program with defaults.
+    application_stats_[application] = app_stats;
+    return 20ULL;
+
+  } else {
+    // Get the stat for this resource
+    // TODO check if this is the resource the task is currently on and
+    // apply a discount!
+
+    TaskDescriptor *td = FindPtrOrNull(*task_map_, task_id);
+    // _Should_ exist.
+    CHECK_NOTNULL(td);
+
+    // TODO handle case when we have started a task!
+    double completed = 0;
 
 
-  // VLOG(2) << "RESOURCE ID IS " << resource_id;
-  // ResourceStatsMap **application_stat = FindOrNull(application_host_stats_, app_name);
-
-  // if (application_stat) {
-  //   ApplicationStatistics **application_host_stat = FindOrNull(**application_stat, resource_id);
-  //   VLOG(2) << "FOUND APPLICATION STAT";
-
-  //   if (application_host_stat) {
-  //     VLOG(2) << "FOUND APP HOST STAT";
-
-  //     // Check if we estimate we'll be able to satisfy the deadline set.
-  //     if ((*td)->has_absolute_deadline()) {
-  //       uint64_t expected_completion = GetCurrentTimestamp() + (*application_host_stat)->GetExpectedRuntime();
-
-  //       // Return this being a poor scheduling decision if we are predicted to miss the deadline.
-  //       if (expected_completion >(*td)->absolute_deadline()) {
-  //         return POOR_SCHEDULING_CHOICE;
-  //       }
-  //     }
-
-  //     return (uint64_t((*application_host_stat)->GetExpectedEnergyUse()));
-  //   }
-  // }
-
-  return 0ULL;
+    if (td->has_absolute_deadline() &&
+      app_stats->GetRuntime(host, completed) > (td->absolute_deadline() - GetCurrentTimestamp())) {
+      // We are not expected to make the deadline, let the scheduler know.
+      return POOR_SCHEDULING_CHOICE;
+    } else {
+      return app_stats->GetEnergy(application, 0);
+    }
+  }
 }
 
 Cost_t EnergyCostModel::ClusterAggToResourceNodeCost(ResourceID_t target) {

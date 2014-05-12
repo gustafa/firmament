@@ -21,6 +21,7 @@ ApplicationStatistics::ApplicationStatistics() {
 
 // Get energy for the given machine with a fraction completed.
 double ApplicationStatistics::GetEnergy(string machine, double completed) {
+  // BUG sideeffects of accessor..
   return (*machine_to_energy_)[machine] * (1 - completed);
 }
 
