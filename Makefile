@@ -77,7 +77,10 @@ storage: messages ext
 platforms: messages
 	$(MAKE) $(MAKEFLAGS) -C $(SRC_ROOT_DIR)/platforms all
 
-power: base messages
+power:
+	$(MAKE) $(MAKEFLAGS) -C $(SRC_ROOT_DIR)/base all
+	$(MAKE) $(MAKEFLAGS) -C $(SRC_ROOT_DIR)/messages all
+	$(MAKE) $(MAKEFLAGS) -C $(SRC_ROOT_DIR)/platforms all
 	$(MAKE) $(MAKEFLAGS) -C $(SRC_ROOT_DIR)/power all
 
 scripts:
