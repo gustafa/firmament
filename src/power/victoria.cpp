@@ -10,9 +10,9 @@
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
+#include <iostream>
 
-
-
+#include <assert.h> 
 
 #define DEFAULTPOLLINTERVAL 3 //30
 
@@ -26,17 +26,19 @@ using firmament::misc::Envelope;
 
 int scalingFactor = 3;
 
-// Java implementation copy, returns index of where the key would
-// have been inserted.
+// BinarySearch returns the position if a match is found and the position the element
+// would be inserted at otherwise.
 int binarySearch(const std::vector<double> *a, double key) {
   unsigned int low = 0;
-  unsigned int high = a->size() - 1;
+  unsigned int high = a->size();
   unsigned int mid;
   unsigned int midVal;
 
   while (low <= high) {
     mid = (low + high) >> 1;
     midVal = (*a)[mid];
+
+    std::cout << "MIDVAL: " << midVal << "LOW " << low << "MID " << mid << " HIGH " << high << "\n";
 
     if (midVal < key)
       low = mid + 1;
@@ -45,8 +47,18 @@ int binarySearch(const std::vector<double> *a, double key) {
     else
       return mid; // key found
   }
-  return (low + 1);  // key not found.
+  return (low);  // key not found.
+}
+
+int getLeftIndex(const std::vector<double> *a, double key) {
+  int size = a->size();
+  for (int i = 0; i < size; ++i) {
+    if ((*a)[i] > key) {
+      return i - 1;
+    }
   }
+  return a->size() - 1;
+}
 
 
 Victoria::Victoria(std::string firmament_master, std::vector<double> *xs, std::vector<double> *ys) {
@@ -75,12 +87,21 @@ bool Victoria::ConnectToCoordinator(const string& coordinator_uri) {
 }
 
 double Victoria::toRealWatts(double measuredWatt) {
-  unsigned long insertIndex = binarySearch(xs, measuredWatt);
+  //unsigned long insertIndex = binarySearch(xs, measuredWatt);
+
+  int left_dex = getLeftIndex(xs, measuredWatt);
+
+  std::cout << "LEFT INDEX " << left_dex << "\n";
   // If it isn't the first or last element we can just pick the elements
   // on the side. Should be practically always.
-  if (insertIndex != 0 && insertIndex != xs->size() -1) {
-    int left_idx = insertIndex -1;
-    int right_idx = insertIndex +1;
+  int size = xs->size();
+  if (left_dex != -1 && left_dex != size - 1) {
+    int left_idx = left_dex; //insertIndex - 1;
+    int right_idx = left_dex + 1;
+
+    printf("VAL: %f, LEFT % f, RIGHT: %f\n", measuredWatt, (*xs)[left_idx], (*xs)[right_idx]);
+    assert(measuredWatt >= (*xs)[left_idx]);
+    assert(measuredWatt <= (*xs)[right_idx]);
     // double left_x = (*xs)[insertIndex -1];
     // double right_x = (*xs)[insertIndex +1];
 
@@ -93,21 +114,24 @@ double Victoria::toRealWatts(double measuredWatt) {
     return frac_left * (*ys)[left_idx] + frac_right * (*ys)[right_idx];
 
   } else {
+     printf("WARNING VALUE OUT OF SAFE RANGE\n");
     // TODO really should warn.
-      return (measuredWatt / (*ys)[insertIndex]) * (*ys)[insertIndex];
+     if (left_dex == -1) {
+       return 0;
+     }
+     return (measuredWatt / (*xs)[left_dex]) * (*ys)[left_dex];
   }
 }
 
 
 void Victoria::run() {
   int socket;
-  int pollInt;
-  char timeStr[30];
+  int pollInt; // nominalPollTime;
   double energy;
-  struct tm *gmt;
-  time_t nominalPollTime, t;
+  time_t t, nominalPollTime; //, t;
   double toWatts = 240 / (double) 3000;
   double prev[32] = {0};
+  double totals[32] = {0};
 
 
   while (true) {
@@ -119,96 +143,98 @@ void Victoria::run() {
       sleep(2);
   }
 
- unsigned char reqBuff[USBPACKLEN], rplyBuff[USBPACKLEN];
+  unsigned char reqBuff[USBPACKLEN], rplyBuff[USBPACKLEN];
   getMeterStatsCmd_t *sCmd = (getMeterStatsCmd_t *) reqBuff;
   getMeterStatsRply_t *sRply = (getMeterStatsRply_t *) rplyBuff;
 
   std::string measurement_device = "/dev/ttyACM0";
-  //socket = openMonitor(measurement_device.c_str());
+  socket = openMonitor(measurement_device.c_str());
 
-  // if (socket == -1) {
-  //   exit(-1);
-  // }
+  if (socket == -1) {
+    exit(-1);
+  }
 
   pollInt = DEFAULTPOLLINTERVAL;
 
   std::unordered_map<int, std::string>::iterator iter;
 
+  bool first = true;
+
   while (true) {
     // TODO verify this.
+    //    nominalPollTime = time(NULL);//((time(NULL) - 1) / pollInt + 1) * pollInt;
     nominalPollTime = ((time(NULL) - 1) / pollInt + 1) * pollInt;
+
+    std::cout << "nominalPollTime " << nominalPollTime << "\n";
+    
     sleep(2);
 
     while (true) {
+      t = time (NULL);
       firmament::BaseMessage bm;
       firmament::EnergyStatsMessage *energyStats = bm.mutable_energy_stats();
 
       energyStats->set_update_interval(scalingFactor);
 
-      t = time (NULL);
-      gmt = gmtime(&t);
-      strftime (timeStr, 30, "%Y-%m-%dT%H:%M:%SZ", gmt);
-
-      printf("%s\t", timeStr);
       for (iter = portToHost.begin(); iter != portToHost.end(); ++iter) {
  //                                // Get samples and write log file
         int port = iter->first;
         std::string hostname = iter->second;
-
-
-        firmament::EnergyStatsMessage_EnergyMessage* energy_message = energyStats->add_energy_messages();
+        firmament::EnergyStatsMessage_EnergyMessage* energy_message =
+            energyStats->add_energy_messages();
         energy_message->set_uuid(hostname);
 
 
 
 
         // printf("Port-%d: ", port);
-        // sCmd->cmd = CMDGETMETERSTATS;
-        // sCmd->transid = rand() & 0xff;
-        // sCmd->meter = port;
+         sCmd->cmd = CMDGETMETERSTATS;
+         sCmd->transid = rand() & 0xff;
+         sCmd->meter = port;
 
-        // if (monCommand (socket, reqBuff, rplyBuff) != 0){
-        //   printf("Polling failure for meter %d\n", port);
-        //   exit (-1);
-        // }
+        if (monCommand (socket, reqBuff, rplyBuff) != 0){
+           printf("Polling failure for meter %d\n", port);
+           exit (-1);
+        }
 
         // We are reporting accumulated mA-secs - convert to kWh assuming
         // in-phase 240V and divide by scaling factor
 
-        // energy = ((float) (sRply->accumCur) / scalingFactor); //  * 240.0; // / 1000.0 / 1000.0 / 3600.0;
-        // double delta = energy - prev[port];
+        energy = ((float) (sRply->accumCur) / scalingFactor); //  * 240.0; // / 1000.0 / 1000.0 / 3600.0;
+        double delta = (energy - prev[port]) * toWatts;
+        prev[port] = energy;
         // printf("%.2f\t",delta * toWatts); // - prev[i]);
-        // prev[port] = energy;
-
+        if (!first) {
+          double real_delta = toRealWatts(delta);
+          totals[port] = totals[port] + real_delta;
+	  energy_message->set_deltaj(real_delta);
+          energy_message->set_totalj(totals[port]);
+        } else {
+          std::cout << "SKIPPING\n";
+        }
 
       }
-      sendStats(&bm);
+      if (!first) {
 
-      printf("\n");
-      fflush(stdout);
+        sendStats(&bm);
+      } else {
+        first = false;
+      }
+ 
+    nominalPollTime += pollInt;
+    //long val = nominalPollTime - time(NULL);
 
-      nominalPollTime += pollInt;
-
+    //std::cout << "VAL: " << val << "\n";
+    //std::cout << "Nompolltime: " << nominalPollTime << "\n";
+    
+    
     // sleep to make up to next interval
-    sleep (nominalPollTime - time(NULL));
+    sleep(nominalPollTime - time(NULL));
     }
   }
 }
 
 bool Victoria::sendStats(firmament::BaseMessage *bm) {
-
-  // int sockfd, portno, n;
-  // struct sockaddr_in serv_addr;
-  // struct hostent *server;
-
-  // printf("%s\n", hostname);
-
-  // portno = 8088; // TODO verify
-  // char buffer[256];
-
-
-  // Envelope<BaseMessage> envelope(bm);
-
   Envelope<BaseMessage> envelope(bm);
   return chan_->SendA(
           envelope, boost::bind(&Victoria::HandleWrite,
@@ -230,7 +256,7 @@ int main(int argc, char const *argv[]) {
   // Real power values.
   std::vector<double> ys = {0, 2.5, 6.3, 13.3, 14.5, 15.4, 24.8, 47.8, 50.1, 62.3, 71, 117, 210, 302, 397, 483, 574, 787};
 
-  Victoria victoria("tcp:localhost:8088", &xs, &ys);
+  Victoria victoria(argv[1], &xs, &ys);
 
 
 
