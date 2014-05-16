@@ -438,12 +438,14 @@ if [[ ! -f ${PION_INSTALL_FILE} ]]; then
   mkdir -p ${PION_BUILD_DIR}
   get_dep_git "pion" "https://github.com/splunk/pion"
   cd ${PION_DIR}/
-  git checkout -q ${PION_VER} 
+  git checkout -q ${PION_VER}
   echo -n "Generating build infrastructure..."
   RES1=$(./autogen.sh)
   print_succ_or_fail ${RES1}
   echo -n "Configuring pion library..."
-  RES2=$(./configure --disable-tests --prefix=${PION_BUILD_DIR})
+  # Ensure pion compiles with C++11 support as to not confuse Boost
+  # ASIO when used with firmament.
+  RES2=$(CXXFLAGS="${CXXFLAGS} -std=c++11" ./configure --disable-tests --prefix=${PION_BUILD_DIR})
   print_succ_or_fail ${RES2}
   echo -n "Building pion library..."
   RES3=$(make)
@@ -462,7 +464,7 @@ get_dep_wget "cpplint" "http://google-styleguide.googlecode.com/svn/trunk/cpplin
 
 ## CS2 solver code for min-flow scheduler
 print_subhdr "CS2 MIN COST FLOW SOLVER"
-get_dep_wget "cs2" "http://igsystems.com/cs2/cs2-4.6.tar"
+get_dep_wget "cs2" "http://igsystems.com/cs2/cs2-${CS2_VER}.tar"
 tar -xf cs2-${CS2_VER}.tar
 cd cs2-${CS2_VER}
 if [[ ! -f cs2.exe ]]; then
