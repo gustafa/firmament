@@ -134,7 +134,7 @@ OPTFLAGS = -g -O0 -fsanitize=address -fno-omit-frame-pointer  # debug
 #OPTFLAGS = -O3                         # release
 
 # for clang++, uncomment this line
-CPPFLAGS = $(INCLUDES) -std=c++11 -Wall -Wextra -Werror -Wno-error=unused-parameter -Wno-long-long -Wno-variadic-macros -Wno-error=language-extension-token -Wno-deprecated -Wno-error=unused-function -Wno-vla -Wno-unused-parameter
+CPPFLAGS = $(INCLUDES) -std=c++11 -Wall -Wextra -Wno-error=unused-parameter -Wno-long-long -Wno-variadic-macros -Wno-error=language-extension-token -Wno-deprecated -Wno-error=unused-function -Wno-vla -Wno-unused-parameter -fPIC
 # for g++, uncomment this line
 #CPPFLAGS = $(INCLUDES) -Wall -Wextra -Werror -pedantic -Wno-error=unused-parameter -Wno-long-long -Wno-variadic-macros -Wno-deprecated -Wno-error=unused-function -Wno-vla
 
