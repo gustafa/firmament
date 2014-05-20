@@ -71,7 +71,6 @@ TEST_F(FlowGraphTest, AddArcToNode) {
   CHECK_EQ(g.NumArcs(), 1);
   CHECK_EQ(n0->outgoing_arc_map_[n1->id_], arc);
 }
-
 // Add simple resource topology to graph
 TEST_F(FlowGraphTest, SimpleResourceTopo) {
   FlowGraph g(new TrivialCostModel());

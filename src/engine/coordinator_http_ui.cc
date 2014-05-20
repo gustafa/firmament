@@ -681,7 +681,7 @@ void CoordinatorHTTPUI::LogRequest(const http::request_ptr& http_request) {
   LOG(INFO) << "[HTTPREQ] Serving " << http_request->get_resource();
 }
 
-void CoordinatorHTTPUI::Init(uint16_t port) {
+void __attribute__((no_sanitize_address)) CoordinatorHTTPUI::Init(uint16_t port) {
   try {
     // Fail if we are not assured that no existing server object is stored.
     if (coordinator_http_server_) {

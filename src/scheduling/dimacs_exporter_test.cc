@@ -189,6 +189,7 @@ TEST_F(DIMACSExporterTest, LargeGraph) {
 TEST_F(DIMACSExporterTest, ScalabilityTestGraphs) {
   for (uint64_t f = 1; f < 100; f *= 2) {
     FlowGraph g(new TrivialCostModel());
+
     // Test resource topology
     ResourceTopologyNodeDescriptor machine_tmpl;
     int fd = open("../tests/testdata/machine_topo.pbin", O_RDONLY);
