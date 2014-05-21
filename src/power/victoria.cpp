@@ -12,7 +12,7 @@
 #include <netinet/in.h>
 #include <iostream>
 
-#include <assert.h> 
+#include <assert.h>
 
 #define DEFAULTPOLLINTERVAL 3 //30
 
@@ -166,7 +166,7 @@ void Victoria::run() {
     nominalPollTime = ((time(NULL) - 1) / pollInt + 1) * pollInt;
 
     std::cout << "nominalPollTime " << nominalPollTime << "\n";
-    
+
     sleep(2);
 
     while (true) {
@@ -182,7 +182,7 @@ void Victoria::run() {
         std::string hostname = iter->second;
         firmament::EnergyStatsMessage_EnergyMessage* energy_message =
             energyStats->add_energy_messages();
-        energy_message->set_uuid(hostname);
+        energy_message->set_hostname(hostname);
 
 
 
@@ -220,14 +220,14 @@ void Victoria::run() {
       } else {
         first = false;
       }
- 
+
     nominalPollTime += pollInt;
     //long val = nominalPollTime - time(NULL);
 
     //std::cout << "VAL: " << val << "\n";
     //std::cout << "Nompolltime: " << nominalPollTime << "\n";
-    
-    
+
+
     // sleep to make up to next interval
     sleep(nominalPollTime - time(NULL));
     }

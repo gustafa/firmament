@@ -304,8 +304,8 @@ class Coordinator : public Node,
   // HAProxy controller.
   HAProxyController haproxy_controller_;
 
-  // EnergyStatisticsVector.
-  WraparoundVector<double> *energy_stats;
+  // EnergyStatisticsMap hostname->wraparound vector
+  unordered_map<string, WraparoundVector<double>*> energy_stats_map;
 
 
 #ifdef __SIMULATE_SYNTHETIC_DTG__

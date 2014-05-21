@@ -82,8 +82,6 @@ Coordinator::Coordinator(PlatformID platform_id)
   local_resource_topology_->mutable_resource_desc()->CopyFrom(
       resource_desc_);
 
-  energy_stats = new WraparoundVector<double>(
-      FLAGS_energy_stats_history / FLAGS_energy_stat_interval);
   // Set up the scheduler
   if (FLAGS_scheduler == "simple") {
     // Simple random first-available scheduler
@@ -463,6 +461,23 @@ void Coordinator::HandleIONotification(const BaseMessage& bm,
 void Coordinator::HandleEnergyStats(const EnergyStatsMessage& msg) {
   //TODO(gustafa): Implement
   VLOG(2) << "Handling EnergyStatsMessage";
+  // Add the energy statistics to the vector.
+
+  //new WraparoundVector<double>(
+      //FLAGS_energy_stats_history / FLAGS_energy_stat_interval)
+
+  for (auto &em : msg.energy_messages()) {
+    string hostname = em.hostname();
+    WraparoundVector<double>* stats_vector = FindPtrOrNull(energy_stats_map, hostname);
+
+    if (!stats_vector) {
+      // Create enough elements to fit energy_stats_history length in seconds.
+      stats_vector =
+          new WraparoundVector<double>(FLAGS_energy_stats_history / FLAGS_energy_stat_interval);
+      energy_stats_map[hostname] = stats_vector;
+    }
+    stats_vector->PushElement(em.totalj());
+  }
 }
 
 void Coordinator::HandleLookupRequest(const LookupRequest& msg,
