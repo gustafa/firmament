@@ -169,9 +169,11 @@ void Coordinator::AddResource(ResourceDescriptor* resource_desc,
   // Add resource to local resource set
   VLOG(1) << "Adding resource " << res_id << " to resource map; "
           << "endpoint URI is " << endpoint_uri;
-  CHECK(InsertIfNotPresent(associated_resources_.get(), res_id,
+  //CHECK(
+  InsertIfNotPresent(associated_resources_.get(), res_id,
           new ResourceStatus(resource_desc, endpoint_uri,
-                             GetCurrentTimestamp())));
+                             GetCurrentTimestamp()));
+  //);
   // Store the resource to host information in the lookup map.
   (*resource_to_host_)[res_id] = endpoint_uri;
   // Register with scheduler if this resource is schedulable
