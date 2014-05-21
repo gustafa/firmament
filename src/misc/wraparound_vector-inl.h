@@ -19,16 +19,26 @@ WraparoundVector<T>::~WraparoundVector() {
 template<class T>
 void WraparoundVector<T>::PushElement(T element) {
   scoped_lock(access_mutex_);
-  (*inner_vector_)[insert_point_] = element;
+  inner_vector_[insert_point_] = element;
   insert_point_ = (insert_point_ + 1) % max_size;
 }
 
 template<class T>
-// 0 Give newest
+// 0 Gives newest
 T WraparoundVector<T>::GetNthNewest(uint64_t entry) {
   scoped_lock(access_mutex_);
-  return (*inner_vector_)[(insert_point_ - entry -1) % max_size];
+  return inner_vector_[(insert_point_ - entry -1) % max_size];
 }
+
+template<class T>
+// 0 Give newest
+T WraparoundVector<T>::GetDiff(uint64_t first, uint64_t last) {
+  scoped_lock(access_mutex_);
+  uint64_t first_idx = (insert_point_ - first - 1) % max_size;
+  uint64_t last_idx = (insert_point_ - last - 1) % max_size;
+  return inner_vector_[last_idx] - inner_vector_[first_idx];
+}
+
 
 } // namespace firmament
 

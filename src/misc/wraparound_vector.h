@@ -17,6 +17,9 @@ class WraparoundVector {
   void PushElement(T element);
   T GetNthNewest(uint64_t entry);
 
+  T GetDiff(uint64_t first, uint64_t last);
+
+
  private:
   uint64_t max_size;
   shared_ptr<vector<T>> inner_vector_;
