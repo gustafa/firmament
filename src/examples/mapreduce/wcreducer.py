@@ -44,4 +44,8 @@ for line in sys.stdin:
 
   heart_beater.set_completed(so_far / num_tuples)
 
+# Output last word.
+if current_word:
+  print '%s\t%d' % (current_word, current_count)
+
 heart_beater.mark_done()
