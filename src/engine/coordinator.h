@@ -45,6 +45,7 @@
 #include "messages/task_state_message.pb.h"
 #include "messages/storage_message.pb.h"
 #include "misc/messaging_interface.h"
+#include "misc/wraparound_vector-inl.h"
 #include "platforms/common.h"
 #include "platforms/unix/signal_handler.h"
 #include "platforms/unix/stream_sockets_adapter.h"
@@ -302,6 +303,9 @@ class Coordinator : public Node,
 
   // HAProxy controller.
   HAProxyController haproxy_controller_;
+
+  // EnergyStatisticsVector.
+  WraparoundVector<double> *energy_stats;
 
 
 #ifdef __SIMULATE_SYNTHETIC_DTG__

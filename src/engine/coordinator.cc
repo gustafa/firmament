@@ -54,6 +54,12 @@ DEFINE_uint64(heartbeat_interval, 1000000,
 DEFINE_uint64(sleep_time, 100,
               "Sleep time interval in milliseconds.");
 
+DEFINE_uint64(energy_stats_history, 600,
+              "Time history is kept for energy stats");
+
+DEFINE_uint64(energy_stat_interval, 3,
+              "Time between energy stats messages");
+
 namespace firmament {
 
 Coordinator::Coordinator(PlatformID platform_id)
@@ -75,6 +81,9 @@ Coordinator::Coordinator(PlatformID platform_id)
   resource_desc_.set_storage_engine(object_store_->get_listening_interface());
   local_resource_topology_->mutable_resource_desc()->CopyFrom(
       resource_desc_);
+
+  energy_stats = new WraparoundVector<double>(
+      FLAGS_energy_stats_history / FLAGS_energy_stat_interval);
   // Set up the scheduler
   if (FLAGS_scheduler == "simple") {
     // Simple random first-available scheduler
