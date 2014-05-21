@@ -43,6 +43,7 @@ class QuincyScheduler : public EventDrivenScheduler {
   ~QuincyScheduler();
   void HandleTaskCompletion(TaskDescriptor* td_ptr,
                             TaskFinalReport* report);
+  virtual void RegisterResource(ResourceID_t res_id, bool local);
   uint64_t ScheduleJob(JobDescriptor* job_desc);
   virtual ostream& ToString(ostream* stream) const {
     return *stream << "<QuincyScheduler, parameters: "
@@ -67,14 +68,15 @@ class QuincyScheduler : public EventDrivenScheduler {
                                     const FlowGraphNode& dst,
                                     SchedulingDelta* delta);
   void PrintGraph(vector< map<uint64_t, uint64_t> > adj_map);
+  TaskDescriptor* ProducingTaskForDataObjectID(DataObjectID_t id);
   vector< map< uint64_t, uint64_t> >* ReadFlowGraph(
       int fd, uint64_t num_vertices);
   void RegisterLocalResource(ResourceID_t res_id);
   void RegisterRemoteResource(ResourceID_t res_id);
   void HandleNginxJob();
   uint64_t RunSchedulingIteration();
+  void SolverBinaryName(const string& solver, string* binary);
 
-  TaskDescriptor* ProducingTaskForDataObjectID(DataObjectID_t id);
   // Cached sets of runnable and blocked tasks; these are updated on each
   // execution of LazyGraphReduction. Note that this set includes tasks from all
   // jobs.
@@ -97,7 +99,7 @@ class QuincyScheduler : public EventDrivenScheduler {
   // in the process of making scheduling decisions.
   bool scheduling_;
   // Local storage of the current flow graph
-  FlowGraph *flow_graph_;
+  shared_ptr<FlowGraph> flow_graph_;
   // Flow scheduler parameters (passed in as protobuf to constructor)
   SchedulingParameters parameters_;
   // DIMACS exporter for interfacing to the solver

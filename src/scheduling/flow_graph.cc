@@ -29,7 +29,6 @@ FlowGraph::FlowGraph(FlowSchedulingCostModelInterface *cost_model)
     current_id_(1) {
   // Add sink and cluster aggregator node
   AddSpecialNodes();
-  // Set up cost model for flow graph
 }
 
 FlowGraph::~FlowGraph() {

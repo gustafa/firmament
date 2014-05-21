@@ -22,7 +22,6 @@ namespace firmament {
 
 class FlowGraph {
  public:
-
   FlowGraph(FlowSchedulingCostModelInterface* cost_model);
   virtual ~FlowGraph();
   void AddJobNodes(JobDescriptor* jd);
