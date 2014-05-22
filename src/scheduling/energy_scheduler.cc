@@ -143,12 +143,16 @@ uint64_t EnergyScheduler::ApplySchedulingDeltas(
       case SchedulingDelta::PREEMPT: {
         // Kill the task
         // Reset the job such that it can be rescheduled at a later point.
+        VLOG(1) << "Performing preemption for task " << task_id;
         (*td)->set_state(TaskDescriptor::CREATED);
         KillRunningTask(task_id, TaskKillMessage::PREEMPTION);
         break;
       }
 
       case SchedulingDelta::MIGRATE: {
+        KillRunningTask(task_id, TaskKillMessage::PREEMPTION);
+
+        VLOG(1) << "Performing migration for task " << task_id;
         // TODO implement migration
         break;
       }
@@ -179,6 +183,8 @@ void EnergyScheduler::HandleTaskCompletion(TaskDescriptor* td_ptr,
 void EnergyScheduler::NodeBindingToSchedulingDelta(
     const FlowGraphNode& src, const FlowGraphNode& dst,
     SchedulingDelta* delta) {
+
+  VLOG(1) << "BINDING NODE TO SCHEDULING DELTA";
   // Figure out what type of scheduling change this is
   // Source must be a task node as this point
   CHECK(src.type_.type() == FlowNodeType::SCHEDULED_TASK ||
@@ -200,7 +206,7 @@ void EnergyScheduler::NodeBindingToSchedulingDelta(
   } else if (bound_res && (*bound_res == dst.resource_id_)) {
     // We were already scheduled here. No-op.
     delta->set_type(SchedulingDelta::NOOP);
-  } else if (!bound_res && false) {  // Is something else bound to the same
+  } else if (!bound_res) {           // Is something else bound to the same
                                      // resource?
     // If so, we have a preemption
     // XXX(malte): This code is NOT WORKING!
@@ -344,6 +350,7 @@ uint64_t EnergyScheduler::RunSchedulingIteration() {
   // Parse and process the result
   vector<map<uint64_t, uint64_t> >* extracted_flow =
       ReadFlowGraph(infd[0], num_nodes);
+  VLOG(1) << "SIZE EXTRACTED FLOW: " << extracted_flow->size();
   // We're done with the solver and can let it terminate here.
   WaitForFinish(solver_pid);
   // close the pipes
@@ -353,6 +360,8 @@ uint64_t EnergyScheduler::RunSchedulingIteration() {
   map<uint64_t, uint64_t>* task_mappings =
       GetMappings(extracted_flow, flow_graph_->leaf_node_ids(),
                   flow_graph_->sink_node().id_);
+  VLOG(1) << "SIZE TASK MAPPINGS: " << task_mappings->size();
+
   map<uint64_t, uint64_t>::iterator it;
   vector<SchedulingDelta*> deltas;
 
@@ -452,6 +461,7 @@ map<uint64_t, uint64_t>* EnergyScheduler::GetMappings(
     uint64_t sink) {
   map<uint64_t, uint64_t>* task_node = new map<uint64_t, uint64_t>();
   unordered_set<uint64_t>::iterator set_it;
+  // WE ONLY GET PU ASSIGNMENTS AS WE ARE ITERATING OVER THE LEAVES.
   for (set_it = leaves.begin(); set_it != leaves.end(); set_it++) {
     uint64_t* flow = FindOrNull((*extracted_flow)[sink], *set_it);
     if (flow != NULL) {
