@@ -20,6 +20,8 @@
 #include "scheduling/flow_graph.h"
 #include "scheduling/flow_scheduling_cost_model_interface.h"
 
+DEFINE_bool(preemption, false, "Enable preemption and migration of tasks");
+
 namespace firmament {
 
 using machine::topology::TopologyManager;
@@ -476,7 +478,16 @@ void FlowGraph::UpdateArcsForBoundTask(TaskID_t tid, ResourceID_t res_id) {
   FlowGraphNode* assigned_res_node = NodeForResourceID(res_id);
   CHECK_NOTNULL(task_node);
   CHECK_NOTNULL(assigned_res_node);
-  PinTaskToNode(task_node, assigned_res_node);
+
+  if (!FLAGS_preemption) {
+    // After the task is bound, we now remove all of its edges into the flow
+    // graph apart from the bound resource.
+    // N.B.: This disables preemption and migration!
+    VLOG(2) << "Disabling preemption for " << tid;
+    // Disable preemption
+    PinTaskToNode(task_node, assigned_res_node);
+  }
+
 }
 
 }  // namespace firmament

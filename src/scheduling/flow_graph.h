@@ -18,6 +18,8 @@
 #include "scheduling/flow_graph_node.h"
 #include "scheduling/flow_scheduling_cost_model_interface.h"
 
+DECLARE_bool(preemption);
+
 namespace firmament {
 
 class FlowGraph {

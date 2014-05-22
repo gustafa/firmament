@@ -120,20 +120,41 @@ uint64_t EnergyScheduler::ApplySchedulingDeltas(
     VLOG(1) << "Processing delta of type " << (*it)->type();
     TaskID_t task_id = (*it)->task_id();
     ResourceID_t res_id = ResourceIDFromString((*it)->resource_id());
-    if ((*it)->type() == SchedulingDelta::PLACE) {
-      VLOG(1) << "Trying to place task " << task_id
-              << " on resource " << (*it)->resource_id();
-      TaskDescriptor** td = FindOrNull(*task_map_, task_id);
-      ResourceStatus** rs = FindOrNull(*resource_map_, res_id);
-      CHECK_NOTNULL(td);
-      CHECK_NOTNULL(rs);
-      VLOG(1) << "About to bind task " << (*td)->uid() << " to resource "
-              << (*rs)->mutable_descriptor()->uuid();
-      BindTaskToResource(*td, (*rs)->mutable_descriptor());
-      // After the task is bound, we now remove all of its edges into the flow
-      // graph apart from the bound resource.
-      // N.B.: This disables preemption and migration!
-      flow_graph_->UpdateArcsForBoundTask(task_id, res_id);
+
+    TaskDescriptor** td = FindOrNull(*task_map_, task_id);
+    ResourceStatus** rs = FindOrNull(*resource_map_, res_id);
+    CHECK_NOTNULL(td);
+    CHECK_NOTNULL(rs);
+    switch((*it)->type()) {
+      case SchedulingDelta::NOOP: {
+        break;
+      }
+
+      case SchedulingDelta::PLACE: {
+        VLOG(1) << "Trying to place task " << task_id
+                << " on resource " << (*it)->resource_id();
+        VLOG(1) << "About to bind task " << (*td)->uid() << " to resource "
+                << (*rs)->mutable_descriptor()->uuid();
+        BindTaskToResource(*td, (*rs)->mutable_descriptor());
+        flow_graph_->UpdateArcsForBoundTask(task_id, res_id);
+        break;
+      }
+
+      case SchedulingDelta::PREEMPT: {
+        // Kill the task
+        // Reset the job such that it can be rescheduled at a later point.
+        (*td)->set_state(TaskDescriptor::CREATED);
+        KillRunningTask(task_id, TaskKillMessage::PREEMPTION);
+        break;
+      }
+
+      case SchedulingDelta::MIGRATE: {
+        // TODO implement migration
+        break;
+      }
+
+      default:
+      LOG(ERROR) << "Unexpected scheduling delta type encountered! Type: " << (*it)->type();
     }
     delete *it;  // Remove the scheduling delta -- N.B. modifies collection
                  // within loop!
@@ -166,7 +187,7 @@ void EnergyScheduler::NodeBindingToSchedulingDelta(
   // Destination must be a PU node
   CHECK(dst.type_.type() == FlowNodeType::PU);
   // Is the source (task) already placed elsewhere?
-  ResourceID_t* bound_res = FindOrNull(task_bindings_, src.task_id_);
+  ResourceID_t* bound_res = BoundResourceForTask(src.task_id_); // Should do the same thingFindOrNull(task_bindings_, );
   VLOG(2) << "task ID: " << src.task_id_ << ", bound_res: " << bound_res;
   if (bound_res && (*bound_res != dst.resource_id_)) {
     // If so, we have a migration

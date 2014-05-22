@@ -54,6 +54,33 @@ EventDrivenScheduler::~EventDrivenScheduler() {
   executors_.clear();
 }
 
+void EventDrivenScheduler::KillRunningTask(TaskID_t task_id,
+                      TaskKillMessage::TaskKillReason reason) {
+    // Check if this is a local task
+  TaskDescriptor** td_ptr = FindOrNull(*task_map_, task_id);
+  if (!td_ptr) {
+    LOG(ERROR) << "Tried to kill unknown task " << task_id;
+    return;
+  }
+  // Check if we have a bound resource for the task and if it is marked as
+  // running
+  ResourceID_t* rid = BoundResourceForTask(task_id);
+  if ((*td_ptr)->state() != TaskDescriptor::RUNNING || !rid) {
+    LOG(ERROR) << "Task " << task_id << " is not running locally, "
+               << "so cannot kill it!";
+    return;
+  }
+  // Find the current remote endpoint for this task
+  TaskDescriptor** td = FindOrNull(*task_map_, task_id);
+  // Manufacture the message
+  BaseMessage bm;
+  SUBMSG_WRITE(bm, task_kill, task_id, task_id);
+  SUBMSG_WRITE(bm, task_kill, reason, reason);
+  // Send the message
+  LOG(INFO) << "Sending KILL message to task " << task_id << " on resource "
+            << *rid << " (endpoint: " << (*td)->last_location()  << ")";
+  m_adapter_ptr_->SendMessageToEndpoint((*td)->last_location(), bm);
+}
 
 void EventDrivenScheduler::IssueWebserverJobs() {
 

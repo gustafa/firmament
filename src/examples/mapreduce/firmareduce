@@ -5,8 +5,8 @@ if [[ $# -ne 3 ]]; then
   exit 1
 fi
 
-MAPPER=$1
-REDUCER=$2
+export MAPPER=$1
+export REDUCER=$2
 export INPUT_FILE=$3
 
 export FLAGS_mr_inputfile=$INPUT_FILE
@@ -30,12 +30,9 @@ export FLAGS_tuples_filename=/tmp/${FLAGS_task_id}_tuples
 
 # Set completion to 2%, that is we started executing.
 echo "0.020" > $FLAGS_completion_filename
-COMMAND="cat $INPUT_FILE | $MAPPER | sort -k 1 | LD_PRELOAD=/home/gustafa/firmament/build/engine/task_lib_main.so $REDUCER > $FLAGS_output_filename
-"
-echo "RUNNING COMMAND: $COMMAND"
 
 # TODO NAMED PIPES! Get PIDS, pass to reducer.
-cat $INPUT_FILE | $MAPPER | sort -k 1 | LD_PRELOAD=/home/gustafa/firmament/build/engine/task_lib_main.so $REDUCER > $FLAGS_output_filename
+LD_PRELOAD=/home/gustafa/firmament/build/engine/task_lib_main.so ldpreloader
 
 rm $FLAGS_output_filename
 rm $FLAGS_completion_filename

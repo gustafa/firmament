@@ -55,6 +55,9 @@ class SchedulerInterface : public PrintableInterface {
   // TODO(malte): comment
   virtual bool PlaceDelegatedTask(TaskDescriptor* td,
                                   ResourceID_t target_resource) = 0;
+  // Kills a running task.
+  virtual void KillRunningTask(TaskID_t task_id,
+                               TaskKillMessage::TaskKillReason reason) = 0;
   // Registers a resource ID with the scheduler, who may subsequently assign
   // work to this resource. A resource may be registered with multiple
   // schedulers.

@@ -39,6 +39,8 @@ class EventDrivenScheduler : public SchedulerInterface {
   ResourceID_t* BoundResourceForTask(TaskID_t task_id);
   virtual void DeregisterResource(ResourceID_t res_id);
   virtual void RegisterResource(ResourceID_t res_id, bool local);
+  void KillRunningTask(TaskID_t task_id,
+                       TaskKillMessage::TaskKillReason reason);
   void HandleReferenceStateChange(const ReferenceInterface& old_ref,
                                   const ReferenceInterface& new_ref,
                                   TaskDescriptor* td_ptr);

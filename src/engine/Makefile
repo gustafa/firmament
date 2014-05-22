@@ -69,7 +69,7 @@ TESTS_BIN = $(addprefix $(TEST_OBJ_DIR)/, $(TESTS))
 
 include $(ROOT_DIR)/include/Makefile.common
 
-all: protobufs $(OBJ_BIN) $(TESTS_BIN) $(TASK_OBJ_LIB) .setup
+all: protobufs $(OBJ_BIN) $(TESTS_BIN) $(TASK_OBJ_LIB) $(BUILD_DIR)/engine/task_lib_main.so .setup
 
 protobufs: $(addprefix $(OBJ_DIR)/, $(PBS))
 
