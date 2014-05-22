@@ -1,5 +1,5 @@
 // The Firmament project
-// Copyright (c) 2013 Malte Schwarzkopf <malte.schwarzkopf@cl.cam.ac.uk>
+// Copyright (c) 2013-2014 Malte Schwarzkopf <malte.schwarzkopf@cl.cam.ac.uk>
 // Copyright (c) 2013 Ionel Gog <ionel.gog@cl.cam.ac.uk>
 //
 // Implementation of a Quincy-style min-cost flow scheduler.
@@ -63,6 +63,7 @@ QuincyScheduler::QuincyScheduler(
     : EventDrivenScheduler(job_map, resource_map, object_store, task_map,
                            topo_mgr, m_adapter, coordinator_res_id,
                            coordinator_uri),
+      topology_manager_(topo_mgr),
       parameters_(params),
       debug_seq_num_(0) {
 
@@ -84,10 +85,8 @@ QuincyScheduler::QuincyScheduler(
 
   LOG(INFO) << "QuincyScheduler initiated; parameters: "
             << parameters_.ShortDebugString();
-  // Generate the initial flow graph
-  ResourceTopologyNodeDescriptor* root = new ResourceTopologyNodeDescriptor;
-  topo_mgr->AsProtobuf(root);
-  flow_graph_->AddResourceTopology(root, topo_mgr->NumProcessingUnits());
+  // Set up the initial flow graph
+  UpdateResourceTopology(topo_mgr);
 }
 
 QuincyScheduler::~QuincyScheduler() {
@@ -283,10 +282,10 @@ vector<map< uint64_t, uint64_t> >* QuincyScheduler::ReadFlowGraph(
 }
 
 void QuincyScheduler::RegisterResource(ResourceID_t res_id, bool local) {
-  // Obtain information about resource using topology manager
-  //topo_mgr_.ParentForResource(res_id);
-  // Add new resource to flow graph
-  // Call into superclass method to do scheduler resource initialisation
+  // Update the flow graph
+  UpdateResourceTopology(topology_manager_);
+  // Call into superclass method to do scheduler resource initialisation.
+  // This will create the executor for the new resource.
   EventDrivenScheduler::RegisterResource(res_id, local);
 }
 
@@ -383,6 +382,20 @@ void QuincyScheduler::SolverBinaryName(const string& solver, string* binary) {
    LOG(FATAL) << "Non-existed flow network solver specified: "
               << solver;
   }
+}
+
+void QuincyScheduler::UpdateResourceTopology(
+    shared_ptr<TopologyManager> topo_mgr) {
+  // Load the current topology from the topology manager
+  ResourceTopologyNodeDescriptor* root = new ResourceTopologyNodeDescriptor;
+  topo_mgr->AsProtobuf(root);
+  // Run a topology refresh (somewhat expensive!); if only two nodes exist, the
+  // flow graph is empty apart from cluster aggregator and sink.
+  VLOG(1) << "Num nodes in flow graph is: " << flow_graph_->NumNodes();
+  if (flow_graph_->NumNodes() == 2)
+    flow_graph_->AddResourceTopology(root, topo_mgr->NumProcessingUnits());
+  else
+    flow_graph_->UpdateResourceTopology(root, topo_mgr->NumProcessingUnits());
 }
 
 bool QuincyScheduler::CheckNodeType(uint64_t node, FlowNodeType_NodeType type) {
