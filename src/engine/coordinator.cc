@@ -62,6 +62,9 @@ DEFINE_uint64(energy_stat_interval, 3,
 
 namespace firmament {
 
+
+  bool first_stupid = true;
+
 Coordinator::Coordinator(PlatformID platform_id)
   : Node(platform_id, GenerateUUID()),
     associated_resources_(new ResourceMap_t),
@@ -539,9 +542,14 @@ void Coordinator::HandleTaskHeartbeat(const TaskHeartbeatMessage& msg) {
                  << task_id << ")!";
   } else {
     LOG(INFO) << "HEARTBEAT from task " << task_id;
+    // Remember the current location of this task
+    (*tdp)->set_last_location(msg.location());
     // Process the profiling information submitted by the task, add it to
     // the knowledge base
+
     knowledge_base_.AddTaskSample(msg.stats());
+
+
   }
 }
 
@@ -770,6 +778,21 @@ void Coordinator::IssueWebserverJobs() {
 }
 
 const string Coordinator::SubmitJob(const JobDescriptor& job_descriptor) {
+  //TODO REMOVE ALL THIS energy_stats_history
+  if (first_stupid) {
+    first_stupid = false;
+  } else {
+    // Kill the existing tasks.
+    for (TaskMap_t::const_iterator t_iter = task_table_->begin();
+         t_iter != task_table_->end();
+         ++t_iter) {
+      VLOG(1) << "MANUALLY PREEMPTING " << t_iter->first;
+      KillRunningTask(t_iter->first, TaskKillMessage::PREEMPTION);
+
+    }
+  }
+
+
   // Generate a job ID
   // TODO(malte): This should become deterministic, and based on the
   // inputs/outputs somehow, maybe.
