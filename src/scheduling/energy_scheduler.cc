@@ -186,42 +186,52 @@ void EnergyScheduler::NodeBindingToSchedulingDelta(
 
   VLOG(1) << "BINDING NODE TO SCHEDULING DELTA";
   // Figure out what type of scheduling change this is
-  // Source must be a task node as this point
+  // Source must be a task node or an unscheduled aggregator at this point
   CHECK(src.type_.type() == FlowNodeType::SCHEDULED_TASK ||
         src.type_.type() == FlowNodeType::UNSCHEDULED_TASK ||
         src.type_.type() == FlowNodeType::ROOT_TASK);
+
+
   // Destination must be a PU node
-  CHECK(dst.type_.type() == FlowNodeType::PU);
+  CHECK(dst.type_.type() == FlowNodeType::PU || dst.type_.type() == FlowNodeType::JOB_AGGREGATOR);
   // Is the source (task) already placed elsewhere?
   ResourceID_t* bound_res = BoundResourceForTask(src.task_id_); // Should do the same thingFindOrNull(task_bindings_, );
   VLOG(2) << "task ID: " << src.task_id_ << ", bound_res: " << bound_res;
-  if (bound_res && (*bound_res != dst.resource_id_)) {
-    // If so, we have a migration
-    VLOG(1) << "MIGRATION: take " << src.task_id_ << " off "
-            << *bound_res << " and move it to "
-            << dst.resource_id_;
-    delta->set_type(SchedulingDelta::MIGRATE);
-    delta->set_task_id(src.task_id_);
-    delta->set_resource_id(to_string(dst.resource_id_));
-  } else if (bound_res && (*bound_res == dst.resource_id_)) {
-    // We were already scheduled here. No-op.
-    delta->set_type(SchedulingDelta::NOOP);
-  } else if (!bound_res) {           // Is something else bound to the same
-                                     // resource?
-    // If so, we have a preemption
-    // XXX(malte): This code is NOT WORKING!
-    VLOG(1) << "PREEMPTION: take " << src.task_id_ << " off "
-            << *bound_res << " and replace it with "
-            << src.task_id_;
-    delta->set_type(SchedulingDelta::PREEMPT);
+
+  if (dst.type_.type() == FlowNodeType::JOB_AGGREGATOR) {
+    // TODO the TD and task binding should be updated at actual preemption in apply deltas.
+    if (bound_res) {
+      // Now unscheduled, previously bound -> Preemption
+      VLOG(1) << "PREEMPTION: take " << src.task_id_ << " off ";
+      delta->set_type(SchedulingDelta::PREEMPT);
+    } else {
+      // Unscheduled, not previously scheduled -> No-op
+      delta->set_type(SchedulingDelta::NOOP);
+    }
   } else {
-    // If neither, we have a scheduling event
-    VLOG(1) << "SCHEDULING: place " << src.task_id_ << " on "
-            << dst.resource_id_ << ", which was idle.";
-    delta->set_type(SchedulingDelta::PLACE);
-    delta->set_task_id(src.task_id_);
-    delta->set_resource_id(to_string(dst.resource_id_));
-  }
+    // Task is assigned to a PE.
+    if (bound_res) {
+      if ((*bound_res == dst.resource_id_)) {
+        // We were already scheduled here -> No-op.
+        delta->set_type(SchedulingDelta::NOOP);
+      } else {
+        // Scheduled elsewhere -> Migration
+        VLOG(1) << "MIGRATION: take " << src.task_id_ << " off "
+                << *bound_res << " and move it to "
+                << dst.resource_id_;
+        delta->set_type(SchedulingDelta::MIGRATE);
+        delta->set_task_id(src.task_id_);
+        delta->set_resource_id(to_string(dst.resource_id_));
+      }
+    } else {
+      // Assigned to a PE and unbound -> new placement
+      VLOG(1) << "SCHEDULING: place " << src.task_id_ << " on "
+              << dst.resource_id_ << ", which was idle.";
+      delta->set_type(SchedulingDelta::PLACE);
+      delta->set_task_id(src.task_id_);
+      delta->set_resource_id(to_string(dst.resource_id_));
+    }
+}
 }
 
 uint64_t EnergyScheduler::ScheduleJob(JobDescriptor* job_desc) {
@@ -359,7 +369,7 @@ uint64_t EnergyScheduler::RunSchedulingIteration() {
   // Solver's dead, let's post-process the results.
   map<uint64_t, uint64_t>* task_mappings =
       GetMappings(extracted_flow, flow_graph_->leaf_node_ids(),
-                  flow_graph_->sink_node().id_);
+                  flow_graph_->unsched_agg_ids(), flow_graph_->sink_node().id_);
   VLOG(1) << "SIZE TASK MAPPINGS: " << task_mappings->size();
 
   map<uint64_t, uint64_t>::iterator it;
@@ -406,10 +416,11 @@ bool EnergyScheduler::CheckNodeType(uint64_t node, FlowNodeType_NodeType type) {
   return (node_type == type);
 }
 
-// Assigns a leaf node to a worker|root task. At each step it checks if there is
-// an arc to a worker|root task, if not then it goes one layer up in the graph.
+// Assigns a leaf node (i.e a PE or an unsched aggregator) to a worker|root task.
+//At each step it checks if there is an arc to a worker|root task, if not then it
+// goes one layer up in the graph.
 // NOTE: The extracted_flow is changed by the method.
-uint64_t EnergyScheduler::AssignNode(
+uint64_t EnergyScheduler::LeafToTask(
     vector< map< uint64_t, uint64_t > >* extracted_flow,
     uint64_t node) {
   map<uint64_t, uint64_t>::iterator map_it;
@@ -444,7 +455,7 @@ uint64_t EnergyScheduler::AssignNode(
     } else {
       InsertOrUpdate(&(*extracted_flow)[node], ret_node, flow - 1);
     }
-    return AssignNode(extracted_flow, ret_node);
+    return LeafToTask(extracted_flow, ret_node);
   }
   // If here it means that the leaf node will not be assigned.
   // Should not happen because it initially had flow.
@@ -458,29 +469,32 @@ uint64_t EnergyScheduler::AssignNode(
 map<uint64_t, uint64_t>* EnergyScheduler::GetMappings(
     vector< map< uint64_t, uint64_t > >* extracted_flow,
     unordered_set<uint64_t> leaves,
+    unordered_set<uint64_t> unsched_aggs,
     uint64_t sink) {
   map<uint64_t, uint64_t>* task_node = new map<uint64_t, uint64_t>();
+
   unordered_set<uint64_t>::iterator set_it;
-  // WE ONLY GET PU ASSIGNMENTS AS WE ARE ITERATING OVER THE LEAVES.
-  for (set_it = leaves.begin(); set_it != leaves.end(); set_it++) {
-    uint64_t* flow = FindOrNull((*extracted_flow)[sink], *set_it);
-    if (flow != NULL) {
-      // Exists flow from node to sink.
-      // This could technically be optimized and done in assign_node.
-      // It's not done like that for now because we're only expecting one task
-      // per leaf node.
-      VLOG(1) << "Have flow from PU node " << *set_it << " to sink: "
-              << *flow;
-      CHECK_EQ(*flow, 1);
-      for (uint64_t flow_used = 1;  flow_used <= *flow; ++flow_used) {
-        uint64_t task = AssignNode(extracted_flow, *set_it);
-        // Arc back to a task, so we have a scheduling assignment
-        if (task != 0) {
-          VLOG(1) << "Assigning task node " << task << " to PU node "
-                  << *set_it;
-          (*task_node)[task] = *set_it;
-        } else {
-          // PU left unassigned.
+  for (auto penult_nodes : {&leaves, &unsched_aggs}) {
+    for (set_it = penult_nodes->begin(); set_it != penult_nodes->end(); set_it++) {
+      uint64_t* flow = FindOrNull((*extracted_flow)[sink], *set_it);
+      if (flow != NULL) {
+        // Exists flow from node to sink.
+        // This could technically be optimized and done in assign_node.
+        // It's not done like that for now because we're only expecting one task
+        // per leaf node.
+        VLOG(1) << "Have flow from leaf node " << *set_it << " to sink: "
+                << *flow;
+        CHECK_EQ(*flow, 1);
+        for (uint64_t flow_used = 1;  flow_used <= *flow; ++flow_used) {
+          uint64_t task = LeafToTask(extracted_flow, *set_it);
+          // Arc back to a task, so we have a scheduling assignment
+          if (task != 0) {
+            VLOG(1) << "Assigning task node " << task << " to leaf node "
+                    << *set_it;
+            (*task_node)[task] = *set_it;
+          } else {
+            // Leaf node left unassigned.
+          }
         }
       }
     }

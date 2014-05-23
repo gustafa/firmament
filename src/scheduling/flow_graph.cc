@@ -189,6 +189,9 @@ void FlowGraph::AddJobNodes(JobDescriptor* jd) {
     CHECK_NOTNULL(lookup_ptr);
     unsched_agg_to_sink_arc = *lookup_ptr;
   }
+  // TODO(gustafa): Maybe clear this and just fill it up on every iteration instead of this first time.
+  unsched_agg_nodes_.insert(unsched_agg_node->id_);
+
   // Now add the job's task nodes
   // TODO(malte): This is a simple BFS lashup; maybe we can do better?
   queue<TaskDescriptor*> q;
@@ -518,7 +521,7 @@ void FlowGraph::UpdateResourceNode(ResourceTopologyNodeDescriptor* rtnd,
       }
     }
     // Check if its children are identical
-    // TODO 
+    // TODO
   } else {
     // It does not already exist, so add it.
     // N.B.: We need to ensure we hook in at the right place here by setting the

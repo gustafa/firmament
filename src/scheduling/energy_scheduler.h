@@ -58,7 +58,7 @@ class EnergyScheduler : public EventDrivenScheduler {
 
  private:
   uint64_t ApplySchedulingDeltas(const vector<SchedulingDelta*>& deltas);
-  uint64_t AssignNode(
+  uint64_t LeafToTask(
       vector< map< uint64_t, uint64_t > >* extracted_flow,
       uint64_t node);
   void ApplyDeltas();
@@ -66,6 +66,7 @@ class EnergyScheduler : public EventDrivenScheduler {
   map<uint64_t, uint64_t>* GetMappings(
       vector< map< uint64_t, uint64_t > >* extracted_flow,
       unordered_set<uint64_t> leaves,
+      unordered_set<uint64_t> unsched_aggs,
       uint64_t sink);
   void NodeBindingToSchedulingDelta(const FlowGraphNode& src,
                                     const FlowGraphNode& dst,

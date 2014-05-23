@@ -52,6 +52,9 @@ class FlowGraph {
   inline const unordered_set<uint64_t>& task_node_ids() const {
     return task_nodes_;
   }
+  inline const unordered_set<uint64_t>& unsched_agg_ids() const {
+    return unsched_agg_nodes_;
+  }
   inline const FlowGraphNode& sink_node() const { return *sink_node_; }
   inline const FlowGraphNode& cluster_agg_node() const {
     return *cluster_agg_node_;
@@ -107,6 +110,8 @@ class FlowGraph {
       boost::hash<boost::uuids::uuid> > job_to_nodeid_map_;
   unordered_set<uint64_t> leaf_nodes_;
   unordered_set<uint64_t> task_nodes_;
+  unordered_set<uint64_t> unsched_agg_nodes_;
+
 
 
   shared_ptr<JobMap_t> job_table_;
