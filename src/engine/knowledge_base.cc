@@ -84,6 +84,7 @@ void KnowledgeBase::DumpMachineStats(const ResourceID_t& res_id) const {
   }
 }
 void KnowledgeBase::ProcessTaskFinalReport(const TaskFinalReport& report) {
+  // TODO Gustafa base this shit on something else!
   TaskID_t tid = report.task_id();
   // Check if we already have a record for this task
   deque<TaskFinalReport>* q = FindOrNull(task_exec_reports_, tid);
