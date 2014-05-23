@@ -5,6 +5,7 @@
 #include "engine/coordinator_http_ui.h"
 
 #include <deque>
+#include <fcntl.h>
 #include <set>
 #include <string>
 #include <vector>
@@ -86,6 +87,34 @@ void CoordinatorHTTPUI::HandleJobSubmitURI(http::request_ptr& http_request,  // 
   JobDescriptor job_descriptor;
   google::protobuf::TextFormat::ParseFromString(job_descriptor_param,
                                                 &job_descriptor);
+  int fd = open("/dev/urandom", O_RDONLY);
+
+  const int64_t name_size = 32;
+
+  char buffer[name_size];
+  char input_buffer[name_size];
+
+  TaskDescriptor *root_task = job_descriptor.mutable_root_task();
+  // HACK, generating and setting UUID binary values where needed since HTTP is frustrating.
+  for (int64_t i = 0; i < root_task->dependencies_size(); ++i) {
+    ReferenceDescriptor *dep = root_task->mutable_dependencies(i);
+    if (!dep->has_id()) {
+       // Generate a new ID if no previous one exists.
+      read(fd, buffer, name_size);
+      dep->set_id(buffer, name_size);
+    }
+  }
+  for (int64_t i = 0; i < root_task->outputs_size(); ++i) {
+    ReferenceDescriptor *dep = root_task->mutable_outputs(i);
+    if (!dep->has_id()) {
+       // Generate a new ID if no previous one exists.
+      read(fd, buffer, name_size);
+      dep->set_id(buffer, name_size);
+      // Also set output id for the job!
+      job_descriptor.add_output_ids(buffer, name_size);
+    }
+  }
+
   VLOG(3) << "JD:" << job_descriptor.DebugString();
   string job_id = coordinator_->SubmitJob(job_descriptor);
   // Return the job ID to the client

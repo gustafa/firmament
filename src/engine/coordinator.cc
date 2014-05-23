@@ -258,7 +258,7 @@ void Coordinator::Run() {
       last_heartbeat_time = cur_time;
 
       if (first) {
-        IssueWebserverJobs();
+        //IssueWebserverJobs();
         first = false;
       }
 

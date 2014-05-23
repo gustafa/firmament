@@ -10,10 +10,10 @@ export REDUCER=$2
 export INPUT_FILE=$3
 
 export FLAGS_mr_inputfile=$INPUT_FILE
-export FLAGS_tasklib_application=mapreduce
+#export FLAGS_tasklib_application=mapreduce
 
-export FLAGS_coordinator_uri=tcp:localhost:8088
-export FLAGS_resource_id=db904ff2-688e-4d8e-900e-f363e11fd256
+#export FLAGS_coordinator_uri=tcp:localhost:8088
+#export FLAGS_resource_id=db904ff2-688e-4d8e-900e-f363e11fd256
 export FLAGS_heartbeat_interval=1
 
 

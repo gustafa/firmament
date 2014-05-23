@@ -4,7 +4,7 @@ SUFFIX=scripts/job
 include $(ROOT_DIR)/include/Makefile.config
 include $(ROOT_DIR)/include/Makefile.common
 
-PBS=base/job_desc.proto base/task_desc.proto base/reference_desc.proto
+PBS=base/job_desc.proto base/task_desc.proto base/reference_desc.proto messages/base_message.proto
 
 protobufs: $(addprefix $(SRC_ROOT_DIR)/, $(PBS))
 	protoc -I$(SRC_ROOT_DIR)/ --python_out=. $^
