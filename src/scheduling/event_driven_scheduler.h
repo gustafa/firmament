@@ -37,6 +37,8 @@ class EventDrivenScheduler : public SchedulerInterface {
                       const string& coordinator_uri);
   ~EventDrivenScheduler();
   ResourceID_t* BoundResourceForTask(TaskID_t task_id);
+  bool UnbindResourceForTask(TaskID_t task_id);
+
   virtual void DeregisterResource(ResourceID_t res_id);
   virtual void RegisterResource(ResourceID_t res_id, bool local);
   void KillRunningTask(TaskID_t task_id,
@@ -69,6 +71,7 @@ class EventDrivenScheduler : public SchedulerInterface {
   const set<ReferenceInterface*> ReferencesForID(const DataObjectID_t& id);
   void RegisterLocalResource(ResourceID_t res_id);
   void RegisterRemoteResource(ResourceID_t res_id);
+
 
   // Cached sets of runnable and blocked tasks; these are updated on each
   // execution of LazyGraphReduction. Note that this set includes tasks from all

@@ -80,6 +80,11 @@ void EventDrivenScheduler::KillRunningTask(TaskID_t task_id,
   LOG(INFO) << "Sending KILL message to task " << task_id << " on resource "
             << *rid << " (endpoint: " << (*td)->last_location()  << ")";
   m_adapter_ptr_->SendMessageToEndpoint((*td)->last_location(), bm);
+
+  // Remove the bound resource, if any.
+  if (rid) {
+    UnbindResourceForTask(task_id);
+  }
 }
 
 void EventDrivenScheduler::IssueWebserverJobs() {
@@ -116,6 +121,16 @@ void EventDrivenScheduler::BindTaskToResource(
 ResourceID_t* EventDrivenScheduler::BoundResourceForTask(TaskID_t task_id) {
   ResourceID_t* rid = FindOrNull(task_bindings_, task_id);
   return rid;
+}
+
+bool EventDrivenScheduler::UnbindResourceForTask(TaskID_t task_id) {
+  ResourceID_t* rid = FindOrNull(task_bindings_, task_id);
+  if (rid) {
+    task_bindings_.erase(task_id);
+    return true;
+  } else {
+    return false;
+  }
 }
 
 void EventDrivenScheduler::DebugPrintRunnableTasks() {

@@ -21,7 +21,7 @@ void LaunchTasklib() {
   /* Sets up and runs a TaskLib monitor in the current thread. */
   // Read these important variables from the environment.
   sleep(1);
-  string sargs = "--fromenv=coordinator_uri,resource_id,task_id,heartbeat_interval,tasklib_application,completion_filename";
+  string sargs = "--tryfromenv=coordinator_uri,resource_id,task_id,heartbeat_interval,tasklib_application,completion_filename";
   string progargs = "nginxy";
   boost::thread::id task_thread_id = boost::this_thread::get_id();
 

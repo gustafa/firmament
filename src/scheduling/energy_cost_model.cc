@@ -27,9 +27,7 @@ EnergyCostModel::EnergyCostModel(shared_ptr<ResourceMap_t> resource_map, shared_
 Cost_t EnergyCostModel::TaskToUnscheduledAggCost(TaskID_t task_id, FlowSchedulingPriorityType priority) {
   // TODO should be inversely proportional to deadline - estimated run-time
   // and > than cheapest place to schedule task.
-
-  return 0ll;
-
+  // Return 0LL.
   string application = GetTaskApp(task_id);
 
   if (priority == PRIORITY_HIGH) {

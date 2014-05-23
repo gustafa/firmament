@@ -130,6 +130,27 @@ uint64_t EnergyScheduler::ApplySchedulingDeltas(
         break;
       }
 
+      case SchedulingDelta::MIGRATE: {
+        KillRunningTask(task_id, TaskKillMessage::PREEMPTION);
+
+        VLOG(1) << "Performing migration for task " << task_id;
+        KillRunningTask(task_id, TaskKillMessage::PREEMPTION);
+        // TODO implement migration
+        // NO BREAK break;
+      }
+
+      case SchedulingDelta::PREEMPT: {
+        // Kill the task
+        // Reset the job such that it can be rescheduled at a later point.
+        VLOG(1) << "Performing preemption for task " << task_id;
+        // Reset to a schedulable state
+        (*td)->set_state(TaskDescriptor::CREATED);
+        KillRunningTask(task_id, TaskKillMessage::PREEMPTION);
+        break;
+      }
+
+
+
       case SchedulingDelta::PLACE: {
         VLOG(1) << "Trying to place task " << task_id
                 << " on resource " << (*it)->resource_id();
@@ -137,23 +158,6 @@ uint64_t EnergyScheduler::ApplySchedulingDeltas(
                 << (*rs)->mutable_descriptor()->uuid();
         BindTaskToResource(*td, (*rs)->mutable_descriptor());
         flow_graph_->UpdateArcsForBoundTask(task_id, res_id);
-        break;
-      }
-
-      case SchedulingDelta::PREEMPT: {
-        // Kill the task
-        // Reset the job such that it can be rescheduled at a later point.
-        VLOG(1) << "Performing preemption for task " << task_id;
-        (*td)->set_state(TaskDescriptor::CREATED);
-        KillRunningTask(task_id, TaskKillMessage::PREEMPTION);
-        break;
-      }
-
-      case SchedulingDelta::MIGRATE: {
-        KillRunningTask(task_id, TaskKillMessage::PREEMPTION);
-
-        VLOG(1) << "Performing migration for task " << task_id;
-        // TODO implement migration
         break;
       }
 
@@ -474,6 +478,7 @@ map<uint64_t, uint64_t>* EnergyScheduler::GetMappings(
   map<uint64_t, uint64_t>* task_node = new map<uint64_t, uint64_t>();
 
   unordered_set<uint64_t>::iterator set_it;
+  string desc = "PE ";
   for (auto penult_nodes : {&leaves, &unsched_aggs}) {
     for (set_it = penult_nodes->begin(); set_it != penult_nodes->end(); set_it++) {
       uint64_t* flow = FindOrNull((*extracted_flow)[sink], *set_it);
@@ -482,14 +487,14 @@ map<uint64_t, uint64_t>* EnergyScheduler::GetMappings(
         // This could technically be optimized and done in assign_node.
         // It's not done like that for now because we're only expecting one task
         // per leaf node.
-        VLOG(1) << "Have flow from leaf node " << *set_it << " to sink: "
+        VLOG(1) << "Have flow from " << desc << *set_it << " to sink: "
                 << *flow;
         CHECK_EQ(*flow, 1);
         for (uint64_t flow_used = 1;  flow_used <= *flow; ++flow_used) {
           uint64_t task = LeafToTask(extracted_flow, *set_it);
           // Arc back to a task, so we have a scheduling assignment
           if (task != 0) {
-            VLOG(1) << "Assigning task node " << task << " to leaf node "
+            VLOG(1) << "Assigning task node " << task  << " to " << desc
                     << *set_it;
             (*task_node)[task] = *set_it;
           } else {
@@ -498,6 +503,7 @@ map<uint64_t, uint64_t>* EnergyScheduler::GetMappings(
         }
       }
     }
+    desc = "unsched agg ";
   }
   return task_node;
 }
