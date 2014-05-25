@@ -30,6 +30,8 @@
 
 DECLARE_bool(debug_flow_graph);
 DECLARE_int32(flow_scheduling_cost_model);
+DECLARE_string(debug_output_dir);
+DECLARE_string(flow_scheduling_solver);
 
 namespace firmament {
 namespace scheduler {
@@ -45,6 +47,7 @@ using store::ObjectStoreInterface;
 EnergyScheduler::EnergyScheduler(
     shared_ptr<JobMap_t> job_map,
     shared_ptr<ResourceMap_t> resource_map,
+    const ResourceTopologyNodeDescriptor& resource_topology,
     shared_ptr<ObjectStoreInterface> object_store,
     shared_ptr<TaskMap_t> task_map,
     shared_ptr<TopologyManager> topo_mgr,
@@ -53,9 +56,11 @@ EnergyScheduler::EnergyScheduler(
     const string& coordinator_uri,
     const SchedulingParameters& params,
     shared_ptr<ResourceHostMap_t> resource_host_map)
-    : EventDrivenScheduler(job_map, resource_map, object_store, task_map,
-                           topo_mgr, m_adapter, coordinator_res_id,
+    : EventDrivenScheduler(job_map, resource_map,resource_topology,
+                           object_store, task_map, topo_mgr,
+                           m_adapter, coordinator_res_id,
                            coordinator_uri),
+      topology_manager_(topo_mgr),
       parameters_(params),
       resource_host_map_(resource_host_map),
       debug_seq_num_(0) {
@@ -73,18 +78,18 @@ EnergyScheduler::EnergyScheduler(
           << FLAGS_flow_scheduling_cost_model << "\"";
   switch (FLAGS_flow_scheduling_cost_model) {
     case FlowSchedulingCostModelType::COST_MODEL_TRIVIAL:
-      flow_graph_ = new FlowGraph(new TrivialCostModel());
+      flow_graph_.reset(new FlowGraph(new TrivialCostModel()));
       VLOG(1) << "Using the trivial cost model";
       break;
     case FlowSchedulingCostModelType::COST_MODEL_QUINCY:
-      flow_graph_ = new FlowGraph(new QuincyCostModel());
+      flow_graph_.reset(new FlowGraph(new QuincyCostModel()));
       VLOG(1) << "Using the quincy cost model";
       break;
     case FlowSchedulingCostModelType::COST_MODEL_ENERGY: {
       EnergyCostModel *energy_cost_model = new EnergyCostModel(resource_map, job_map, task_map, resource_host_map_);
       // Load initial values before setting up the flow graph.
       energy_cost_model->SetInitialStats();
-      flow_graph_ = new FlowGraph(energy_cost_model);
+      flow_graph_.reset(new FlowGraph(energy_cost_model));
       VLOG(1) << "Using the energy cost model";
       break;
     }
@@ -93,14 +98,14 @@ EnergyScheduler::EnergyScheduler(
                  << "(" << FLAGS_flow_scheduling_cost_model << ")";
   }
 
-  flow_graph_->AddResourceTopology(root, topo_mgr->NumProcessingUnits());
-
-  //haproxy_controller_.GetStatistics();
+  LOG(INFO) << "EnergyScheduler initiated; parameters: "
+            << parameters_.ShortDebugString();
+  // Set up the initial flow graph
+  UpdateResourceTopology(resource_topology);
 }
 
 EnergyScheduler::~EnergyScheduler() {
   // XXX(ionel): stub
-  delete flow_graph_;
 }
 
 const ResourceID_t* EnergyScheduler::FindResourceForTask(
@@ -282,7 +287,7 @@ vector<map< uint64_t, uint64_t> >* EnergyScheduler::ReadFlowGraph(
   if (FLAGS_debug_flow_graph) {
     // Somewhat ugly hack to generate unique output file name.
     string out_file_name;
-    spf(&out_file_name, "/tmp/firmament-debug/debug-flow_%ju.dm",
+    spf(&out_file_name, "%s/debug-flow_%ju.dm", FLAGS_debug_output_dir.c_str(),
         debug_seq_num_);
     CHECK((dbg_fptr = fopen(out_file_name.c_str(), "w")) != NULL);
     debug_seq_num_++;
@@ -332,6 +337,14 @@ vector<map< uint64_t, uint64_t> >* EnergyScheduler::ReadFlowGraph(
   return adj_list;
 }
 
+void EnergyScheduler::RegisterResource(ResourceID_t res_id, bool local) {
+  // Update the flow graph
+  UpdateResourceTopology(resource_topology_);
+  // Call into superclass method to do scheduler resource initialisation.
+  // This will create the executor for the new resource.
+  EventDrivenScheduler::RegisterResource(res_id, local);
+}
+
 uint64_t EnergyScheduler::RunSchedulingIteration() {
   // Blow away any old exporter state
   exporter_.Reset();
@@ -350,13 +363,19 @@ uint64_t EnergyScheduler::RunSchedulingIteration() {
     // TODO(malte): somewhat ugly hack to compose a unique file name for each
     // scheduler iteration
     string out_file_name;
-    spf(&out_file_name, "/tmp/firmament-debug/debug_%ju.dm", debug_seq_num_);
+    spf(&out_file_name, "%s/debug_%ju.dm", FLAGS_debug_output_dir.c_str(),
+        debug_seq_num_);
+    LOG(INFO) << "Writing flow graph debug info into " << out_file_name;
     exporter_.Flush(out_file_name);
   }
   // Now run the solver
   vector<string> args;
-  pid_t solver_pid = ExecCommandSync("ext/cs2-4.6/cs2.exe", args, outfd, infd);
-  VLOG(2) << "Solver running (PID: " << solver_pid << "), CHILD_READ: "
+  string solver_binary;
+  // Get the binary name of the solver
+  SolverBinaryName(FLAGS_flow_scheduling_solver, &solver_binary);
+  pid_t solver_pid = ExecCommandSync(solver_binary, args, outfd, infd);
+  VLOG(2) << "Solver (" << FLAGS_flow_scheduling_solver << "running "
+          << "(PID: " << solver_pid << "), CHILD_READ: "
           << outfd[0] << ", PARENT_WRITE: " << outfd[1] << ", PARENT_READ: "
           << infd[0] << ", CHILD_WRITE: " << infd[1];
   // Write to pipe to solver
@@ -413,6 +432,30 @@ void EnergyScheduler::PrintGraph(vector< map<uint64_t, uint64_t> > adj_map) {
       cout << i << " " << it->first << " " << it->second << endl;
     }
   }
+}
+
+void EnergyScheduler::SolverBinaryName(const string& solver, string* binary) {
+  // New solvers need to have their binary registered here.
+  // Paths are relative to the Firmament root directory.
+  if (solver == "cs2") {
+    *binary = "ext/cs2-4.6/cs2.exe";
+  } else if (solver == "flowlessly") {
+    *binary = "ext/flowlessly-git/flow_scheduler";
+  } else {
+   LOG(FATAL) << "Non-existed flow network solver specified: "
+              << solver;
+  }
+}
+
+void EnergyScheduler::UpdateResourceTopology(
+    const ResourceTopologyNodeDescriptor& root) {
+  // Run a topology refresh (somewhat expensive!); if only two nodes exist, the
+  // flow graph is empty apart from cluster aggregator and sink.
+  VLOG(1) << "Num nodes in flow graph is: " << flow_graph_->NumNodes();
+  if (flow_graph_->NumNodes() == 1)
+    flow_graph_->AddResourceTopology(root);
+  else
+    flow_graph_->UpdateResourceTopology(root);
 }
 
 bool EnergyScheduler::CheckNodeType(uint64_t node, FlowNodeType_NodeType type) {

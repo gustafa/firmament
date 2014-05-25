@@ -1,6 +1,7 @@
 // The Firmament project
+// Copyright (c) 2012-2014 Malte Schwarzkopf <malte.schwarzkopf@cl.cam.ac.uk>
 // Copyright (c) 2012-2013 Ionel Gog <ionel.gog@cl.cam.ac.uk>
-//
+// Author Gustaf Helgesson <gustaf.helgesson@cl.cam.ac.uk>
 // Quincy scheduler.
 
 #ifndef FIRMAMENT_ENGINE_ENERGY_SCHEDULER_H
@@ -34,7 +35,8 @@ class EnergyScheduler : public EventDrivenScheduler {
  public:
   EnergyScheduler(shared_ptr<JobMap_t> job_map,
                   shared_ptr<ResourceMap_t> resource_map,
-                  shared_ptr<store::ObjectStoreInterface> object_store,
+                  const ResourceTopologyNodeDescriptor& resource_topology,
+                  shared_ptr<ObjectStoreInterface> object_store,
                   shared_ptr<TaskMap_t> task_map,
                   shared_ptr<TopologyManager> topo_mgr,
                   MessagingAdapterInterface<BaseMessage>* m_adapter,
@@ -45,6 +47,7 @@ class EnergyScheduler : public EventDrivenScheduler {
   ~EnergyScheduler();
   void HandleTaskCompletion(TaskDescriptor* td_ptr,
                             TaskFinalReport* report);
+  virtual void RegisterResource(ResourceID_t res_id, bool local);
   uint64_t ScheduleJob(JobDescriptor* job_desc);
   virtual ostream& ToString(ostream* stream) const {
     return *stream << "<EnergyScheduler, parameters: "
@@ -72,17 +75,19 @@ class EnergyScheduler : public EventDrivenScheduler {
                                     const FlowGraphNode& dst,
                                     SchedulingDelta* delta);
   void PrintGraph(vector< map<uint64_t, uint64_t> > adj_map);
+  TaskDescriptor* ProducingTaskForDataObjectID(DataObjectID_t id);
   vector< map< uint64_t, uint64_t> >* ReadFlowGraph(
       int fd, uint64_t num_vertices);
   void RegisterLocalResource(ResourceID_t res_id);
   void RegisterRemoteResource(ResourceID_t res_id);
   void HandleNginxJob();
   uint64_t RunSchedulingIteration();
+  void SolverBinaryName(const string& solver, string* binary);
+  void UpdateResourceTopology(
+      const ResourceTopologyNodeDescriptor& resource_tree);
 
 
- // HAProxyController haproxy_controller_;
-
-  TaskDescriptor* ProducingTaskForDataObjectID(DataObjectID_t id);
+  // HAProxyController haproxy_controller_;
   // Cached sets of runnable and blocked tasks; these are updated on each
   // execution of LazyGraphReduction. Note that this set includes tasks from all
   // jobs.
@@ -105,7 +110,7 @@ class EnergyScheduler : public EventDrivenScheduler {
   // in the process of making scheduling decisions.
   bool scheduling_;
   // Local storage of the current flow graph
-  FlowGraph *flow_graph_;
+  shared_ptr<FlowGraph> flow_graph_;
   // Flow scheduler parameters (passed in as protobuf to constructor)
   SchedulingParameters parameters_;
   // Resource to hostname map.
