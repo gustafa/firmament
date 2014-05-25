@@ -87,16 +87,17 @@ Coordinator::Coordinator(PlatformID platform_id)
     // Simple random first-available scheduler
     LOG(INFO) << "Using simple random scheduler.";
     scheduler_ = new SimpleScheduler(
-        job_table_, associated_resources_, object_store_, task_table_,
-        topology_manager_, m_adapter_, uuid_, FLAGS_listen_uri);
+        job_table_, associated_resources_, *local_resource_topology_,
+        object_store_, task_table_, topology_manager_, m_adapter_,
+        uuid_, FLAGS_listen_uri);
   } else if (FLAGS_scheduler == "quincy") {
     // Quincy-style flow-based scheduling
     LOG(INFO) << "Using Quincy-style min cost flow-based scheduler.";
     SchedulingParameters params;
     scheduler_ = new QuincyScheduler(
-        job_table_, associated_resources_, object_store_, task_table_,
-        topology_manager_, m_adapter_, uuid_, FLAGS_listen_uri,
-        params);
+        job_table_, associated_resources_, *local_resource_topology_,
+        object_store_, task_table_, topology_manager_, m_adapter_, uuid_,
+        FLAGS_listen_uri, params);
   } else if (FLAGS_scheduler == "energy") {
         SchedulingParameters params;
     scheduler_ = new EnergyScheduler(
@@ -161,7 +162,9 @@ void Coordinator::DetectLocalResources() {
   ResourceTopologyNodeDescriptor* root_node =
       local_resource_topology_->add_children();
   topology_manager_->AsProtobuf(root_node);
-  local_resource_topology_->set_parent_id(to_string(uuid_));
+  root_node->set_parent_id(to_string(uuid_));
+  root_node->mutable_resource_desc()->set_parent(to_string(uuid_));
+  resource_desc_.add_children(root_node->resource_desc().uuid());
   TraverseResourceProtobufTree(
       local_resource_topology_,
       boost::bind(&Coordinator::AddResource, this, _1, node_uri_, true));
@@ -516,6 +519,8 @@ void Coordinator::HandleRegistrationRequest(
         local_resource_topology_->add_children();
     rtnd->CopyFrom(msg.rtn_desc());
     rtnd->set_parent_id(resource_desc_.uuid());
+    rtnd->mutable_resource_desc()->set_parent(resource_desc_.uuid());
+    resource_desc_.add_children(rtnd->resource_desc().uuid());
     // Recursively add its child resources to resource map and topology tree
     TraverseResourceProtobufTree(
         rtnd, boost::bind(&Coordinator::AddResource, this, _1,
