@@ -101,9 +101,9 @@ Coordinator::Coordinator(PlatformID platform_id)
   } else if (FLAGS_scheduler == "energy") {
         SchedulingParameters params;
     scheduler_ = new EnergyScheduler(
-        job_table_, associated_resources_, object_store_, task_table_,
-        topology_manager_, m_adapter_, uuid_, FLAGS_listen_uri,
-        params, resource_to_host_);
+        job_table_, associated_resources_, *local_resource_topology_,
+        object_store_, task_table_, topology_manager_, m_adapter_, uuid_,
+        FLAGS_listen_uri, params, resource_to_host_);
   } else {
     // Unknown scheduler specified, error.
     LOG(FATAL) << "Unknown or unrecognized scheduler '" << FLAGS_scheduler
