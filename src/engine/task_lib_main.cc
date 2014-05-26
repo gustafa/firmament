@@ -8,6 +8,7 @@
 
 #include "base/common.h"
 #include "engine/task_lib.h"
+//#include <cstdlib>
 #include <curl/curl.h>
 
 DECLARE_string(coordinator_uri);
@@ -16,6 +17,16 @@ DECLARE_string(cache_name);
 extern char **environ;
 
 using namespace firmament;  // NOLINT
+
+
+
+
+
+TaskLib *task_lib;
+
+void TerminationCleanup() {
+  task_lib->Stop();
+}
 
 void LaunchTasklib() {
   /* Sets up and runs a TaskLib monitor in the current thread. */
@@ -31,13 +42,16 @@ void LaunchTasklib() {
   argv[1] = const_cast<char*>(sargs.c_str());
     firmament::common::InitFirmament(2, argv);
 
+  // Catch end of progam (hopefully!)
+  //signal(SIGABRT, signalHandler);
 
-//VLOG(3) << "Tasklib thread launched";
+  //VLOG(3) << "Tasklib thread launched";
 
-  TaskLib task_lib;
-  // TODO(gustafa): Send the main thread id and join neatly in the
-  // tasklib monitor.
-  task_lib.RunMonitor(task_thread_id);
+  task_lib = new TaskLib();
+  //at_quick_exit(task_lib.Stop);
+
+  task_lib->RunMonitor(task_thread_id);
+
 }
 
 
@@ -51,6 +65,9 @@ __attribute__((constructor)) static void task_lib_main() {
   // Unset LD_PRELOAD to avoid us from starting launching monitors in
   // childprocesses.
   setenv("LD_PRELOAD", "", 1);
+
+  // Cleanup task lib before terminating the process.
+  atexit(TerminationCleanup);
 
   VLOG(2) << "Starting tasklib monitor thread\n";
   boost::thread t1(&LaunchTasklib);

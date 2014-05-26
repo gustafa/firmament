@@ -97,6 +97,9 @@ class TaskLib {
 
   void SetCompleted(double completed);
 
+  // Terminate tasklib.
+  void Stop();
+
   Cache_t* getCache() {
     return cache;
   }
@@ -131,7 +134,6 @@ class TaskLib {
   void AddNginxStatistics(TaskPerfStatisticsSample::NginxStatistics *ns);
   void AddMemcachedStatistics(TaskPerfStatisticsSample::MemcachedStatistics *ms); // NOLINT
   void AddCompletionStatistics(TaskPerfStatisticsSample *ts);
-
 
  private:
   pid_t pid_;

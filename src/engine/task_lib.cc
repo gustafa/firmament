@@ -93,6 +93,15 @@ TaskLib::~TaskLib() {
   }
 }
 
+void TaskLib::Stop() {
+  stop_ = true;
+  while (task_running_) {
+    // Wait until the monitor has stopped before sending the finalize message.
+  }
+  SendFinalizeMessage(true);
+
+}
+
 void TaskLib::AddTaskStatisticsToHeartbeat(
     const ProcFSMonitor::ProcessStatistics_t& proc_stats,
     TaskPerfStatisticsSample* stats) {
@@ -281,7 +290,9 @@ void TaskLib::RunMonitor(boost::thread::id main_thread_id) {
       // the channel.
     }
 
+  VLOG(1) << "Finished monitoring, sending finalize message.";
   task_running_ = false;
+  // We have no terminated, time to give that beautiful coordinator a final message!
 
 }
 void TaskLib::AddNginxStatistics(TaskPerfStatisticsSample::NginxStatistics *ns) { // NOLINT
