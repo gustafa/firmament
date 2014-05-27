@@ -219,8 +219,6 @@ void FlowGraph::AddJobNodes(JobDescriptor* jd) {
       task_nodes_.insert(task_node->id_);
       // Insert a record for the node representing this task's ID
       InsertIfNotPresent(&task_to_nodeid_map_, cur->uid(), task_node->id_);
-      // Insert a link back to the flow graph node from the ud. TODO: Verify correcness of this!
-      InsertIfNotPresent(&node_map_, task_node->id_, task_node);
       // Log info
       VLOG(2) << "Adding edges for task " << cur->uid() << "'s node ("
               << task_node->id_ << "); task state is " << cur->state();
@@ -468,9 +466,6 @@ FlowGraphNode* FlowGraph::NodeForTaskID(TaskID_t task_id) {
   VLOG(2) << "Task " << task_id << " is represented by node " << *id;
   FlowGraphNode** node_ptr = FindOrNull(node_map_, *id);
 
-  for (auto nmapitem : node_map_) {
-    VLOG(2) << nmapitem.first << " " << nmapitem.second << endl;
-  }
   return (node_ptr ? *node_ptr : NULL);
 }
 
