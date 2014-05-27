@@ -76,7 +76,7 @@ void FlowGraph::AddArcsForTask(FlowGraphNode* task_node,
   // TODO Make a switch on priority levels to determine what is low, medium and high respectively.
   unsched_arc->cap_upper_bound_ = 1;
   if (!schedulable_on) {
-  
+
     // If the cost model did not find any appropriate candidate schedule the task
     // this typically means we want to schedule it ASAP as it is already missing
     // its expected performance.
@@ -219,6 +219,8 @@ void FlowGraph::AddJobNodes(JobDescriptor* jd) {
       task_nodes_.insert(task_node->id_);
       // Insert a record for the node representing this task's ID
       InsertIfNotPresent(&task_to_nodeid_map_, cur->uid(), task_node->id_);
+      // Insert a link back to the flow graph node from the ud. TODO: Verify correcness of this!
+      InsertIfNotPresent(&node_map_, task_node->id_, task_node);
       // Log info
       VLOG(2) << "Adding edges for task " << cur->uid() << "'s node ("
               << task_node->id_ << "); task state is " << cur->state();
@@ -403,7 +405,7 @@ void FlowGraph::AddResourceNode(const ResourceTopologyNodeDescriptor& rtnd) {
               << (*arc)->cap_upper_bound_ + 1;
       (*arc)->cap_upper_bound_ += 1;
     }
-  } 
+  }
 }
 
 void FlowGraph::AdjustUnscheduledAggToSinkCapacity(JobID_t job, int64_t delta) {
@@ -441,6 +443,7 @@ void FlowGraph::DeleteTaskNode(FlowGraphNode* node) {
   // capcacity will already have been deducted (as part of PinTaskToNode,
   // currently).
   // Then remove node meta-data
+  VLOG(2) << "Deleting task node with id " << node->id_ << ", task id " << node->task_id_;
   node_map_.erase(node->id_);
   task_nodes_.erase(node->task_id_);
   // Then remove the node itself
@@ -464,6 +467,10 @@ FlowGraphNode* FlowGraph::NodeForTaskID(TaskID_t task_id) {
     return NULL;
   VLOG(2) << "Task " << task_id << " is represented by node " << *id;
   FlowGraphNode** node_ptr = FindOrNull(node_map_, *id);
+
+  for (auto nmapitem : node_map_) {
+    VLOG(2) << nmapitem.first << " " << nmapitem.second << endl;
+  }
   return (node_ptr ? *node_ptr : NULL);
 }
 
@@ -563,7 +570,7 @@ void FlowGraph::UpdateResourceTopology(
       resource_tree,
       boost::bind(&FlowGraph::UpdateResourceNode, this, _1));
   uint32_t new_num_leaves = 0;
-  for (unordered_map<uint64_t, FlowGraphArc*>::const_iterator it = 
+  for (unordered_map<uint64_t, FlowGraphArc*>::const_iterator it =
        cluster_agg_node_->outgoing_arc_map_.begin();
        it != cluster_agg_node_->outgoing_arc_map_.end();
        ++it) {

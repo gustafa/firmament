@@ -18,14 +18,12 @@ extern char **environ;
 
 using namespace firmament;  // NOLINT
 
-
-
-
-
 TaskLib *task_lib;
 
 void TerminationCleanup() {
-  task_lib->Stop();
+  if (task_lib) {
+    task_lib->Stop();
+  }
 }
 
 void LaunchTasklib() {
@@ -42,18 +40,10 @@ void LaunchTasklib() {
   argv[1] = const_cast<char*>(sargs.c_str());
     firmament::common::InitFirmament(2, argv);
 
-  // Catch end of progam (hopefully!)
-  //signal(SIGABRT, signalHandler);
-
-  //VLOG(3) << "Tasklib thread launched";
-
   task_lib = new TaskLib();
-  //at_quick_exit(task_lib.Stop);
-
   task_lib->RunMonitor(task_thread_id);
 
 }
-
 
 __attribute__((constructor)) static void task_lib_main() {
   /*

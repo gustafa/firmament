@@ -1,0 +1,8 @@
+#!/bin/bash
+export LD_PRELOAD=""
+
+COMMAND="cat $INPUT_FILE | $MAPPER | sort -k 1 | $REDUCER > $FLAGS_output_filename
+"
+echo "RUNNING COMMAND: $COMMAND"
+
+cat $INPUT_FILE | $MAPPER | sort -k 1 |  $REDUCER > $FLAGS_output_filename

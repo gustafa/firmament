@@ -11,6 +11,9 @@
 #include <vector>
 #include <stdlib.h>
 
+//TODO remove
+#include <iostream>
+
 #include "base/common.h"
 #include "base/data_object.h"
 #include "messages/registration_message.pb.h"
@@ -290,9 +293,7 @@ void TaskLib::RunMonitor(boost::thread::id main_thread_id) {
       // the channel.
     }
 
-  VLOG(1) << "Finished monitoring, sending finalize message.";
   task_running_ = false;
-  // We have no terminated, time to give that beautiful coordinator a final message!
 
 }
 void TaskLib::AddNginxStatistics(TaskPerfStatisticsSample::NginxStatistics *ns) { // NOLINT
