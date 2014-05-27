@@ -143,11 +143,17 @@ class TaskLib {
 
   bool stop_;
 
+  // Vector containing previous values of nginx statistics s.t.
+  shared_ptr<vector<uint64_t>> nginx_prev_;
+  const int num_nginx_stats_ = 4;
+
 
   // If set gives the fraction of task completed.
   volatile double completed_;
 
   ProcFSMonitor task_perf_monitor_;
+
+
 
   static string web_stats;
 

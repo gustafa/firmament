@@ -87,6 +87,12 @@ TaskLib::TaskLib()
   CHECK_NOTNULL(task_id_env);
   task_id_ = TaskIDFromString(task_id_env);
   setUpStorageEngine();
+
+  if (FLAGS_tasklib_application == "nginx") {
+    // Initialise previous values to 0.
+    nginx_prev_.reset(new vector<uint64_t>(num_nginx_stats_,0));
+  }
+
 }
 
 TaskLib::~TaskLib() {
@@ -307,8 +313,7 @@ void TaskLib::AddNginxStatistics(TaskPerfStatisticsSample::NginxStatistics *ns) 
     const string delimiter = ";";
     size_t pos = 0;
     int i = 0;
-    const int num_stats = 4;
-    uint64_t values[num_stats];
+    uint64_t values[num_nginx_stats_];
     string token;
     while ((pos = web_stats.find(delimiter)) != string::npos) {
       token = web_stats.substr(0, pos);
@@ -317,14 +322,22 @@ void TaskLib::AddNginxStatistics(TaskPerfStatisticsSample::NginxStatistics *ns) 
       ++i;
     }
 
-    if (i != num_stats) {
-      LOG(ERROR) << "Found an unexpected number of Nginx statistics!";
+    if (i != num_nginx_stats_) {
+      LOG(FATAL) << "Found an unexpected number of Nginx statistics!";
     }
-    // TODO(gustafa): Send diffs rather than totals.
-    ns->set_active_connections(values[0]);
-    ns->set_reading(values[1]);
-    ns->set_writing(values[2]);
-    ns->set_waiting(values[3]);
+
+    // Send diffs of stats to the coordinator.
+    ns->set_active_connections(values[0] - (*nginx_prev_)[0]);
+    ns->set_reading(values[1] - (*nginx_prev_)[1]);
+    ns->set_writing(values[2] - (*nginx_prev_)[2]);
+    ns->set_waiting(values[3] - (*nginx_prev_)[3]);
+
+    // Store new values as previous.
+
+    for (uint64_t i = 0; i < num_nginx_stats_; ++i) {
+      (*nginx_prev_)[i] = values[i];
+    }
+
   }
 }
 
@@ -438,8 +451,6 @@ CURLcode TaskLib::GetWebpageContents(const char *uri) {
   // Clear any old contents.
   web_stats = "";
   CURL *curl;
-  CURLcode res;
-
   curl = curl_easy_init();
 
   if (curl) {
