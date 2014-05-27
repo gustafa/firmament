@@ -11,6 +11,7 @@
 
 #include "base/common.h"
 #include "base/types.h"
+#include "engine/knowledge_base.h"
 #include "misc/utils.h"
 #include "scheduling/application_statistics.h"
 #include "scheduling/flow_scheduling_cost_model_interface.h"
@@ -25,7 +26,8 @@ typedef unordered_map<ResourceID_t, ApplicationStatistics*, boost::hash<boost::u
 class EnergyCostModel : public FlowSchedulingCostModelInterface {
  public:
   EnergyCostModel(shared_ptr<ResourceMap_t> resource_map, shared_ptr<JobMap_t> job_map,
-                  shared_ptr<TaskMap_t> task_map, shared_ptr<ResourceHostMap_t> resource_to_host );
+                  shared_ptr<TaskMap_t> task_map, shared_ptr<KnowledgeBase> knowledge_base,
+                  shared_ptr<ResourceHostMap_t> resource_to_host );
 
   // Costs pertaining to leaving tasks unscheduled
   Cost_t TaskToUnscheduledAggCost(TaskID_t task_id, FlowSchedulingPriorityType priority);
@@ -54,6 +56,9 @@ class EnergyCostModel : public FlowSchedulingCostModelInterface {
 
   // Lookup maps for various resources from the scheduler.
   shared_ptr<ResourceMap_t> resource_map_;
+
+  // Information regarding tasks.
+  shared_ptr<KnowledgeBase> knowledge_base_;
   shared_ptr<JobMap_t> job_map_;
   shared_ptr<TaskMap_t> task_map_;
   shared_ptr<ResourceHostMap_t> resource_to_host_;

@@ -18,6 +18,7 @@
 #include "base/task_desc.pb.h"
 #include "engine/executor_interface.h"
 #include "engine/haproxy_controller.h"
+#include "engine/knowledge_base.h"
 #include "scheduling/dimacs_exporter.h"
 #include "scheduling/event_driven_scheduler.h"
 #include "scheduling/flow_graph.h"
@@ -43,6 +44,7 @@ class EnergyScheduler : public EventDrivenScheduler {
                   ResourceID_t coordinator_res_id,
                   const string& coordinator_uri,
                   const SchedulingParameters& params,
+                  shared_ptr<KnowledgeBase> knowledge_base,
                   shared_ptr<ResourceHostMap_t> resource_host_map);
   ~EnergyScheduler();
   void HandleTaskCompletion(TaskDescriptor* td_ptr,
@@ -115,6 +117,8 @@ class EnergyScheduler : public EventDrivenScheduler {
   SchedulingParameters parameters_;
   // Resource to hostname map.
   shared_ptr<ResourceHostMap_t> resource_host_map_;
+  // Knowledge base
+  shared_ptr<KnowledgeBase> knowledge_base_;
   // DIMACS exporter for interfacing to the solver
   DIMACSExporter exporter_;
   // Debug sequence number (for solver input/output files written to /tmp)

@@ -14,10 +14,12 @@
 namespace firmament {
 
 EnergyCostModel::EnergyCostModel(shared_ptr<ResourceMap_t> resource_map, shared_ptr<JobMap_t> job_map,
-                  shared_ptr<TaskMap_t> task_map, shared_ptr<ResourceHostMap_t> resource_to_host)
+                  shared_ptr<TaskMap_t> task_map, shared_ptr<KnowledgeBase> knowledge_base,
+                  shared_ptr<ResourceHostMap_t> resource_to_host)
   : resource_map_(resource_map),
   job_map_(job_map),
   task_map_(task_map),
+  knowledge_base_(knowledge_base),
   resource_to_host_(resource_to_host) {
  // ResourceStatsMap *nginx_stats = new ResourceStatsMap();
  //  SetInitialNginxStats(nginx_stats);

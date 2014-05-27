@@ -215,7 +215,7 @@ class Coordinator : public Node,
   shared_ptr<ObjectStoreInterface> get_object_store() {
       return object_store_;
   }
-  const KnowledgeBase& knowledge_base() {
+  const shared_ptr<KnowledgeBase> knowledge_base() {
     return knowledge_base_;
   }
 
@@ -299,7 +299,7 @@ class Coordinator : public Node,
   // Machine statistics monitor
   ProcFSMachine machine_monitor_;
   // Knowledge base
-  KnowledgeBase knowledge_base_;
+  shared_ptr<KnowledgeBase> knowledge_base_;
 
   // HAProxy controller.
   HAProxyController haproxy_controller_;

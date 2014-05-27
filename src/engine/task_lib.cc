@@ -105,6 +105,7 @@ TaskLib::~TaskLib() {
 void TaskLib::Stop() {
   stop_ = true;
   while (task_running_) {
+    boost::this_thread::sleep(boost::posix_time::milliseconds(50));
     // Wait until the monitor has stopped before sending the finalize message.
   }
   SendFinalizeMessage(true);

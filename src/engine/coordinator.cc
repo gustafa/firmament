@@ -74,7 +74,8 @@ Coordinator::Coordinator(PlatformID platform_id)
     resource_to_host_(new ResourceHostMap_t),
     topology_manager_(new TopologyManager()),
     object_store_(new store::SimpleObjectStore(uuid_)),
-    parent_chan_(NULL) {
+    parent_chan_(NULL),
+    knowledge_base_(new KnowledgeBase()) {
   // Start up a coordinator according to the platform parameter
   string hostname = boost::asio::ip::host_name();
   string desc_name = "Coordinator on " + hostname;
@@ -106,7 +107,7 @@ Coordinator::Coordinator(PlatformID platform_id)
     scheduler_ = new EnergyScheduler(
         job_table_, associated_resources_, *local_resource_topology_,
         object_store_, task_table_, topology_manager_, m_adapter_, uuid_,
-        FLAGS_listen_uri, params, resource_to_host_);
+        FLAGS_listen_uri, params, knowledge_base_, resource_to_host_);
   } else {
     // Unknown scheduler specified, error.
     LOG(FATAL) << "Unknown or unrecognized scheduler '" << FLAGS_scheduler
@@ -257,7 +258,7 @@ void Coordinator::Run() {
       stats.set_resource_id(to_string(uuid_));
       machine_monitor_.CreateStatistics(&stats);
       // Record this sample locally
-      knowledge_base_.AddMachineSample(stats);
+      knowledge_base_->AddMachineSample(stats);
       if (parent_chan_ != NULL) {
         SendHeartbeatToParent(stats);
       }
@@ -420,7 +421,7 @@ void Coordinator::HandleHeartbeat(const HeartbeatMessage& msg) {
       // Update timestamp
       (*rsp)->set_last_heartbeat(GetCurrentTimestamp());
       // Record resource statistics sample
-      knowledge_base_.AddMachineSample(msg.load());
+      knowledge_base_->AddMachineSample(msg.load());
   }
 }
 
@@ -552,9 +553,7 @@ void Coordinator::HandleTaskHeartbeat(const TaskHeartbeatMessage& msg) {
     // Process the profiling information submitted by the task, add it to
     // the knowledge base
 
-    knowledge_base_.AddTaskSample(msg.stats());
-
-
+    knowledge_base_->AddTaskSample(msg.stats());
   }
 }
 
@@ -670,7 +669,7 @@ void Coordinator::HandleTaskStateChange(
       (*td_ptr)->set_state(TaskDescriptor::COMPLETED);
       TaskFinalReport report;
       scheduler_->HandleTaskCompletion(*td_ptr, &report);
-      knowledge_base_.ProcessTaskFinalReport(report);
+      knowledge_base_->ProcessTaskFinalReport(report);
       break;
     }
     case TaskDescriptor::FAILED:

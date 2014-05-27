@@ -55,6 +55,7 @@ EnergyScheduler::EnergyScheduler(
     ResourceID_t coordinator_res_id,
     const string& coordinator_uri,
     const SchedulingParameters& params,
+    shared_ptr<KnowledgeBase> knowledge_base,
     shared_ptr<ResourceHostMap_t> resource_host_map)
     : EventDrivenScheduler(job_map, resource_map,resource_topology,
                            object_store, task_map, topo_mgr,
@@ -62,6 +63,7 @@ EnergyScheduler::EnergyScheduler(
                            coordinator_uri),
       topology_manager_(topo_mgr),
       parameters_(params),
+      knowledge_base_(knowledge_base),
       resource_host_map_(resource_host_map),
       debug_seq_num_(0) {
   LOG(INFO) << "EnergyScheduler initiated; parameters: "
@@ -86,7 +88,7 @@ EnergyScheduler::EnergyScheduler(
       VLOG(1) << "Using the quincy cost model";
       break;
     case FlowSchedulingCostModelType::COST_MODEL_ENERGY: {
-      EnergyCostModel *energy_cost_model = new EnergyCostModel(resource_map, job_map, task_map, resource_host_map_);
+      EnergyCostModel *energy_cost_model = new EnergyCostModel(resource_map, job_map, task_map, knowledge_base, resource_host_map_);
       // Load initial values before setting up the flow graph.
       energy_cost_model->SetInitialStats();
       flow_graph_.reset(new FlowGraph(energy_cost_model));
