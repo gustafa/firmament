@@ -127,23 +127,14 @@ string HAProxyController::HAProxyCommand(string args) {
 
 
 
-void HAProxyController::GetJobs(vector<JobDescriptor*> &jobs, uint64_t next_seconds) {
-  // Get statistics and approximate how many webserver jobs we need to create.
-  GetStatistics();
-
-  // TODO(gustafa): Compute how many we should actually have!
-  int64_t num_of_tasks = 3;
+void HAProxyController::GenerateJobs(vector<JobDescriptor*> &jobs, uint64_t number_of_jobs) {
   const int64_t name_size = 32;
-
   char buffer[name_size];
   char input_buffer[name_size];
-
   int fd = open("/dev/urandom", O_RDONLY);
-
   read(fd, buffer, name_size);
 
-
-  for (int64_t i = 0; i < num_of_tasks; ++i) {
+  for (uint64_t i = 0; i < number_of_jobs; ++i) {
     JobDescriptor *job_desc = new JobDescriptor();
     TaskDescriptor *root_task = job_desc->mutable_root_task();
     job_desc->set_uuid("");
@@ -172,10 +163,6 @@ void HAProxyController::GetJobs(vector<JobDescriptor*> &jobs, uint64_t next_seco
     }
 
     jobs.push_back(job_desc);
-
-
-//    read(fd, input_buffer, 256);
-
   }
 }
 

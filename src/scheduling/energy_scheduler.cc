@@ -33,6 +33,7 @@ DECLARE_int32(flow_scheduling_cost_model);
 DECLARE_string(debug_output_dir);
 DECLARE_string(flow_scheduling_solver);
 
+
 namespace firmament {
 namespace scheduler {
 
@@ -422,6 +423,7 @@ uint64_t EnergyScheduler::RunSchedulingIteration() {
 }
 
 void EnergyScheduler::IssueWebserverJobs() {
+  // Estimate the number of requests.
 
 }
 

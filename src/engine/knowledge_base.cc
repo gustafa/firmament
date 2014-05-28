@@ -13,7 +13,10 @@
 
 namespace firmament {
 
-KnowledgeBase::KnowledgeBase() {
+KnowledgeBase::KnowledgeBase() :
+  webreqs_since_last_check_(0),
+  webreq_window_first_(0),
+  webreq_window_last_(0) {
 }
 
 void KnowledgeBase::AddMachineSample(
@@ -48,6 +51,19 @@ void KnowledgeBase::AddTaskSample(const TaskPerfStatisticsSample& sample) {
   if (q->size() * sizeof(sample) >= MAX_SAMPLE_QUEUE_CAPACITY)
     q->pop_front();  // drop from the front
   q->push_back(sample);
+
+  if (sample.has_nginx_stats()) {
+    webreqs_since_last_check_ += sample.nginx_stats().active_connections();
+  }
+}
+
+uint64_t KnowledgeBase::GetAndResetWebreqs(uint64_t &num_seconds) {
+  uint64_t web_reqs = webreqs_since_last_check_;
+  num_seconds = ((webreq_window_last_ - webreq_window_first_) / 1000000) + 1;
+  webreqs_since_last_check_ = 0;
+  webreq_window_first_ = webreq_window_last_;
+
+  return web_reqs;
 }
 
 const deque<MachinePerfStatisticsSample>* KnowledgeBase::GetStatsForMachine(

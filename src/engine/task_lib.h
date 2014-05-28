@@ -145,7 +145,7 @@ class TaskLib {
 
   // Vector containing previous values of nginx statistics s.t.
   shared_ptr<vector<uint64_t>> nginx_prev_;
-  const int num_nginx_stats_ = 4;
+  const uint64_t num_nginx_stats_ = 4;
 
 
   // If set gives the fraction of task completed.

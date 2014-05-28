@@ -60,6 +60,9 @@ DEFINE_uint64(energy_stats_history, 600,
 DEFINE_uint64(energy_stat_interval, 3,
               "Time between energy stats messages");
 
+DEFINE_uint64(reconsider_web_interval, 3, "Interval in seconds for the scheduler "
+              "to reconsider webrequests");
+
 namespace firmament {
 
 
@@ -239,10 +242,9 @@ void Coordinator::Run() {
     InformStorageEngineNewResource(&resource_desc_);
   }
 
-
-  bool first = true;
   uint64_t cur_time = 0;
   uint64_t last_heartbeat_time = 0;
+  uint64_t last_webserver_reconsider_time = 0;
   // Main loop
   while (!exit_) {
     // Wait for events (i.e. messages from workers.
@@ -263,13 +265,12 @@ void Coordinator::Run() {
         SendHeartbeatToParent(stats);
       }
       last_heartbeat_time = cur_time;
-
-      if (first) {
-        //IssueWebserverJobs();
-        first = false;
-      }
-
     }
+
+    if (cur_time - last_webserver_reconsider_time > FLAGS_reconsider_web_interval) {
+      IssueWebserverJobs();
+    }
+
     boost::this_thread::sleep(boost::posix_time::milliseconds(FLAGS_sleep_time));
   }
 
@@ -773,8 +774,16 @@ void Coordinator::SendHeartbeatToParent(
 
 
 void Coordinator::IssueWebserverJobs() {
+  uint64_t seconds;
+  uint64_t num_requests = knowledge_base_->GetAndResetWebreqs(seconds);
+  // Provision for a potential 15% increase in jobs.
+  uint64_t rps = num_requests / seconds + uint64_t(num_requests * 1.15);
+
+  const uint64_t rps_per_job = 1000000;
+  uint64_t num_jobs = (rps / rps_per_job) + 1;
+
   vector<JobDescriptor *> webserver_jobs;
-  haproxy_controller_.GetJobs(webserver_jobs, 1);
+  haproxy_controller_.GenerateJobs(webserver_jobs, num_jobs);
 
   for (auto job : webserver_jobs) {
     SubmitJob(*job);

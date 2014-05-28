@@ -52,7 +52,6 @@ class EnergyCostModel : public FlowSchedulingCostModelInterface {
 
 
  private:
-  unordered_map<string, ApplicationStatistics*> application_stats_;
 
   // Lookup maps for various resources from the scheduler.
   shared_ptr<ResourceMap_t> resource_map_;
@@ -62,6 +61,9 @@ class EnergyCostModel : public FlowSchedulingCostModelInterface {
   shared_ptr<JobMap_t> job_map_;
   shared_ptr<TaskMap_t> task_map_;
   shared_ptr<ResourceHostMap_t> resource_to_host_;
+
+  unordered_map<string, ApplicationStatistics*> application_stats_;
+
 
 };
 

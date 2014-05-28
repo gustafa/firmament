@@ -313,7 +313,7 @@ void TaskLib::AddNginxStatistics(TaskPerfStatisticsSample::NginxStatistics *ns) 
     ns->set_status(TaskPerfStatisticsSample_NginxStatistics_Status_OK);
     const string delimiter = ";";
     size_t pos = 0;
-    int i = 0;
+    uint64_t i = 0;
     uint64_t values[num_nginx_stats_];
     string token;
     while ((pos = web_stats.find(delimiter)) != string::npos) {

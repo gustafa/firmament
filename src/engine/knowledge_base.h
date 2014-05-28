@@ -17,6 +17,7 @@
 #include "base/machine_perf_statistics_sample.pb.h"
 #include "base/task_perf_statistics_sample.pb.h"
 #include "base/task_final_report.pb.h"
+#include "scheduling/application_statistics.h"
 
 namespace firmament {
 
@@ -36,12 +37,22 @@ class KnowledgeBase {
   const deque<TaskFinalReport>* GetFinalStatsForTask(TaskID_t id) const;
   void ProcessTaskFinalReport(const TaskFinalReport& report);
 
+  uint64_t GetAndResetWebreqs(uint64_t &num_seconds);
+
  protected:
   map<ResourceID_t, deque<MachinePerfStatisticsSample> > machine_map_;
   // TODO(malte): note that below sample queue has no awareness of time within a
   // task, i.e. it mixes samples from all phases
   map<TaskID_t, deque<TaskPerfStatisticsSample> > task_map_;
   map<TaskID_t, deque<TaskFinalReport> > task_exec_reports_;
+
+  uint64_t webreqs_since_last_check_;
+
+  uint64_t webreq_window_last_;
+  uint64_t webreq_window_first_;
+
+  unordered_map<string, ApplicationStatistics*> application_stats_;
+
 };
 
 }  // namespace firmament

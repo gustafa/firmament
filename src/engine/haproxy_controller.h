@@ -25,7 +25,7 @@ class HAProxyController {
 
   bool EnableServer(string hostname);
 
-  void GetJobs(vector<JobDescriptor*> &jobs, uint64_t next_seconds);
+  void GenerateJobs(vector<JobDescriptor*> &jobs, uint64_t number_of_jobs);
 
  private:
   string HAProxyCommand(string args);
