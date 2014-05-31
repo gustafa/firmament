@@ -304,7 +304,7 @@ class Coordinator : public Node,
   shared_ptr<KnowledgeBase> knowledge_base_;
 
   // HAProxy controller.
-  HAProxyController haproxy_controller_;
+  shared_ptr<HAProxyController> haproxy_controller_;
 
   // EnergyStatisticsMap hostname->wraparound vector
   unordered_map<string, WraparoundVector<double>*> energy_stats_map;

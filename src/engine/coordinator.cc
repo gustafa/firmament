@@ -79,7 +79,8 @@ Coordinator::Coordinator(PlatformID platform_id)
     topology_manager_(new TopologyManager()),
     object_store_(new store::SimpleObjectStore(uuid_)),
     parent_chan_(NULL),
-    knowledge_base_(new KnowledgeBase()) {
+    knowledge_base_(new KnowledgeBase()),
+    haproxy_controller_(new HAProxyController()) {
   // Start up a coordinator according to the platform parameter
   string desc_name = "Coordinator on " + hostname_;
   resource_desc_.set_uuid(to_string(uuid_));
@@ -110,7 +111,7 @@ Coordinator::Coordinator(PlatformID platform_id)
     scheduler_ = new EnergyScheduler(
         job_table_, associated_resources_, *local_resource_topology_,
         object_store_, task_table_, topology_manager_, m_adapter_, uuid_,
-        FLAGS_listen_uri, params, knowledge_base_, resource_to_host_);
+        FLAGS_listen_uri, params, knowledge_base_, haproxy_controller_, resource_to_host_);
   } else {
     // Unknown scheduler specified, error.
     LOG(FATAL) << "Unknown or unrecognized scheduler '" << FLAGS_scheduler
@@ -197,9 +198,9 @@ void Coordinator::AddResource(ResourceDescriptor* resource_desc,
   InsertIfNotPresent(associated_resources_.get(), res_id,
           new ResourceStatus(resource_desc, endpoint_uri,
                              GetCurrentTimestamp()));
-  //);
-  // Store the resource to host information in the lookup map.
-  (*resource_to_host_)[res_id] = endpoint_uri;
+  // //);
+  // // Store the resource to host information in the lookup map.
+  // (*resource_to_host_)[res_id] = endpoint_uri;
   // Register with scheduler if this resource is schedulable
   if (resource_desc->type() == ResourceDescriptor::RESOURCE_PU) {
     // TODO(malte): We make the assumption here that any local PU resource is
@@ -792,7 +793,7 @@ void Coordinator::IssueWebserverJobs() {
   uint64_t num_jobs = (rps / rps_per_job) + 1;
 
   // Get the number of active servers
-  uint64_t current_num_webservers = haproxy_controller_.GetNumActiveJobs();
+  uint64_t current_num_webservers = haproxy_controller_->GetNumActiveJobs();
 
   if (num_jobs == current_num_webservers) {
     // Do Nothing.
@@ -800,20 +801,15 @@ void Coordinator::IssueWebserverJobs() {
     // We need more resources add the difference in numbers
     int64_t num_new_jobs = num_jobs - current_num_webservers;
     vector<JobDescriptor *> webserver_jobs;
-    haproxy_controller_.GenerateJobs(webserver_jobs, num_new_jobs);
+    haproxy_controller_->GenerateJobs(webserver_jobs, num_new_jobs);
     VLOG(2) << "Starting up " << num_new_jobs << " additional webservers.";
     for (auto job : webserver_jobs) {
       VLOG(2) <<"Job with root task: " << job->root_task().name();
       SubmitJob(*job);
     }
   }
-
   // Update the number of active servers.
-  haproxy_controller_.SetNumActiveJobs(num_jobs);
-
-
-
-
+  haproxy_controller_->SetNumActiveJobs(num_jobs);
 }
 
 const string Coordinator::SubmitJob(const JobDescriptor& job_descriptor) {

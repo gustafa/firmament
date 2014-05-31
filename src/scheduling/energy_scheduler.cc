@@ -57,6 +57,7 @@ EnergyScheduler::EnergyScheduler(
     const string& coordinator_uri,
     const SchedulingParameters& params,
     shared_ptr<KnowledgeBase> knowledge_base,
+    shared_ptr<HAProxyController> haproxy_controller,
     shared_ptr<ResourceHostMap_t> resource_host_map)
     : EventDrivenScheduler(job_map, resource_map,resource_topology,
                            object_store, task_map, topo_mgr,
@@ -65,6 +66,7 @@ EnergyScheduler::EnergyScheduler(
       topology_manager_(topo_mgr),
       parameters_(params),
       knowledge_base_(knowledge_base),
+      haproxy_controller_(haproxy_controller),
       resource_host_map_(resource_host_map),
       debug_seq_num_(0) {
   LOG(INFO) << "EnergyScheduler initiated; parameters: "
@@ -166,6 +168,17 @@ uint64_t EnergyScheduler::ApplySchedulingDeltas(
                 << (*rs)->mutable_descriptor()->uuid();
         BindTaskToResource(*td, (*rs)->mutable_descriptor());
         flow_graph_->UpdateArcsForBoundTask(task_id, res_id);
+
+        // If this is a webserver inform the proxy we can start routing requests there.
+        if ((*td)->binary().compare("nginx_firmament") == 0) {
+          VLOG(2) << "FOUND NGINX APP";
+          string *hostname = FindOrNull(*resource_host_map_, res_id);
+          CHECK_NOTNULL(hostname);
+          CHECK((*td)->has_port());
+          VLOG(2) << "ENABLING SERVER";
+          haproxy_controller_->EnableServer(*hostname, (*td)->port());
+        }
+
         break;
       }
 

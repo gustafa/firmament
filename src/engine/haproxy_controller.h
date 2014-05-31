@@ -21,14 +21,12 @@ class HAProxyController {
   void ApplyDeltas();
   void GetStatistics();
 
-  bool DisableServer(string hostname);
-
-  bool EnableServer(string hostname);
+  bool EnableServer(string hostname, uint64_t port);
+  bool DisableServer(string hostname, uint64_t port);
 
   void GenerateJobs(vector<JobDescriptor*> &jobs, uint64_t number_of_jobs);
 
   inline uint64_t GetNumActiveJobs() { return num_active_jobs_;}
-
   inline void SetNumActiveJobs(uint64_t active_jobs) { num_active_jobs_ = active_jobs;}
 
 

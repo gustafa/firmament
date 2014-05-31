@@ -33,14 +33,16 @@ HAProxyController::HAProxyController() :
 }
 
 
-bool HAProxyController::DisableServer(string hostname) {
-  string command = "disable server my_servers/" + hostname;
+bool HAProxyController::DisableServer(string hostname, uint64_t port) {
+  string command = "disable server my_servers/" + hostname + boost::lexical_cast<std::string>(port);
   HAProxyCommand(command);
   return true;
 }
 
-bool HAProxyController::EnableServer(string hostname) {
-  string command = "enable server my_servers/" + hostname;
+bool HAProxyController::EnableServer(string hostname, uint64_t port) {
+  VLOG(2) << "HAPROXY Enabling server: " << hostname << ":" << port;
+
+  string command = "enable server my_servers/" + hostname + boost::lexical_cast<std::string>(port);
   HAProxyCommand(command);
   return true;
 }
@@ -114,6 +116,8 @@ string HAProxyController::HAProxyCommand(string args) {
   std::stringstream ss;
 
   string command = string("haproxyctl ") + args;
+  VLOG(3) << "Executing HAProxy command: " << command;
+
 
   FILE *in;
   char buff[512];
@@ -148,10 +152,12 @@ void HAProxyController::GenerateJobs(vector<JobDescriptor*> &jobs, uint64_t numb
     root_task->set_state(TaskDescriptor_TaskState_CREATED);
     root_task->set_binary("nginx_firmament");
     uint64_t port = current_start_port + i;
+    root_task->set_port(port);
     string config_file = "/home/gjrh2/firmament/configs/nginx/nginx" +
         boost::lexical_cast<std::string>(port) + ".conf";
     root_task->add_args(boost::lexical_cast<std::string>(port));
     root_task->add_args("-c " + config_file);
+
 
     ReferenceDescriptor *input_desc = root_task->add_dependencies();
     read(fd, input_buffer, name_size);

@@ -45,6 +45,7 @@ class EnergyScheduler : public EventDrivenScheduler {
                   const string& coordinator_uri,
                   const SchedulingParameters& params,
                   shared_ptr<KnowledgeBase> knowledge_base,
+                  shared_ptr<HAProxyController> haproxy_controller,
                   shared_ptr<ResourceHostMap_t> resource_host_map);
   ~EnergyScheduler();
   void HandleTaskCompletion(TaskDescriptor* td_ptr,
@@ -89,7 +90,6 @@ class EnergyScheduler : public EventDrivenScheduler {
       const ResourceTopologyNodeDescriptor& resource_tree);
 
 
-  // HAProxyController haproxy_controller_;
   // Cached sets of runnable and blocked tasks; these are updated on each
   // execution of LazyGraphReduction. Note that this set includes tasks from all
   // jobs.
@@ -119,6 +119,8 @@ class EnergyScheduler : public EventDrivenScheduler {
   shared_ptr<ResourceHostMap_t> resource_host_map_;
   // Knowledge base
   shared_ptr<KnowledgeBase> knowledge_base_;
+  // HAProxy controller
+  shared_ptr<HAProxyController> haproxy_controller_;
   // DIMACS exporter for interfacing to the solver
   DIMACSExporter exporter_;
   // Debug sequence number (for solver input/output files written to /tmp)
