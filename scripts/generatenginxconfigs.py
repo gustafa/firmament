@@ -51,6 +51,7 @@ env FLAGS_include_local_resources;
 env FLAGS_parent_uri;
 env FLAGS_http_ui_port;
 env FLAGS_name;
+env FLAGS_nginx_port;
 
 
 http {
@@ -166,7 +167,7 @@ location /nginx_status {
 def main():
   output_folder = 'configs/nginx/'
   num_servers = 100 # For fancies
-  start_port = 11000
+  start_port = 16000
   for i in range(num_servers):
     port = i + start_port
     f = open(output_folder + 'nginx' + str(port) + '.conf', 'w')

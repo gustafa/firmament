@@ -777,34 +777,52 @@ void Coordinator::SendHeartbeatToParent(
 void Coordinator::IssueWebserverJobs() {
   uint64_t seconds;
   uint64_t num_requests = knowledge_base_->GetAndResetWebreqs(seconds);
+  VLOG(2) << "Currently seeing " << num_requests << " webrequests per second.";
   // Provision for a potential 15% increase in jobs.
   uint64_t rps = num_requests / seconds + uint64_t(num_requests * 1.15);
 
-  const uint64_t rps_per_job = 1000000;
+  const uint64_t rps_per_job = 10000;
   uint64_t num_jobs = (rps / rps_per_job) + 1;
 
-  vector<JobDescriptor *> webserver_jobs;
-  haproxy_controller_.GenerateJobs(webserver_jobs, num_jobs);
+  // Get the number of active servers
+  uint64_t current_num_webservers = haproxy_controller_.GetNumActiveJobs();
 
-  for (auto job : webserver_jobs) {
-    SubmitJob(*job);
+  if (num_jobs == current_num_webservers) {
+    // Do Nothing.
+  } else if (num_jobs > current_num_webservers) {
+    // We need more resources add the difference in numbers
+    int64_t num_new_jobs = num_jobs - current_num_webservers;
+    vector<JobDescriptor *> webserver_jobs;
+    haproxy_controller_.GenerateJobs(webserver_jobs, num_new_jobs);
+    VLOG(2) << "Starting up " << num_new_jobs << " additional webservers.";
+    for (auto job : webserver_jobs) {
+      VLOG(2) <<"Job with root task: " << job->root_task().name();
+      SubmitJob(*job);
+    }
   }
+
+  // Update the number of active servers.
+  haproxy_controller_.SetNumActiveJobs(num_jobs);
+
+
+
+
 }
 
 const string Coordinator::SubmitJob(const JobDescriptor& job_descriptor) {
-  //TODO REMOVE ALL THIS energy_stats_history
-  if (first_stupid) {
-    first_stupid = false;
-  } else {
-    // Kill the existing tasks.
-    for (TaskMap_t::const_iterator t_iter = task_table_->begin();
-         t_iter != task_table_->end();
-         ++t_iter) {
-      VLOG(1) << "MANUALLY PREEMPTING " << t_iter->first;
-      KillRunningTask(t_iter->first, TaskKillMessage::PREEMPTION);
+  // //TODO REMOVE ALL THIS energy_stats_history
+  // if (first_stupid) {
+  //   first_stupid = false;
+  // } else {
+  //   // Kill the existing tasks.
+  //   for (TaskMap_t::const_iterator t_iter = task_table_->begin();
+  //        t_iter != task_table_->end();
+  //        ++t_iter) {
+  //     VLOG(1) << "MANUALLY PREEMPTING " << t_iter->first;
+  //     KillRunningTask(t_iter->first, TaskKillMessage::PREEMPTION);
 
-    }
-  }
+  //   }
+  // }
 
 
   // Generate a job ID

@@ -48,8 +48,9 @@ class KnowledgeBase {
 
   uint64_t webreqs_since_last_check_;
 
-  uint64_t webreq_window_last_;
   uint64_t webreq_window_first_;
+  uint64_t webreq_window_last_;
+
 
   unordered_map<string, ApplicationStatistics*> application_stats_;
 

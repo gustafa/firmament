@@ -156,6 +156,7 @@ class TaskLib {
 
 
   static string web_stats;
+  string nginx_uri;
 
   Cache_t* cache;
   string storage_uri;

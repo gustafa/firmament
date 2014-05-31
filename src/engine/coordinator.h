@@ -307,7 +307,6 @@ class Coordinator : public Node,
   // EnergyStatisticsMap hostname->wraparound vector
   unordered_map<string, WraparoundVector<double>*> energy_stats_map;
 
-
 #ifdef __SIMULATE_SYNTHETIC_DTG__
   shared_ptr<sim::SimpleDTGGenerator> sim_dtg_generator_;
 #endif

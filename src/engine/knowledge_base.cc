@@ -53,7 +53,7 @@ void KnowledgeBase::AddTaskSample(const TaskPerfStatisticsSample& sample) {
   q->push_back(sample);
 
   if (sample.has_nginx_stats()) {
-    webreqs_since_last_check_ += sample.nginx_stats().active_connections();
+    webreqs_since_last_check_ += sample.nginx_stats().reading();
   }
 }
 

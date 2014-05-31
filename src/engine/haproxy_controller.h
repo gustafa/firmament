@@ -27,6 +27,11 @@ class HAProxyController {
 
   void GenerateJobs(vector<JobDescriptor*> &jobs, uint64_t number_of_jobs);
 
+  inline uint64_t GetNumActiveJobs() { return num_active_jobs_;}
+
+  inline void SetNumActiveJobs(uint64_t active_jobs) { num_active_jobs_ = active_jobs;}
+
+
  private:
   string HAProxyCommand(string args);
 
@@ -35,6 +40,11 @@ class HAProxyController {
   unordered_map<string, string> stats_map;
 
   uint64_t current_web_job_;
+
+  uint64_t num_active_jobs_;
+
+  uint64_t start_port_;
+
 
 };
 

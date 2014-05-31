@@ -24,7 +24,9 @@ namespace firmament {
 
 HAProxyController::HAProxyController() :
   stats_headers(new vector<string>()),
-  current_web_job_(0)
+  current_web_job_(0),
+  num_active_jobs_(0),
+  start_port_(16000)
  {
   //stats_headers.reset(new vector<string>());
   //stats_map.reset(new unordered_map<string, unordered_map<string, string>>);
@@ -38,7 +40,6 @@ bool HAProxyController::DisableServer(string hostname) {
 }
 
 bool HAProxyController::EnableServer(string hostname) {
-
   string command = "enable server my_servers/" + hostname;
   HAProxyCommand(command);
   return true;
@@ -137,15 +138,20 @@ void HAProxyController::GenerateJobs(vector<JobDescriptor*> &jobs, uint64_t numb
   char input_buffer[name_size];
   int fd = open("/dev/urandom", O_RDONLY);
   read(fd, buffer, name_size);
-
+  uint64_t current_start_port = start_port_ + num_active_jobs_;
   for (uint64_t i = 0; i < number_of_jobs; ++i) {
     JobDescriptor *job_desc = new JobDescriptor();
     TaskDescriptor *root_task = job_desc->mutable_root_task();
     job_desc->set_uuid("");
     job_desc->set_name("webserver_job" + boost::lexical_cast<std::string>(current_web_job_));
-    root_task->set_name("nginx");
+    root_task->set_name("nginx" + boost::lexical_cast<std::string>(current_web_job_));
     root_task->set_state(TaskDescriptor_TaskState_CREATED);
     root_task->set_binary("nginx_firmament");
+    uint64_t port = current_start_port + i;
+    string config_file = "/home/gjrh2/firmament/configs/nginx/nginx" +
+        boost::lexical_cast<std::string>(port) + ".conf";
+    root_task->add_args(boost::lexical_cast<std::string>(port));
+    root_task->add_args("-c " + config_file);
 
     ReferenceDescriptor *input_desc = root_task->add_dependencies();
     read(fd, input_buffer, name_size);

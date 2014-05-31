@@ -47,6 +47,10 @@ DEFINE_string(tasklib_application, "",
 DEFINE_string(completion_filename, "",
               "A file which to read completion status from.");
 
+DEFINE_uint64(nginx_port, 0,
+              "Port which nginx runs from. MUST be set if nginx is the application");
+
+
 #define SET_PROTO_IF_DICT_HAS_INT(proto, dict, member, val) \
   val = json_object_get(dict, # member); \
   if (val) proto->set ## _ ## member(json_integer_value(val));
@@ -91,6 +95,11 @@ TaskLib::TaskLib()
   if (FLAGS_tasklib_application == "nginx") {
     // Initialise previous values to 0.
     nginx_prev_.reset(new vector<uint64_t>(num_nginx_stats_,0));
+    // Ensure the nginx port is set.
+    CHECK(FLAGS_nginx_port != 0);
+    std::ostringstream ss;
+    ss << FLAGS_nginx_port;
+    nginx_uri = "localhost:" + ss.str();
   }
 
 }
@@ -304,7 +313,9 @@ void TaskLib::RunMonitor(boost::thread::id main_thread_id) {
 
 }
 void TaskLib::AddNginxStatistics(TaskPerfStatisticsSample::NginxStatistics *ns) { // NOLINT
-  CURLcode curl_code = GetWebpageContents("localhost/nginx_status");
+  string nginx_stats_page = nginx_uri + "/nginx_status";
+  printf("NGINX STATS PAGE%s",nginx_stats_page.c_str());
+  CURLcode curl_code = GetWebpageContents(nginx_stats_page.c_str());
   if (curl_code != CURLE_OK) {
     // Report inability to retrieve nginx statistics when.
     ns->set_status(TaskPerfStatisticsSample_NginxStatistics_Status_DOWN);
