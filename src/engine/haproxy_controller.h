@@ -34,6 +34,7 @@ class HAProxyController {
 
   unordered_map<string, string> stats_map;
 
+  uint64_t current_web_job_;
 
 };
 

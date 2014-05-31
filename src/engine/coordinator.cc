@@ -60,7 +60,7 @@ DEFINE_uint64(energy_stats_history, 600,
 DEFINE_uint64(energy_stat_interval, 3,
               "Time between energy stats messages");
 
-DEFINE_uint64(reconsider_web_interval, 3, "Interval in seconds for the scheduler "
+DEFINE_uint64(reconsider_web_interval, 3000000, "Interval in microseconds for the scheduler "
               "to reconsider webrequests");
 
 namespace firmament {
@@ -268,6 +268,7 @@ void Coordinator::Run() {
     }
 
     if (cur_time - last_webserver_reconsider_time > FLAGS_reconsider_web_interval) {
+      last_webserver_reconsider_time = GetCurrentTimestamp();
       IssueWebserverJobs();
     }
 

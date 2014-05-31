@@ -5,6 +5,7 @@
 #include "base/task_desc.pb.h"
 #include "misc/map-util.h"
 
+#include <boost/lexical_cast.hpp>
 #include <fcntl.h>
 #include <stdio.h>
 #include <sys/stat.h>
@@ -21,8 +22,11 @@ DEFINE_string(haproxy_socket_file, "/home/gjrh2/haproxy.socket",
 namespace firmament {
 
 
-HAProxyController::HAProxyController() {
-  stats_headers.reset(new vector<string>());
+HAProxyController::HAProxyController() :
+  stats_headers(new vector<string>()),
+  current_web_job_(0)
+ {
+  //stats_headers.reset(new vector<string>());
   //stats_map.reset(new unordered_map<string, unordered_map<string, string>>);
 }
 
@@ -138,7 +142,7 @@ void HAProxyController::GenerateJobs(vector<JobDescriptor*> &jobs, uint64_t numb
     JobDescriptor *job_desc = new JobDescriptor();
     TaskDescriptor *root_task = job_desc->mutable_root_task();
     job_desc->set_uuid("");
-    job_desc->set_name("webserver_job");
+    job_desc->set_name("webserver_job" + boost::lexical_cast<std::string>(current_web_job_));
     root_task->set_name("nginx");
     root_task->set_state(TaskDescriptor_TaskState_CREATED);
     root_task->set_binary("nginx_firmament");
@@ -161,7 +165,7 @@ void HAProxyController::GenerateJobs(vector<JobDescriptor*> &jobs, uint64_t numb
       output_desc->set_location("blob:/tmp/out" + std::to_string(j));
       output_desc->set_non_deterministic(false);
     }
-
+    current_web_job_++;
     jobs.push_back(job_desc);
   }
 }
