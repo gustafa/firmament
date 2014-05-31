@@ -70,6 +70,7 @@ namespace firmament {
 
 Coordinator::Coordinator(PlatformID platform_id)
   : Node(platform_id, GenerateUUID()),
+    hostname_(boost::asio::ip::host_name()),
     associated_resources_(new ResourceMap_t),
     local_resource_topology_(new ResourceTopologyNodeDescriptor),
     job_table_(new JobMap_t),
@@ -80,8 +81,7 @@ Coordinator::Coordinator(PlatformID platform_id)
     parent_chan_(NULL),
     knowledge_base_(new KnowledgeBase()) {
   // Start up a coordinator according to the platform parameter
-  string hostname = boost::asio::ip::host_name();
-  string desc_name = "Coordinator on " + hostname;
+  string desc_name = "Coordinator on " + hostname_;
   resource_desc_.set_uuid(to_string(uuid_));
   resource_desc_.set_friendly_name(desc_name);
   resource_desc_.set_type(ResourceDescriptor::RESOURCE_MACHINE);
@@ -151,6 +151,8 @@ bool Coordinator::RegisterWithCoordinator(
   rtnd->CopyFrom(*local_resource_topology_);
   SUBMSG_WRITE(bm, registration, uuid, to_string(uuid_));
   SUBMSG_WRITE(bm, registration, location, chan->LocalEndpointString());
+  SUBMSG_WRITE(bm, registration, hostname, hostname_);
+
   // wrap in envelope
   VLOG(2) << "Sending registration message...";
   // send heartbeat message

@@ -13,4 +13,5 @@ message RegistrationMessage {
   optional string location = 2;
   optional ResourceDescriptor res_desc = 3;
   optional ResourceTopologyNodeDescriptor rtn_desc = 4;
+  optional string hostname = 5;
 }

@@ -223,6 +223,8 @@ class Coordinator : public Node,
   void KillRunningTask(TaskID_t task_id,
                                     TaskKillMessage::TaskKillReason reason);
 
+  const string hostname_;
+
  protected:
   void AddJobsTasksToTables(TaskDescriptor* td, JobID_t job_id);
   void AddResource(ResourceDescriptor* resource_desc,
