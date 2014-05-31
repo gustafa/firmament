@@ -22,9 +22,9 @@ TopologyManager::TopologyManager() {
 
   LoadAndParseTopology();
 
-  VLOG(2) << "Inserting predictable namings for cluster resources";
-  InsertResourceID("gustafa", "796239e1-f91c-441e-8143-ffae5a28aa15");
-  InsertResourceID("pandaboard","7131c3f3-7fcb-449b-bfc8-aab4ccbe94f0");
+//  VLOG(2) << "Inserting predictable namings for cluster resources";
+//  InsertResourceID("gustafa", "796239e1-f91c-441e-8143-ffae5a28aa15");
+//  InsertResourceID("pandaboard","7131c3f3-7fcb-449b-bfc8-aab4ccbe94f0");
 // 3231971b-915f-49ab-9d77-8c391c454a9c
 // 910046a6-b561-4455-b882-1289c3a59b55
 // e2c2d8a2-cc14-471d-b47e-1d29df4ae140
@@ -130,16 +130,16 @@ void TopologyManager::MakeProtobufTree(
   const ResourceID_t* res_id = FindOrNull(obj_to_resourceID_, node);
   string obj_id;
   if (!res_id) {
-    ResourceID_t new_rid;
     // TODO(gustafa): Verify! Is this enough to ensure each root node gets a deterministic ID?
-    if (!parent_pb) {
+    /*if (!parent_pb) {
       string hostname = boost::asio::ip::host_name();
       VLOG(2) << "Setting root node ID from hostname: " << hostname;
       new_rid = FindResourceID(hostname);
     } else {
       // If this object is not already known, we generate a new resource ID.
       new_rid = GenerateUUID();
-    }
+    }*/
+    ResourceID_t new_rid = GenerateUUID();
     obj_id = to_string(new_rid);
     InsertIfNotPresent(&obj_to_resourceID_, node, new_rid);
     InsertIfNotPresent(&resourceID_to_obj_, new_rid, node);
