@@ -176,11 +176,12 @@ void Coordinator::DetectLocalResources() {
   resource_desc_.add_children(root_node->resource_desc().uuid());
   TraverseResourceProtobufTree(
       local_resource_topology_,
-      boost::bind(&Coordinator::AddResource, this, _1, node_uri_, true));
+      boost::bind(&Coordinator::AddResource, this, _1, node_uri_, hostname_, true));
 }
 
 void Coordinator::AddResource(ResourceDescriptor* resource_desc,
                               const string& endpoint_uri,
+                              const string& hostname,
                               bool local) {
   CHECK(resource_desc);
   // Compute resource ID
@@ -189,6 +190,10 @@ void Coordinator::AddResource(ResourceDescriptor* resource_desc,
   VLOG(1) << "Adding resource " << res_id << " to resource map; "
           << "endpoint URI is " << endpoint_uri;
   //CHECK(
+
+  // Store a resource->host lookup.
+  InsertIfNotPresent(resource_to_host_.get(), res_id, hostname);
+
   InsertIfNotPresent(associated_resources_.get(), res_id,
           new ResourceStatus(resource_desc, endpoint_uri,
                              GetCurrentTimestamp()));
@@ -532,7 +537,7 @@ void Coordinator::HandleRegistrationRequest(
     // Recursively add its child resources to resource map and topology tree
     TraverseResourceProtobufTree(
         rtnd, boost::bind(&Coordinator::AddResource, this, _1,
-                          msg.location(), false));
+                          msg.location(), msg.hostname(), false));
     InformStorageEngineNewResource(rd);
   } else {
     LOG(INFO) << "REGISTRATION request from resource " << msg.uuid()
