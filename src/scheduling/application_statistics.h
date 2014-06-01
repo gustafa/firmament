@@ -7,8 +7,10 @@
 #define FIRMAMENT_SCHEDULING_APPLICATION_STATISTICS_H
 
 #include "base/types.h"
+#include "scheduling/completion_statistics.h"
 
 namespace firmament {
+
 
 class ApplicationStatistics {
   // Runtime and energy statistics for an application (on a given host).
@@ -22,6 +24,7 @@ struct MachineAppStat {
   double min_stat;
   double max_stat;
 };
+
 
 public:
   ApplicationStatistics();
@@ -44,6 +47,8 @@ public:
   // Returns whether we have observable data.
   bool HasStatistics();
 
+  void PrintStats();
+
  private:
 
   MachineAppStat energy_stats_;
@@ -52,10 +57,14 @@ public:
   shared_ptr<MachineStatMap> machine_to_energy_;
   shared_ptr<MachineStatMap> machine_to_runtime_;
 
+  shared_ptr<unordered_map<string, CompletionStatistics>> machine_to_completion_stats_;
+
+
   void SetStat(MachineStatMap &stat_map, MachineAppStat &stats,
               string &machine, double stat);
 
   void RecomputeStats(MachineStatMap &stat_map, MachineAppStat &stats);
+
 
 
 };

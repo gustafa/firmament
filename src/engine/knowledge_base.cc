@@ -13,10 +13,14 @@
 
 namespace firmament {
 
+
+
 KnowledgeBase::KnowledgeBase() :
   webreqs_since_last_check_(0),
   webreq_window_first_(0),
-  webreq_window_last_(0) {
+  webreq_window_last_(0),
+  application_stats_(new AppStatsMap_t()) {
+
 }
 
 void KnowledgeBase::AddMachineSample(
@@ -114,6 +118,8 @@ void KnowledgeBase::ProcessTaskFinalReport(const TaskFinalReport& report) {
   if (q->size() * sizeof(report) >= MAX_SAMPLE_QUEUE_CAPACITY)
     q->pop_front();  // drop from the front
   q->push_back(report);
+
+
   VLOG(1) << "Recorded final report for task " << report.task_id();
 }
 

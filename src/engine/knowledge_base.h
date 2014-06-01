@@ -24,6 +24,9 @@ namespace firmament {
 // Limit stats queues to 1MB each
 #define MAX_SAMPLE_QUEUE_CAPACITY 1024*1024
 
+typedef unordered_map<TaskDescriptor::TaskType, ApplicationStatistics*,
+                std::hash<int>> AppStatsMap_t;
+
 class KnowledgeBase {
  public:
   KnowledgeBase();
@@ -37,7 +40,14 @@ class KnowledgeBase {
   const deque<TaskFinalReport>* GetFinalStatsForTask(TaskID_t id) const;
   void ProcessTaskFinalReport(const TaskFinalReport& report);
 
+
+
   uint64_t GetAndResetWebreqs(uint64_t &num_seconds);
+
+
+  inline shared_ptr<AppStatsMap_t> AppStats() {
+    return application_stats_;
+  }
 
  protected:
   map<ResourceID_t, deque<MachinePerfStatisticsSample> > machine_map_;
@@ -51,8 +61,7 @@ class KnowledgeBase {
   uint64_t webreq_window_first_;
   uint64_t webreq_window_last_;
 
-
-  unordered_map<string, ApplicationStatistics*> application_stats_;
+  shared_ptr<AppStatsMap_t> application_stats_;
 
 };
 

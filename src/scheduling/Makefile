@@ -8,7 +8,8 @@ LIBS += -lboost_system -lboost_thread -lboost_regex -lhwloc -lssl -lcrypto
 LIB = libfirmament_scheduling.a
 OBJS = dimacs_exporter.o event_driven_scheduler.o flow_graph.o \
        quincy_cost_model.o quincy_scheduler.o  simple_scheduler.o \
-       energy_scheduler.o trivial_cost_model.o energy_cost_model.o application_statistics.o
+       energy_scheduler.o trivial_cost_model.o energy_cost_model.o application_statistics.o \
+       completion_statistics.o
 
 PBS = flow_node_type.pb.o scheduling_parameters.pb.o scheduling_delta.pb.o
 TESTS = dimacs_exporter_test flow_graph_test

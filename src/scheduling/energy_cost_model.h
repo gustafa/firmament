@@ -46,7 +46,7 @@ class EnergyCostModel : public FlowSchedulingCostModelInterface {
   Cost_t TaskPreemptionCost(TaskID_t task_id);
 
 
-  string GetTaskApp(TaskID_t task_id);
+  TaskDescriptor::TaskType GetTaskType(TaskID_t task_id);
 
   void SetInitialStats();
 
@@ -61,10 +61,7 @@ class EnergyCostModel : public FlowSchedulingCostModelInterface {
   shared_ptr<JobMap_t> job_map_;
   shared_ptr<TaskMap_t> task_map_;
   shared_ptr<ResourceHostMap_t> resource_to_host_;
-
-  unordered_map<string, ApplicationStatistics*> application_stats_;
-
-
+  shared_ptr<AppStatsMap_t> application_stats_;
 };
 
 }  // namespace firmament

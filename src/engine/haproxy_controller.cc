@@ -149,6 +149,7 @@ void HAProxyController::GenerateJobs(vector<JobDescriptor*> &jobs, uint64_t numb
     job_desc->set_uuid("");
     job_desc->set_name("webserver_job" + boost::lexical_cast<std::string>(current_web_job_));
     root_task->set_name("nginx" + boost::lexical_cast<std::string>(current_web_job_));
+    root_task->set_task_type(TaskDescriptor::NGINX);
     root_task->set_state(TaskDescriptor_TaskState_CREATED);
     root_task->set_binary("nginx_firmament");
     uint64_t port = current_start_port + i;

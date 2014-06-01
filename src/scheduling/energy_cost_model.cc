@@ -13,6 +13,8 @@
 
 namespace firmament {
 
+typedef TaskDescriptor::TaskType TaskType;
+
 EnergyCostModel::EnergyCostModel(shared_ptr<ResourceMap_t> resource_map, shared_ptr<JobMap_t> job_map,
                   shared_ptr<TaskMap_t> task_map, shared_ptr<KnowledgeBase> knowledge_base,
                   shared_ptr<ResourceHostMap_t> resource_to_host)
@@ -21,6 +23,7 @@ EnergyCostModel::EnergyCostModel(shared_ptr<ResourceMap_t> resource_map, shared_
   task_map_(task_map),
   knowledge_base_(knowledge_base),
   resource_to_host_(resource_to_host) {
+  application_stats_ = knowledge_base_->AppStats();
  // ResourceStatsMap *nginx_stats = new ResourceStatsMap();
  //  SetInitialNginxStats(nginx_stats);
  //  application_host_stats_["nginx"] = nginx_stats;
@@ -30,7 +33,7 @@ Cost_t EnergyCostModel::TaskToUnscheduledAggCost(TaskID_t task_id, FlowSchedulin
   // TODO should be inversely proportional to deadline - estimated run-time
   // and > than cheapest place to schedule task.
   // Return 0LL.
-  string application = GetTaskApp(task_id);
+  TaskDescriptor::TaskType application = GetTaskType(task_id);
 
   if (priority == PRIORITY_HIGH) {
     // If the priority is high we want to insert a very high cost related with not scheduling it.
@@ -39,7 +42,7 @@ Cost_t EnergyCostModel::TaskToUnscheduledAggCost(TaskID_t task_id, FlowSchedulin
     VLOG(2) << "Observing a high priority task, penalising unscheduled cost.";
     return 1000000000ULL;
   } else {
-    ApplicationStatistics *app_stats = FindPtrOrNull(application_stats_, application);
+    ApplicationStatistics *app_stats = FindPtrOrNull(*application_stats_, application);
 
 
     // See if we have application statistics setup with observable values.
@@ -68,18 +71,18 @@ Cost_t EnergyCostModel::TaskToClusterAggCost(TaskID_t task_id) {
 
 Cost_t EnergyCostModel::TaskToResourceNodeCost(TaskID_t task_id,
                                                ResourceID_t resource_id) {
-  string application = GetTaskApp(task_id);
+  TaskDescriptor::TaskType application = GetTaskType(task_id);
   string host = (*resource_to_host_)[resource_id];
   VLOG(2) << "Estimating cost of " << application  << " on "  << host;
 
-  ApplicationStatistics *app_stats = FindPtrOrNull(application_stats_, application);
+  ApplicationStatistics *app_stats = FindPtrOrNull(*application_stats_, application);
 
   if (!app_stats) {
     VLOG(2) << "Did not find application " << application << " in the database. "
             << "Creating new.";
     app_stats = new ApplicationStatistics();
     // TODO setup the new, unseen program with defaults.
-    application_stats_[application] = app_stats;
+    (*application_stats_)[application] = app_stats;
     return 20ULL;
 
   } else {
@@ -130,26 +133,17 @@ Cost_t EnergyCostModel::TaskPreemptionCost(TaskID_t task_id) {
 void EnergyCostModel::SetInitialStats() {
 
   ApplicationStatistics *wc_stats = new ApplicationStatistics();
-  application_stats_["wordcount"] = wc_stats;
+  (*application_stats_)[TaskDescriptor::MAPREDUCE_WC] = wc_stats;
 
-  wc_stats->SetEnergy("tcp:localhost:8088", 300);
-  wc_stats->SetRuntime("tcp:localhost:8088", 4000);
-
-  // // Dummy vars. For real-time applications set the time it takes to the frequency of rescheduling
-
-  // (*nginx_map)[FindResourceID("titanic")] = new ApplicationStatistics(ApplicationStatistics::REAL_TIME, 5, 5);
-  // (*nginx_map)[FindResourceID("pandaboard")] = new ApplicationStatistics(ApplicationStatistics::REAL_TIME, 2, 5);
-  // (*nginx_map)[FindResourceID("michael")] = new ApplicationStatistics(ApplicationStatistics::REAL_TIME, 4, 5);
-
-  // VLOG(2) << "RESOURCE ID GUSTAFA: " << FindResourceID("gustafa");
-  // (*nginx_map)[FindResourceID("gustafa")] = new ApplicationStatistics(ApplicationStatistics::REAL_TIME, 10, 5);
+  //wc_stats->SetEnergy("tcp:localhost:8088", 300);
+  //wc_stats->SetRuntime("tcp:localhost:8088", 4000);
 
 }
 
-string EnergyCostModel::GetTaskApp(TaskID_t task_id) {
+TaskType EnergyCostModel::GetTaskType(TaskID_t task_id) {
   TaskDescriptor **td = FindOrNull(*task_map_, task_id);
   CHECK_NOTNULL(td);
-  return (*td)->name();
+  return (*td)->task_type();
 }
 
-}  // namespace firmament5
+}  // namespace firmament

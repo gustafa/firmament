@@ -170,12 +170,12 @@ uint64_t EnergyScheduler::ApplySchedulingDeltas(
         flow_graph_->UpdateArcsForBoundTask(task_id, res_id);
 
         // If this is a webserver inform the proxy we can start routing requests there.
-        if ((*td)->binary().compare("nginx_firmament") == 0) {
+        if ((*td)->task_type() == TaskDescriptor::NGINX) {
           VLOG(2) << "FOUND NGINX APP";
           string *hostname = FindOrNull(*resource_host_map_, res_id);
           CHECK_NOTNULL(hostname);
           CHECK((*td)->has_port());
-          VLOG(2) << "ENABLING SERVER";
+          VLOG(2) << "ENABLING NGINX SERVER";
           haproxy_controller_->EnableServer(*hostname, (*td)->port());
         }
 

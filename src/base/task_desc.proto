@@ -16,6 +16,13 @@ message TaskDescriptor {
     UNKNOWN = 9;
   }
 
+  enum TaskType {
+    NGINX = 0;
+    MAPREDUCE_WC = 1;
+    MAPREDUCE_JOIN = 2;
+    MEMCACHED = 3;
+  }
+
   required uint64 uid = 1;
   required string name = 2;
   required TaskState state = 3;
@@ -33,5 +40,6 @@ message TaskDescriptor {
   optional uint64 absolute_deadline = 15;
   optional uint64 equivalence_class = 16;
   optional uint64 port = 17;
+  optional TaskType task_type = 18;
 }
 

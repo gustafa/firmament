@@ -7,11 +7,11 @@
 
 namespace firmament {
 
-ApplicationStatistics::ApplicationStatistics() {
-
-  machine_to_energy_.reset(new MachineStatMap());
-  machine_to_runtime_.reset(new MachineStatMap());
-
+ApplicationStatistics::ApplicationStatistics() :
+  machine_to_energy_(new MachineStatMap()),
+  machine_to_runtime_(new MachineStatMap()),
+  machine_to_completion_stats_(new unordered_map<string, CompletionStatistics>())
+ {
   energy_stats_.max_stat = 0;
   energy_stats_.min_stat = numeric_limits<double>::max();
 
@@ -60,6 +60,9 @@ bool ApplicationStatistics::HasStatistics() {
   return machine_to_energy_->size() != 0;
 }
 
+void ApplicationStatistics::PrintStats() {
+// TODO implement
+}
 
 void ApplicationStatistics::SetStat(MachineStatMap &stat_map, MachineAppStat &stats,
                                     string &machine, double stat) {
