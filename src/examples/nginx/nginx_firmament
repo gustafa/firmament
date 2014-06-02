@@ -1,4 +1,4 @@
-export FLAGS_coordinator_uri=tcp:localhost:8088
+#export FLAGS_coordinator_uri=tcp:localhost:8088
 #export FLAGS_resource_id=db904ff2-688e-4d8e-900e-f363e11fd256
 #export FLAGS_task_id=feedcafedeadbeeffeedcafedeadbeeffeedcafedeadbeeffeedcafedeadbeef
 export FLAGS_heartbeat_interval=1
@@ -6,5 +6,5 @@ export FLAGS_tasklib_application=nginx
 export FLAGS_completion_file_name=/tmp/nginx_shared
 export FLAGS_nginx_port=$1
 shift
-export LD_PRELOAD=/home/gustafa/firmament/build/engine/task_lib_main.so
+export LD_PRELOAD=/home/gjrh2/firmament/build/engine/task_lib_main.so
 /usr/sbin/nginx $*
