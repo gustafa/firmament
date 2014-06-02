@@ -18,6 +18,13 @@ frontend http-in
 
 backend my_servers
 %(servers)s
+
+listen stats :9039
+    mode http
+    stats enable
+    stats hide-version
+    stats realm Haproxy\ Statistics
+    stats uri /
 '''
 
 def generate_server(hostname, port):
@@ -28,7 +35,7 @@ def generate_server(hostname, port):
 def main():
   hostnames = ['gustafa']
   start_port = 16000
-  num_ports = 100
+  num_ports = 50
   servers = []
 
   for hostname in hostnames:

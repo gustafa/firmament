@@ -22,7 +22,8 @@ DEFINE_string(haproxy_socket_file, "/home/gjrh2/haproxy.socket",
 namespace firmament {
 
 
-HAProxyController::HAProxyController() :
+HAProxyController::HAProxyController(string server_backend) :
+  server_backend_(server_backend),
   stats_headers(new vector<string>()),
   current_web_job_(0),
   num_active_jobs_(0),
@@ -34,19 +35,22 @@ HAProxyController::HAProxyController() :
 
 
 bool HAProxyController::DisableServer(string hostname, uint64_t port) {
-  string command = "disable server my_servers/" + hostname + boost::lexical_cast<std::string>(port);
+  string webserver_name = hostname + boost::lexical_cast<std::string>(port);
+  VLOG(2) << "HAPROXY Disabling server: " << webserver_name;
+  string command = "disable server my_servers/" + webserver_name;
+  running_servers_.erase(webserver_name);
   HAProxyCommand(command);
   return true;
 }
 
 bool HAProxyController::EnableServer(string hostname, uint64_t port) {
-  VLOG(2) << "HAPROXY Enabling server: " << hostname << ":" << port;
-
-  string command = "enable server my_servers/" + hostname + boost::lexical_cast<std::string>(port);
+  string webserver_name = hostname + boost::lexical_cast<std::string>(port);
+  VLOG(2) << "HAPROXY Enabling server: " << webserver_name;
+  string command = "enable server my_servers/" + webserver_name;
   HAProxyCommand(command);
+  running_servers_.insert(webserver_name);
   return true;
 }
-
 
 void HAProxyController::GetStatistics() {
   // TODO(gustafa):
@@ -55,7 +59,6 @@ void HAProxyController::GetStatistics() {
   const string inner_delimiter = ",";
 
   size_t pos = stats_string.find(outer_delimiter);
-
   string headers = stats_string.substr(0, pos);
 
   stats_string.erase(0, pos + 1);
@@ -76,18 +79,22 @@ void HAProxyController::GetStatistics() {
     string stat_row = stats_string.substr(0, pos);
     stats_string.erase(0, pos + 1);
 
-
-
+    // my_servers,hostname
+    // Skip the first bit
     // The two first columns are the inner key
-    string inner_key;
+    string inner_key = "";
 
-    for (i = 0; i < 2; ++i) {
-      inner_pos = stat_row.find(inner_delimiter);
-      inner_key += stat_row.substr(0, inner_pos);
-      stat_row.erase(0, inner_pos + 1);
-    }
+    // Deleting the first bit, how the rest should be the server
+    inner_pos = stat_row.find(inner_delimiter);
+    stat_row.erase(0, inner_pos + 1);
 
-    if (inner_key.empty()) {
+    inner_pos = stat_row.find(inner_delimiter);
+    string server = stat_row.substr(0, inner_pos);
+    stat_row.erase(0, inner_pos + 1);
+
+
+    // Todo verify this!
+    if (server.empty() || running_servers_.find(server) != running_servers_.end()) {
       continue;
     }
 

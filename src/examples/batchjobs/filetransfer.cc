@@ -52,7 +52,7 @@ int main(int argc, char **argv) {
   boost::thread t1(&LaunchTasklib);
 
   int i = 0;
-  for (i = 0; i < num_files; ++i) {
+  for (;i < num_files; ++i) {
     string current_file = dir + "/input" + std::to_string(i);
     ifstream source(current_file, ios::binary);
     ofstream dest(dir + "/output" + std::to_string(i), ios::binary);
