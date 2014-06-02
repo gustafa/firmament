@@ -1,4 +1,4 @@
-export FLAGS_coordinator_uri=tcp:localhost:8088
+#export FLAGS_coordinator_uri=tcp:localhost:8088
 #export FLAGS_resource_id=db904ff2-688e-4d8e-900e-f363e11fd256
 #export FLAGS_task_id=feedcafedeadbeeffeedcafedeadbeeffeedcafedeadbeeffeedcafedeadbeef
 export FLAGS_heartbeat_interval=1
