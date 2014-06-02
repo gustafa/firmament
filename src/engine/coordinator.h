@@ -302,7 +302,8 @@ class Coordinator : public Node,
   ProcFSMachine machine_monitor_;
   // Knowledge base
   shared_ptr<KnowledgeBase> knowledge_base_;
-
+  bool ready_to_rumble_;
+  bool am_master_scheduler_;
   // HAProxy controller.
   shared_ptr<HAProxyController> haproxy_controller_;
 

@@ -26,7 +26,7 @@ def generate_server(hostname, port):
 
 
 def main():
-  hostnames = ['gustafa']
+  hostnames = ['michael', 'uriel']
   start_port = 16000
   num_ports = 100
   servers = []

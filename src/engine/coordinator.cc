@@ -63,6 +63,8 @@ DEFINE_uint64(energy_stat_interval, 3,
 DEFINE_uint64(reconsider_web_interval, 3000000, "Interval in microseconds for the scheduler "
               "to reconsider webrequests");
 
+DEFINE_bool(master_scheduler_on, true, "Whether to use the master scheduler option");
+
 namespace firmament {
 
 
@@ -131,6 +133,8 @@ Coordinator::Coordinator(PlatformID platform_id)
       default:
           LOG(FATAL) << "Unimplemented!";
   }
+  ready_to_rumble_ = FLAGS_include_local_resources;
+  am_master_scheduler_ = !FLAGS_include_local_resources;
 }
 
 Coordinator::~Coordinator() {
@@ -275,7 +279,7 @@ void Coordinator::Run() {
       last_heartbeat_time = cur_time;
     }
 
-    if (cur_time - last_webserver_reconsider_time > FLAGS_reconsider_web_interval) {
+    if ((cur_time - last_webserver_reconsider_time > FLAGS_reconsider_web_interval) && ready_to_rumble_ && parent_chan_ == NULL) {
       last_webserver_reconsider_time = GetCurrentTimestamp();
       IssueWebserverJobs();
     }
@@ -540,6 +544,9 @@ void Coordinator::HandleRegistrationRequest(
         rtnd, boost::bind(&Coordinator::AddResource, this, _1,
                           msg.location(), msg.hostname(), false));
     InformStorageEngineNewResource(rd);
+
+    // If we were not ready to rumble before, we are now!
+    ready_to_rumble_ = true;
   } else {
     LOG(INFO) << "REGISTRATION request from resource " << msg.uuid()
               << " that we already know about. "
