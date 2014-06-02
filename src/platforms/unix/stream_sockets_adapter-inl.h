@@ -188,7 +188,7 @@ void StreamSocketsAdapter<T>::HandleAsyncMessageRecv(
   }
   CHECK(channel_recv_envelopes_.count(chan));
   Envelope<T>* envelope = channel_recv_envelopes_[chan];
-  VLOG(2) << "Received in MA: " << *envelope << " ("
+  VLOG(3) << "Received in MA: " << *envelope << " ("
           << bytes_transferred << ")";
   // Invoke message receipt callback, if any registered
   CHECK(message_recv_handler_ != NULL);
