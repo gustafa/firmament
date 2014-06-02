@@ -72,7 +72,7 @@ void HAProxyController::GetStatistics() {
     }
   }
 
-  int64_t i;
+  int64_t i = 0;
   size_t inner_pos;
 
   while ((pos = stats_string.find(outer_delimiter)) != string::npos) {

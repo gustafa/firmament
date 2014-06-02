@@ -82,7 +82,7 @@ Coordinator::Coordinator(PlatformID platform_id)
     object_store_(new store::SimpleObjectStore(uuid_)),
     parent_chan_(NULL),
     knowledge_base_(new KnowledgeBase()),
-    haproxy_controller_(new HAProxyController()) {
+    haproxy_controller_(new HAProxyController("my_servers")) {
   // Start up a coordinator according to the platform parameter
   string desc_name = "Coordinator on " + hostname_;
   resource_desc_.set_uuid(to_string(uuid_));
