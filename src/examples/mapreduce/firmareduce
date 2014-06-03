@@ -32,7 +32,7 @@ export FLAGS_tuples_filename=/tmp/${FLAGS_task_id}_tuples
 echo "0.020" > $FLAGS_completion_filename
 
 # TODO NAMED PIPES! Get PIDS, pass to reducer.
-LD_PRELOAD=/home/gustafa/firmament/build/engine/task_lib_main.so ldpreloader
+LD_PRELOAD=/home/gjrh2/firmament/build/engine/task_lib_main.so ldpreloader
 
 rm $FLAGS_output_filename
 rm $FLAGS_completion_filename
