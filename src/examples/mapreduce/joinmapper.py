@@ -22,13 +22,18 @@ num_tuples = 0
 current_file = 0
 current_file_str = '0'
 
+previous_file = 1
+previous_file_str = '1'
+
 
 for line in sys.stdin:
   so_far += len(line)
   line = line.strip()
 
   if line == 'new_file':
-    current_file += 1
+    # Swap files!
+    current_file, previous_file = previous_file, current_file
+    current_file_str, previous_file_str = previous_file_str, current_file_str
     current_file_str = str(current_file)
   else:
     # Presumes the first value is a key and the rest are values.

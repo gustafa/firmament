@@ -21,6 +21,7 @@ message TaskDescriptor {
     MAPREDUCE_WC = 1;
     MAPREDUCE_JOIN = 2;
     MEMCACHED = 3;
+    FILETRANSFER = 4;
   }
 
   required uint64 uid = 1;
