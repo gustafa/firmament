@@ -11,7 +11,7 @@ tuples_filename = os.environ['FLAGS_tuples_filename']
 
 
 # Mark mapper to do work between 0 and 50%
-heart_beater = Heartbeater(completion_filename, 0.02, 0.5)
+heart_beater = Heartbeater(completion_filename, 0.02, 0.3)
 
 filesize = 0
 for filename in input_filenames:
@@ -37,12 +37,12 @@ for line in sys.stdin:
     # Swap files!
     current_file, previous_file = previous_file, current_file
     current_file_str, previous_file_str = previous_file_str, current_file_str
-    current_file_str = str(current_file)
   else:
     # Presumes the first value is a key and the rest are values.
     entries = line.split()
     key = entries[0]
     values = current_file_str + '_' + '_'.join(entries[1:])
+    #print values
 
     print '%s\t%s' % (key, values)
 

@@ -5,13 +5,29 @@ import sys
 from heartbeat.heartbeater import Heartbeater
 
 
+completion_filename = os.environ['FLAGS_completion_filename']
+tuples_filename = os.environ['FLAGS_tuples_filename']
+
+num_tuples = 1
+
+first = True
+
+heart_beater = Heartbeater(completion_filename, 0.3, 1)
+
+so_far = 0
+
+current_key = ''
+current_map = {}
+
+# Assumes we want to join entries from each file in order
+
 def print_map(output_map):
   # Time to compute the join if still existing!
   num_files = len(output_map)
 
   join_entries = []
-  for i in range(num_files):
-    join_entries.append(output_map[i])
+  for k in sorted(output_map.keys()):
+    join_entries.append(output_map[k])
     #print entries
 
   if num_files == 1:
@@ -24,21 +40,6 @@ def print_map(output_map):
         print first_val + join_entries[1][j]
 
 
-completion_filename = os.environ['FLAGS_completion_filename']
-tuples_filename = os.environ['FLAGS_tuples_filename']
-
-num_tuples = 1
-
-first = True
-
-#heart_beater = Heartbeater(completion_filename, 0.5, 1)
-
-so_far = 0
-
-current_key = ''
-current_map = {}
-
-# Assumes we want to join entries from each file in order
 
 for line in sys.stdin:
   if first:
@@ -49,7 +50,7 @@ for line in sys.stdin:
 
   entries = line.split()
 
-  # key \t file_val1_val2_val3
+  # key \t file_value
   key = entries[0]
   if key != current_key:
     # Time to compute the join if still existing!
@@ -69,10 +70,12 @@ for line in sys.stdin:
     current_map[file_num] = [values]
 
   so_far += 1
+  if so_far % 100 == 0:
+    heart_beater.set_completed(so_far / num_tuples)
 
 if current_map:
   print_map(current_map)
 
-  #heart_beater.set_completed(so_far / num_tuples)
+  heart_beater.set_completed(so_far / num_tuples)
 
-#heart_beater.mark_done()
+heart_beater.mark_done()
