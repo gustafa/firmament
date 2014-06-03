@@ -48,11 +48,20 @@ job_desc.root_task.binary = binary
 
 #input_id = binascii.unhexlify(getHexString())
 
+if binary == 'nginx_firmament':
+  job_desc.root_task.task_type = task_desc_pb2.TaskDescriptor.NGINX
+
+binary_set = False
 
 # Add the remaining as job arguments!
 if len(sys.argv) > 5:
   for arg in sys.argv[5:]:
     job_desc.root_task.args.append(arg)
+    if 'wc' in arg:
+      job_desc.root_task.task_type = task_desc_pb2.TaskDescriptor.MAPREDUCE_WC
+    elif 'join' in arg:
+      job_desc.root_task.task_type = task_desc_pb2.TaskDescriptor.MAPREDUCE_JOIN
+
 
 #input_id = binascii.unhexlify('feedcafedeadbeeffeedcafedeadbeeffeedcafedeadbeeffeedcafedeadbeef') #sys.argv[4])
 #output_id = binascii.unhexlify(getHexString())

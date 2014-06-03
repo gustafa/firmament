@@ -1,8 +1,7 @@
 #!/bin/bash
 export LD_PRELOAD=""
-
-COMMAND="cat $INPUT_FILE | $MAPPER | sort -k 1 | $REDUCER > $FLAGS_output_filename
+COMMAND="ls | head -n $NUM_FILES | xargs -Ix cat x | $MAPPER | sort -k 1 | $REDUCER > $FLAGS_output_filename
 "
 echo "RUNNING COMMAND: $COMMAND"
-
-cat $INPUT_FILE | $MAPPER | sort -k 1 |  $REDUCER > $FLAGS_output_filename
+cd $INPUT_DIR
+ls | head -n $NUM_FILES | xargs -Ix cat x | $MAPPER | sort -k 1 |  $REDUCER > $FLAGS_output_filename

@@ -281,7 +281,7 @@ void Coordinator::Run() {
 
     if ((cur_time - last_webserver_reconsider_time > FLAGS_reconsider_web_interval) && ready_to_rumble_ && parent_chan_ == NULL) {
       last_webserver_reconsider_time = GetCurrentTimestamp();
-      IssueWebserverJobs();
+      // TODO IssueWebserverJobs();
     }
 
     boost::this_thread::sleep(boost::posix_time::milliseconds(FLAGS_sleep_time));

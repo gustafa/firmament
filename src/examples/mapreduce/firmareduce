@@ -1,13 +1,15 @@
 #!/bin/bash
 
-if [[ $# -ne 3 ]]; then
-  echo "USAGE: firmareduce <mapper> <reducer> <input file>"
+if [[ $# -ne 4 ]]; then
+  echo "USAGE: firmareduce <mapper> <reducer> <input dir> <num files>"
   exit 1
 fi
 
 export MAPPER=$1
 export REDUCER=$2
-export INPUT_FILE=$3
+export INPUT_DIR=$3
+export NUM_FILES=$4
+export INPUT_FILES=$(ls ${INPUT_DIR} | head -n ${NUM_FILES})
 
 export FLAGS_mr_inputfile=$INPUT_FILE
 #export FLAGS_tasklib_application=mapreduce
