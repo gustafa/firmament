@@ -24,6 +24,7 @@ hostname = sys.argv[1]
 port = int(sys.argv[2])
 task_name = sys.argv[3]
 binary = sys.argv[4]
+input_size = int(sys.argv[-1])
 
 job_desc = job_desc_pb2.JobDescriptor()
 
@@ -33,6 +34,7 @@ job_desc.root_task.uid = random.randint(0, 60000);
 job_desc.root_task.name = task_name
 job_desc.root_task.state = task_desc_pb2.TaskDescriptor.CREATED
 job_desc.root_task.binary = binary
+job_desc.root_task.input_size = input_size
 
 #job_desc.root_task.args.append("--v=2")
 #job_desc.root_task.args.append("0")
