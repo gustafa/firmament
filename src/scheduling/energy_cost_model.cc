@@ -26,6 +26,9 @@ EnergyCostModel::EnergyCostModel(shared_ptr<ResourceMap_t> resource_map, shared_
   task_bindings_(task_bindings_) {
   application_stats_ = knowledge_base_->AppStats();
   CHECK_NOTNULL(task_bindings_);
+
+  // Load statistics to use when building graph costs.
+  SetInitialStats();
  // ResourceStatsMap *nginx_stats = new ResourceStatsMap();
  //  SetInitialNginxStats(nginx_stats);
  //  application_host_stats_["nginx"] = nginx_stats;
@@ -151,12 +154,12 @@ Cost_t EnergyCostModel::BatchTaskToResourceNodeCosts(TaskID_t task_id, TaskDescr
 
   CHECK(td->has_input_size());
 
-  ResourceID_t *bound_resource = FindOrNull(*task_bindings_, task_id);
+  //ResourceID_t *bound_resource = FindOrNull(*task_bindings_, task_id);
 
   string task_host = "";
-  if (bound_resource) {
-    string bound_host = (*resource_to_host_)[*bound_resource];
-  }
+  // if (bound_resource) {
+  //   string bound_host = (*resource_to_host_)[*bound_resource];
+  // }
   // _Should_ exist.
 
   // Get the task_perf stats if it exists.
@@ -246,12 +249,30 @@ Cost_t EnergyCostModel::TaskToResourceNodeCosts(TaskID_t task_id, const vector<R
 
 
 void EnergyCostModel::SetInitialStats() {
-
   ApplicationStatistics *wc_stats = new ApplicationStatistics();
-  //(*application_stats_)[TaskDescriptor::MAPREDUCE_WC] = wc_stats;
 
-  //wc_stats->SetEnergy("tcp:localhost:8088", 300);
-  //wc_stats->SetRuntime("tcp:localhost:8088", 4000);
+  vector<pair<uint64_t, double>> uriel_wcmapred_runtimes({make_pair(1, 40.120000), make_pair(2, 80.660000), make_pair(3, 120.900000), make_pair(4, 162.200000), make_pair(6, 244.670000), make_pair(7, 283.780000), make_pair(10, 399.990000), make_pair(12, 478.530000)});
+  vector<pair<uint64_t, double>> pandaboard_wcmapred_runtimes({make_pair(1, 278.820000), make_pair(2, 551.580000), make_pair(3, 828.310000), make_pair(4, 1111.680000), make_pair(6, 1656.250000)});
+  vector<pair<uint64_t, double>> michael_wcmapred_runtimes({make_pair(1, 41.560000), make_pair(2, 84.740000), make_pair(3, 125.560000), make_pair(4, 163.600000), make_pair(6, 248.270000), make_pair(7, 290.850000), make_pair(10, 401.670000), make_pair(12, 479.280000)});
+  vector<pair<uint64_t, double>> titanic_wcmapred_runtimes({make_pair(1, 165.680000), make_pair(2, 376.670000), make_pair(3, 573.770000), make_pair(4, 770.440000), make_pair(6, 1133.010000), make_pair(7, 1313.130000), make_pair(10, 1816.540000), make_pair(12, 2149.750000)});
+
+  wc_stats->SetRuntimes("michael", michael_wcmapred_runtimes);
+  wc_stats->SetRuntimes("uriel", uriel_wcmapred_runtimes);
+  wc_stats->SetRuntimes("pandaboard", pandaboard_wcmapred_runtimes);
+  wc_stats->SetRuntimes("titanic", titanic_wcmapred_runtimes);
+
+  wc_stats->SetPower("uriel", 50.9101429584);
+  wc_stats->SetPower("pandaboard", 1.171791979);
+  wc_stats->SetPower("michael", 26.4011700789);
+  wc_stats->SetPower("titanic", 92.7074207076);
+
+  // Test wc_stats
+  wc_stats->SetRuntimes("gustafa", uriel_wcmapred_runtimes);
+  wc_stats->SetPower("gustafa", 10);
+
+  (*application_stats_)[TaskDescriptor::MAPREDUCE_WC] = wc_stats;
+
+
 
 }
 

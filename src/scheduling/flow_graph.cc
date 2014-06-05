@@ -41,13 +41,7 @@ FlowGraph::~FlowGraph() {
 
 void FlowGraph::AddArcsForTask(FlowGraphNode* task_node,
                                FlowGraphNode* unsched_agg_node) {
-  // We always have an edge to the cluster aggregator node
-  FlowGraphArc* cluster_agg_arc = AddArcInternal(task_node, cluster_agg_node_);
-  // Assign cost to the (task -> cluster agg) edge from cost model
-  cluster_agg_arc->cost_ =
-      cost_model_->TaskToClusterAggCost(task_node->task_id_);
-      // TODO(gustafa): Verify, do we want this?
-  cluster_agg_arc->cap_upper_bound_ = 1;
+
 
   uint64_t schedulable_on = 0;
 
@@ -60,7 +54,7 @@ void FlowGraph::AddArcsForTask(FlowGraphNode* task_node,
     machine_ids.push_back(node->resource_id_);
   }
 
-  Cost_t unscheduled_arc_cost =
+  Cost_t unsched_arc_cost =
     cost_model_->TaskToResourceNodeCosts(task_node->task_id_, machine_ids, machine_task_costs);
 
   CHECK(machine_ids.size() == machine_task_costs.size());
@@ -68,56 +62,26 @@ void FlowGraph::AddArcsForTask(FlowGraphNode* task_node,
     Cost_t task_cost = machine_task_costs[i];
     FlowGraphNode *node = Node(resource_to_nodeid_map_[machine_ids[i]]);
     CHECK_NOTNULL(node);
-    // Create an arc and set the cost if the cost model found find it appropriate.
+    // Create an arc and set the cost if the cost model found it appropriate.
     if (task_cost != cost_model_->POOR_SCHEDULING_CHOICE) {
       FlowGraphArc *task_node_arc = AddArcInternal(task_node, node);
       task_node_arc->cost_ = task_cost;
+      task_node_arc->cap_upper_bound_ = 1;
+
       ++schedulable_on;
     }
   }
+  // We also always have an edge to our job's unscheduled node
+  FlowGraphArc* unsched_arc = AddArcInternal(task_node, unsched_agg_node);
+  // Add this task's potential flow to the per-job unscheduled
+  // aggregator's outgoing edge
+  AdjustUnscheduledAggToSinkCapacity(task_node->job_id_, 1);
 
-  //   uint64_t node_id = keyval.first;
 
-  //   FlowGraphNode *node = Node(node_id);
+  // TODO Make a switch on priority levels to determine what is low, medium and high respectively.
+  unsched_arc->cap_upper_bound_ = 1;
+  unsched_arc->cost_ = unsched_arc_cost;
 
-  //   Cost_t task_cost = cost_model_->TaskToResourceNodeCost(task_node->task_id_, node->resource_id_);
-
-  //   // Create an arc and set the cost if the cost model found find it appropriate.
-  //   if (task_cost != cost_model_->POOR_SCHEDULING_CHOICE) {
-  //     FlowGraphArc *task_node_arc = AddArcInternal(task_node, node);
-  //     task_node_arc->cost_ = task_cost;
-  //     ++schedulable_on;
-  //   }
-  // }
-
-  // // We also always have an edge to our job's unscheduled node
-  // FlowGraphArc* unsched_arc = AddArcInternal(task_node, unsched_agg_node);
-  // // Add this task's potential flow to the per-job unscheduled
-  // // aggregator's outgoing edge
-  // AdjustUnscheduledAggToSinkCapacity(task_node->job_id_, 1);
-
-  // Cost_t unsched_arc_cost;
-  // // TODO Make a switch on priority levels to determine what is low, medium and high respectively.
-  // unsched_arc->cap_upper_bound_ = 1;
-  // if (!schedulable_on) {
-
-  //   // If the cost model did not find any appropriate candidate schedule the task
-  //   // this typically means we want to schedule it ASAP as it is already missing
-  //   // its expected performance.
-  //   // We add an arc to the cluster aggregator and request high priority, i.e. high cost, for
-  //   // not scheduling it
-
-  //   FlowGraphArc *cluster_agg_arc = AddArcInternal(task_node, cluster_agg_node_);
-  //   cluster_agg_arc->cost_ = cost_model_->TaskToClusterAggCost(task_node->task_id_);
-
-  //   unsched_arc_cost = cost_model_->TaskToUnscheduledAggCost(task_node->task_id_, PRIORITY_LOW);
-
-  // } else {
-  //   // By default we use a low priority if we are able to schedule the event.
-  //   unsched_arc_cost = cost_model_->TaskToUnscheduledAggCost(task_node->task_id_, PRIORITY_LOW);
-  // }
-
-  // unsched_arc->cost_ = unsched_arc_cost;
 
 }
 
