@@ -10,7 +10,7 @@ HTTP_UI_LIBS += $(PION_LIB) $(PB2JSON_LIB) -llog4cpp -ljansson -lctemplate
 LIB = libfirmament_engine.a
 TASK_LIB = libfirmament_task_lib.a
 BINS = coordinator worker coordinator_sim
-OBJS = coordinator_http_ui.o coordinator.o knowledge_base.o local_executor.o node.o remote_executor.o worker.o topology_manager.o haproxy_controller.o
+OBJS = coordinator_http_ui.o coordinator.o local_executor.o node.o remote_executor.o worker.o topology_manager.o haproxy_controller.o
 PBS =
 TESTS = coordinator_test local_executor_test simple_scheduler_test topology_manager_test worker_test
 TESTS_DEPS = $(BUILD_DIR)/misc/libfirmament_misc.a \
@@ -25,7 +25,6 @@ TESTS_DEPS = $(BUILD_DIR)/misc/libfirmament_misc.a \
 # as a dependency.
 TESTS_coordinator_DEPS = $(BUILD_DIR)/engine/coordinator_http_ui.o \
 	                 $(BUILD_DIR)/engine/node.o \
-	                 $(BUILD_DIR)/engine/knowledge_base.o \
 	                 $(BUILD_DIR)/platforms/unix/libfirmament_unix.a \
 	                 $(BUILD_DIR)/engine/haproxy_controller.o \
 	                 $(BUILD_DIR)/engine/local_executor.o \
@@ -89,7 +88,6 @@ $(OBJ_DIR)/coordinator: $(addprefix $(OBJ_DIR)/, $(OBJS)) \
 		$(OPTFLAGS) $(DEFINES) \
 		$(BUILD_DIR)/engine/coordinator.o \
 		$(BUILD_DIR)/engine/haproxy_controller.o \
-		$(BUILD_DIR)/engine/knowledge_base.o \
 		$(BUILD_DIR)/engine/node.o \
 		$(BUILD_DIR)/engine/coordinator_http_ui.o \
 		$(BUILD_DIR)/engine/local_executor.o \
@@ -123,7 +121,6 @@ $(OBJ_DIR)/coordinator_sim: $(addprefix $(OBJ_DIR)/, $(OBJS)) \
 		$(SRC_ROOT_DIR)/engine/coordinator.cc \
 		$(BUILD_DIR)/engine/haproxy_controller.o \
 		$(BUILD_DIR)/engine/node.o \
-		$(BUILD_DIR)/engine/knowledge_base.o \
 		$(BUILD_DIR)/engine/coordinator_http_ui.o \
 		$(BUILD_DIR)/engine/local_executor.o \
 		$(BUILD_DIR)/engine/remote_executor.o \
@@ -171,7 +168,7 @@ $(TASK_OBJ_LIB): $(addprefix $(OBJ_DIR)/, task_lib.o)
 NGINX_INCLUDES := -I $(SRC_ROOT_DIR)/examples/nginx/src/core  -I $(SRC_ROOT_DIR)/examples/nginx/objs -I $(SRC_ROOT_DIR)/examples/nginx/src/os/unix -I $(SRC_ROOT_DIR)/examples/nginx/src/event #$(addprefix("-I ", core))
 NGINX_DEF := -D__FIRMAMENT__-DNGX_STAT_STUB=1
 
-ALL_O=$(addprefix $(BUILD_DIR)/, scheduling/trivial_cost_model.o scheduling/scheduling_delta.pb.o scheduling/flow_node_type.pb.o scheduling/quincy_scheduler.o scheduling/flow_graph.o scheduling/quincy_cost_model.o scheduling/event_driven_scheduler.o scheduling/scheduling_parameters.pb.o scheduling/dimacs_exporter.o scheduling/simple_scheduler.o sim/simulation_event.pb.o    storage/simple_object_store.o storage/Cache.o storage/StorageInfo.o misc/string_utils.o misc/pb_utils.o misc/event_logging.o misc/equivclasses.o misc/utils.o platforms/common.pb.o platforms/unix/stream_sockets_adapter.o platforms/unix/common.o platforms/unix/async_tcp_server.o platforms/unix/procfs_monitor.o platforms/unix/tcp_connection.o platforms/unix/signal_handler.o platforms/unix/procfs_machine.o engine/local_executor.o engine/knowledge_base.o engine/node.o engine/remote_executor.o engine/topology_manager.o messages/task_info_message.pb.o messages/registration_message.pb.o messages/storage_registration_message.pb.o messages/copy_message.pb.o messages/task_state_message.pb.o messages/storage_message.pb.o messages/task_delegation_message.pb.o messages/heartbeat_message.pb.o messages/base_message.pb.o messages/create_message.pb.o messages/lookup_message.pb.o messages/test_message.pb.o messages/task_heartbeat_message.pb.o messages/task_kill_message.pb.o messages/task_spawn_message.pb.o messages/io_notification_message.pb.o messages/delete_message.pb.o messages/energy_stats_message.pb.o base/ensemble_desc.pb.o base/task_desc.pb.o base/resource_topology_node_desc.pb.o base/reference_desc.pb.o base/resource_desc.pb.o base/data_object.o base/job_desc.pb.o base/task_final_report.pb.o base/task_perf_statistics_sample.pb.o base/task_graph.o base/resource_status.o base/data_object_name.pb.o base/job.o base/machine_perf_statistics_sample.pb.o base/task.o)
+ALL_O=$(addprefix $(BUILD_DIR)/, scheduling/trivial_cost_model.o scheduling/scheduling_delta.pb.o scheduling/flow_node_type.pb.o scheduling/quincy_scheduler.o scheduling/flow_graph.o scheduling/quincy_cost_model.o scheduling/event_driven_scheduler.o scheduling/scheduling_parameters.pb.o scheduling/dimacs_exporter.o scheduling/simple_scheduler.o sim/simulation_event.pb.o    storage/simple_object_store.o storage/Cache.o storage/StorageInfo.o misc/string_utils.o misc/pb_utils.o misc/event_logging.o misc/equivclasses.o misc/utils.o platforms/common.pb.o platforms/unix/stream_sockets_adapter.o platforms/unix/common.o platforms/unix/async_tcp_server.o platforms/unix/procfs_monitor.o platforms/unix/tcp_connection.o platforms/unix/signal_handler.o platforms/unix/procfs_machine.o engine/local_executor.o scheduling/knowledge_base.o engine/node.o engine/remote_executor.o engine/topology_manager.o messages/task_info_message.pb.o messages/registration_message.pb.o messages/storage_registration_message.pb.o messages/copy_message.pb.o messages/task_state_message.pb.o messages/storage_message.pb.o messages/task_delegation_message.pb.o messages/heartbeat_message.pb.o messages/base_message.pb.o messages/create_message.pb.o messages/lookup_message.pb.o messages/test_message.pb.o messages/task_heartbeat_message.pb.o messages/task_kill_message.pb.o messages/task_spawn_message.pb.o messages/io_notification_message.pb.o messages/delete_message.pb.o messages/energy_stats_message.pb.o base/ensemble_desc.pb.o base/task_desc.pb.o base/resource_topology_node_desc.pb.o base/reference_desc.pb.o base/resource_desc.pb.o base/data_object.o base/job_desc.pb.o base/task_final_report.pb.o base/task_perf_statistics_sample.pb.o base/task_graph.o base/resource_status.o base/data_object_name.pb.o base/job.o base/machine_perf_statistics_sample.pb.o base/task.o)
 
 TASK_LIB_LIBS := $(LIBS) -lcurl -ljansson
 

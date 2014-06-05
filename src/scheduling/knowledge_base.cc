@@ -3,7 +3,7 @@
 //
 // Implementation of the coordinator knowledge base.
 
-#include "engine/knowledge_base.h"
+#include "scheduling/knowledge_base.h"
 
 #include <deque>
 
@@ -19,8 +19,7 @@ KnowledgeBase::KnowledgeBase() :
   webreqs_since_last_check_(0),
   webreq_window_first_(0),
   webreq_window_last_(0),
-  application_stats_(new AppStatsMap_t()) {
-
+  application_stats_(new AppStatsMap_t) {
 }
 
 void KnowledgeBase::AddMachineSample(

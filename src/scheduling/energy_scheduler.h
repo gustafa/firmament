@@ -18,7 +18,7 @@
 #include "base/task_desc.pb.h"
 #include "engine/executor_interface.h"
 #include "engine/haproxy_controller.h"
-#include "engine/knowledge_base.h"
+#include "scheduling/knowledge_base.h"
 #include "scheduling/dimacs_exporter.h"
 #include "scheduling/event_driven_scheduler.h"
 #include "scheduling/flow_graph.h"

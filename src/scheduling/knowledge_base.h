@@ -17,14 +17,15 @@
 #include "base/machine_perf_statistics_sample.pb.h"
 #include "base/task_perf_statistics_sample.pb.h"
 #include "base/task_final_report.pb.h"
+#include "scheduling/application_statistics.h"
 
 namespace firmament {
 
+typedef unordered_map<TaskDescriptor::TaskType, ApplicationStatistics*,
+                      std::hash<int>> AppStatsMap_t;
+
 // Limit stats queues to 1MB each
 #define MAX_SAMPLE_QUEUE_CAPACITY 1024*1024
-
-typedef unordered_map<TaskDescriptor::TaskType, ApplicationStatistics*,
-                std::hash<int>> AppStatsMap_t;
 
 class KnowledgeBase {
  public:
@@ -43,10 +44,10 @@ class KnowledgeBase {
 
   uint64_t GetAndResetWebreqs(uint64_t &num_seconds);
 
-
-  inline shared_ptr<AppStatsMap_t> AppStats() {
+  inline  shared_ptr<AppStatsMap_t>  AppStats() {
     return application_stats_;
   }
+
 
  protected:
   map<ResourceID_t, deque<MachinePerfStatisticsSample> > machine_map_;
@@ -54,6 +55,7 @@ class KnowledgeBase {
   // task, i.e. it mixes samples from all phases
   map<TaskID_t, deque<TaskPerfStatisticsSample> > task_map_;
   map<TaskID_t, deque<TaskFinalReport> > task_exec_reports_;
+  shared_ptr<AppStatsMap_t> application_stats_;
 
 
   uint64_t webreqs_since_last_check_;
