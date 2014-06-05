@@ -277,6 +277,7 @@ int main(int argc, char const *argv[]) {
 
 
   victoria.addMonitor(9, "pandaboard");
+  victoria.addMonitor(10, "titanic");
   victoria.addMonitor(11, "uriel");
   victoria.addMonitor(13, "michael");
   victoria.addMonitor(14, "titanic");
