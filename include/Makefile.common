@@ -67,10 +67,10 @@ $(SRC_GEN_DIR)/$(SUFFIX)/%.pb.cc $(SRC_GEN_DIR)/$(SUFFIX)/%.pb.h \
 		--proto_path=$(SRC_ROOT_DIR)/ \
 		$(SRC_ROOT_DIR)/$(SUFFIX)/$<, \
 		"  GEN     $@")
-	$(call quiet-command,$(PBCC) --c_out=$(CSRC_GEN_DIR)/ \
-		--proto_path=$(SRC_ROOT_DIR)/ \
-		$(SRC_ROOT_DIR)/$(SUFFIX)/$<, \
-		"  GENC    $@")
+	#$(call quiet-command,$(PBCC) --c_out=$(CSRC_GEN_DIR)/ \
+	#	--proto_path=$(SRC_ROOT_DIR)/ \
+	#	$(SRC_ROOT_DIR)/$(SUFFIX)/$<, \
+	#	"  GENC    $@")
 
 # Build protobuf object.
 $(OBJ_DIR)/%.pb.o: $(SRC_GEN_DIR)/$(SUFFIX)/%.pb.cc \
