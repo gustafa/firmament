@@ -38,8 +38,6 @@ int binarySearch(const std::vector<double> *a, double key) {
     mid = (low + high) >> 1;
     midVal = (*a)[mid];
 
-    std::cout << "MIDVAL: " << midVal << "LOW " << low << "MID " << mid << " HIGH " << high << "\n";
-
     if (midVal < key)
       low = mid + 1;
     else if (midVal > key)
@@ -214,7 +212,7 @@ void Victoria::run() {
           double total_j = totals[port] + real_delta;
           totals[port] = total_j;
           if (hostname.compare("titanic") == 0) {
-            if (titanic_energy_message == NULL) {
+            if (titanic_energy_message != NULL) {
               real_delta += energy_message->deltaj();
               total_j += energy_message->totalj();
             } else {
