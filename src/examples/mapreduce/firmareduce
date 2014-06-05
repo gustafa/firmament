@@ -22,6 +22,9 @@ export FLAGS_heartbeat_interval=1
 # For local test runs.
 if [[ -z "$FLAGS_task_id" ]]; then
   export FLAGS_task_id=lolhaxtask
+  PRELOAD=""
+  else
+  PRELOAD="/home/gjrh2/firmament/build/engine/task_lib_main.so"
 fi
 
 export FLAGS_completion_filename=/tmp/${FLAGS_task_id}_completion
@@ -34,7 +37,7 @@ export FLAGS_tuples_filename=/tmp/${FLAGS_task_id}_tuples
 echo "0.020" > $FLAGS_completion_filename
 
 # TODO NAMED PIPES! Get PIDS, pass to reducer.
-LD_PRELOAD=/home/gjrh2/firmament/build/engine/task_lib_main.so ldpreloader
+LD_PRELOAD=$PRELOAD ldpreloader
 
 #rm $FLAGS_output_filename
 #rm $FLAGS_completion_filename
