@@ -42,5 +42,6 @@ message TaskDescriptor {
   optional uint64 equivalence_class = 16;
   optional uint64 port = 17;
   optional TaskType task_type = 18;
+  optional uint64 input_size = 19;
 }
 

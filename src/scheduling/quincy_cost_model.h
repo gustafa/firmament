@@ -27,6 +27,7 @@ class QuincyCostModel : public FlowSchedulingCostModelInterface {
   Cost_t TaskToClusterAggCost(TaskID_t task_id);
   Cost_t TaskToResourceNodeCost(TaskID_t task_id,
                                 ResourceID_t resource_id);
+  Cost_t TaskToResourceNodeCosts(TaskID_t task_id, const vector<ResourceID_t> &machine_ids,  vector<Cost_t> &machine_task_costs);
   // Costs within the resource topology
   Cost_t ClusterAggToResourceNodeCost(ResourceID_t target);
   Cost_t ResourceNodeToResourceNodeCost(ResourceID_t source,

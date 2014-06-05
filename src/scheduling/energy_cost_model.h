@@ -27,7 +27,8 @@ class EnergyCostModel : public FlowSchedulingCostModelInterface {
  public:
   EnergyCostModel(shared_ptr<ResourceMap_t> resource_map, shared_ptr<JobMap_t> job_map,
                   shared_ptr<TaskMap_t> task_map, shared_ptr<KnowledgeBase> knowledge_base,
-                  shared_ptr<ResourceHostMap_t> resource_to_host );
+                  shared_ptr<ResourceHostMap_t> resource_to_host,
+                  map<TaskID_t, ResourceID_t> *task_bindings);
 
   // Costs pertaining to leaving tasks unscheduled
   Cost_t TaskToUnscheduledAggCost(TaskID_t task_id, FlowSchedulingPriorityType priority);
@@ -36,6 +37,9 @@ class EnergyCostModel : public FlowSchedulingCostModelInterface {
   Cost_t TaskToClusterAggCost(TaskID_t task_id);
   Cost_t TaskToResourceNodeCost(TaskID_t task_id,
                                 ResourceID_t resource_id);
+
+  Cost_t TaskToResourceNodeCosts(TaskID_t task_id, const vector<ResourceID_t> &machine_ids,
+                                 vector<Cost_t> &machine_task_costs);
   // Costs within the resource topology
   Cost_t ClusterAggToResourceNodeCost(ResourceID_t target);
   Cost_t ResourceNodeToResourceNodeCost(ResourceID_t source,
@@ -62,6 +66,11 @@ class EnergyCostModel : public FlowSchedulingCostModelInterface {
   shared_ptr<TaskMap_t> task_map_;
   shared_ptr<ResourceHostMap_t> resource_to_host_;
   shared_ptr<AppStatsMap_t> application_stats_;
+
+  map<TaskID_t, ResourceID_t> *task_bindings_;
+
+  Cost_t BatchTaskToResourceNodeCosts(TaskID_t task_id, TaskDescriptor *td, const vector<ResourceID_t> &machine_ids,
+                                                       vector<Cost_t> &machine_task_costs);
 };
 
 }  // namespace firmament

@@ -17,13 +17,15 @@ typedef TaskDescriptor::TaskType TaskType;
 
 EnergyCostModel::EnergyCostModel(shared_ptr<ResourceMap_t> resource_map, shared_ptr<JobMap_t> job_map,
                   shared_ptr<TaskMap_t> task_map, shared_ptr<KnowledgeBase> knowledge_base,
-                  shared_ptr<ResourceHostMap_t> resource_to_host)
+                  shared_ptr<ResourceHostMap_t> resource_to_host,  map<TaskID_t, ResourceID_t> *task_bindings)
   : resource_map_(resource_map),
   job_map_(job_map),
   task_map_(task_map),
   knowledge_base_(knowledge_base),
-  resource_to_host_(resource_to_host) {
+  resource_to_host_(resource_to_host),
+  task_bindings_(task_bindings_) {
   application_stats_ = knowledge_base_->AppStats();
+  CHECK_NOTNULL(task_bindings_);
  // ResourceStatsMap *nginx_stats = new ResourceStatsMap();
  //  SetInitialNginxStats(nginx_stats);
  //  application_host_stats_["nginx"] = nginx_stats;
@@ -50,7 +52,7 @@ Cost_t EnergyCostModel::TaskToUnscheduledAggCost(TaskID_t task_id, FlowSchedulin
       VLOG(2) << "Found application " << application << " setting unscheduled cost proportional "
               << "to the worst energy choice.";
 
-      return app_stats->WorstEnergy(); // TODO multiplier?
+      //return app_stats->WorstEnergy(); // TODO multiplier? ..TODO FIX
     } else {
       VLOG(2) << "New application found. Setting a high unscheduled cost to promote scheduling.";
 
@@ -71,41 +73,42 @@ Cost_t EnergyCostModel::TaskToClusterAggCost(TaskID_t task_id) {
 
 Cost_t EnergyCostModel::TaskToResourceNodeCost(TaskID_t task_id,
                                                ResourceID_t resource_id) {
-  TaskDescriptor::TaskType application = GetTaskType(task_id);
-  string host = (*resource_to_host_)[resource_id];
-  VLOG(2) << "Estimating cost of " << application  << " on "  << host;
+  // TaskDescriptor::TaskType application = GetTaskType(task_id);
+  // string host = (*resource_to_host_)[resource_id];
+  // VLOG(2) << "Estimating cost of " << application  << " on "  << host;
 
-  ApplicationStatistics *app_stats = FindPtrOrNull(*application_stats_, application);
+  // ApplicationStatistics *app_stats = FindPtrOrNull(*application_stats_, application);
 
-  if (!app_stats) {
-    VLOG(2) << "Did not find application " << application << " in the database. "
-            << "Creating new.";
-    app_stats = new ApplicationStatistics();
-    // TODO setup the new, unseen program with defaults.
-    (*application_stats_)[application] = app_stats;
-    return 20ULL;
+  // if (!app_stats) {
+  //   VLOG(2) << "Did not find application " << application << " in the database. "
+  //           << "Creating new.";
+  //   app_stats = new ApplicationStatistics();
+  //   // TODO setup the new, unseen program with defaults.
+  //   (*application_stats_)[application] = app_stats;
+  //   return 20ULL;
 
-  } else {
-    // Get the stat for this resource
-    // TODO check if this is the resource the task is currently on and
-    // apply a discount!
+  // } else {
+  //   // Get the stat for this resource
+  //   // TODO check if this is the resource the task is currently on and
+  //   // apply a discount!
 
-    TaskDescriptor *td = FindPtrOrNull(*task_map_, task_id);
-    // _Should_ exist.
-    CHECK_NOTNULL(td);
+  //   TaskDescriptor *td = FindPtrOrNull(*task_map_, task_id);
+  //   // _Should_ exist.
+  //   CHECK_NOTNULL(td);
 
-    // TODO handle case when we have started a task!
-    double completed = 0;
+  //   // TODO handle case when we have started a task!
+  //   double completed = 0;
 
 
-    if (td->has_absolute_deadline() &&
-      app_stats->GetRuntime(host, completed) > (td->absolute_deadline() - GetCurrentTimestamp())) {
-      // We are not expected to make the deadline, let the scheduler know.
-      return POOR_SCHEDULING_CHOICE;
-    } else {
-      return app_stats->GetEnergy(host, 0);
-    }
-  }
+  //   if (td->has_absolute_deadline() &&
+  //     app_stats->GetRuntime(host, completed) > (td->absolute_deadline() - GetCurrentTimestamp())) {
+  //     // We are not expected to make the deadline, let the scheduler know.
+  //     return POOR_SCHEDULING_CHOICE;
+  //   } else {
+  //     return app_stats->GetEnergy(host, 0);
+  //   }
+  // }
+  return 0ULL;
 }
 
 Cost_t EnergyCostModel::ClusterAggToResourceNodeCost(ResourceID_t target) {
@@ -130,10 +133,97 @@ Cost_t EnergyCostModel::TaskPreemptionCost(TaskID_t task_id) {
   return 0ULL;
 }
 
+Cost_t EnergyCostModel::BatchTaskToResourceNodeCosts(TaskID_t task_id, TaskDescriptor *td, const vector<ResourceID_t> &machine_ids,
+                                                vector<Cost_t> &machine_task_costs) {
+
+  TaskType application = td->task_type();
+  ApplicationStatistics *app_stats = FindPtrOrNull(*application_stats_, application);
+  bool new_application = false;
+  if (!app_stats) {
+    VLOG(2) << "Did not find application " << application << " in the database. "
+            << "Creating new.";
+    app_stats = new ApplicationStatistics();
+    // TODO setup the new, unseen program with defaults.
+    (*application_stats_)[application] = app_stats;
+    new_application = true;
+  }
+
+
+  CHECK(td->has_input_size());
+
+  ResourceID_t *bound_resource = FindOrNull(*task_bindings_, task_id);
+
+  string task_host = "";
+  if (bound_resource) {
+    string bound_host = (*resource_to_host_)[*bound_resource];
+  }
+  // _Should_ exist.
+
+  // Get the task_perf stats if it exists.
+  const deque<TaskPerfStatisticsSample>* task_perf = knowledge_base_->GetStatsForTask(task_id);
+
+
+  vector<pair<double, uint64_t>> runtimes;
+  vector<pair<double, uint64_t>> energies;
+
+  uint64_t schedulable_on = 0;
+  // for (uint64_t i = 0; i < machine_ids.size(); ++i) {
+  //   string host = (*resource_to_host_)[machine_ids[i]];
+  //   double completed = 0;
+  //   if (host == task_host) {
+  //     // We are currently running this task on this machine.
+  //     // UNIMPLEMENTED
+  //     // completed = ...  discount to be added
+  //   }
+  //   //double runtime =
+  //   //runtimes.push_back
+  // }
+
+
+  for (uint64_t i = 0; i < machine_ids.size(); ++i) {
+    ResourceID_t machine_id = machine_ids[i];
+      // TODO handle case when we have started a task!
+    double completed = 0;
+    string host = (*resource_to_host_)[machine_id];
+    VLOG(2) << "Estimating cost of " << application  << " on "  << host;
+
+    double runtime = app_stats->GetRuntime(host, td->input_size());
+    runtimes.push_back(make_pair(runtime, i));
+
+    if (td->has_absolute_deadline() &&
+      app_stats->GetRuntime(host, completed) > (td->absolute_deadline() - GetCurrentTimestamp())) {
+      // We are not expected to make the deadline, let the scheduler know.
+      machine_task_costs.push_back(POOR_SCHEDULING_CHOICE);
+    } else {
+      ++schedulable_on;
+      double energy = app_stats->GetEnergy(host, runtime);
+      energies.push_back(make_pair(energy,i));
+      machine_task_costs.push_back(Cost_t(energy));
+    }
+  }
+
+}
+
+
+Cost_t EnergyCostModel::TaskToResourceNodeCosts(TaskID_t task_id, const vector<ResourceID_t> &machine_ids,
+                                                vector<Cost_t> &machine_task_costs) {
+  TaskDescriptor *td = FindPtrOrNull(*task_map_, task_id);
+  CHECK_NOTNULL(td);
+  TaskDescriptor::TaskType application = td->task_type();
+
+  if (application != TaskDescriptor::NGINX) {
+    return BatchTaskToResourceNodeCosts(task_id, td, machine_ids, machine_task_costs);
+  }
+
+  return 0;
+
+}
+
+
 void EnergyCostModel::SetInitialStats() {
 
   ApplicationStatistics *wc_stats = new ApplicationStatistics();
-  (*application_stats_)[TaskDescriptor::MAPREDUCE_WC] = wc_stats;
+  //(*application_stats_)[TaskDescriptor::MAPREDUCE_WC] = wc_stats;
 
   //wc_stats->SetEnergy("tcp:localhost:8088", 300);
   //wc_stats->SetRuntime("tcp:localhost:8088", 4000);

@@ -28,6 +28,11 @@ Cost_t TrivialCostModel::TaskToResourceNodeCost(TaskID_t task_id,
   return 0ULL;
 }
 
+Cost_t TrivialCostModel::TaskToResourceNodeCosts(TaskID_t task_id, const vector<ResourceID_t> &machine_ids,  vector<Cost_t> &machine_task_costs) {
+  return 0ULL;
+}
+
+
 Cost_t TrivialCostModel::ClusterAggToResourceNodeCost(ResourceID_t target) {
   return 0ULL;
 }

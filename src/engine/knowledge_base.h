@@ -56,6 +56,7 @@ class KnowledgeBase {
   map<TaskID_t, deque<TaskPerfStatisticsSample> > task_map_;
   map<TaskID_t, deque<TaskFinalReport> > task_exec_reports_;
 
+
   uint64_t webreqs_since_last_check_;
 
   uint64_t webreq_window_first_;

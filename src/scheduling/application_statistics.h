@@ -14,8 +14,11 @@ namespace firmament {
 
 class ApplicationStatistics {
   // Runtime and energy statistics for an application (on a given host).
+// TODO use real MB instead of "units"
 
-typedef unordered_map<string, double> MachineStatMap;
+typedef map<uint64_t, double> UnitRuntimeMap;
+typedef unordered_map<string, UnitRuntimeMap> MachineRuntimeMap;
+typedef unordered_map<string, double> MachinePowerMap;
 
 
 struct MachineAppStat {
@@ -29,20 +32,17 @@ struct MachineAppStat {
 public:
   ApplicationStatistics();
 
-  double GetEnergy(string machine, double completed);
-  void SetEnergy(string machine, double energy);
+  double GetRunningEnergy(string machine, uint64_t size, double completed);
+  double GetEnergy(string machine, double runtime);
 
-  double GetRuntime(string machine, double completed);
-  void SetRuntime(string machine, double runtime);
+  double GetRunningRuntime(string machine, uint64_t size, double completed);
+  double GetRuntime(string machine, uint64_t size);
 
-  double BestEnergy();
-  double WorstEnergy();
+  void SetRuntime(string machine, uint64_t size, double runtime);
 
-  double BestRuntime();
-  double WorstRuntime();
+  // TODO allow for different power levels?
+  void SetPower(string machine, double energy);
 
-  double GetExpectedEnergyUse();
-  double GetExpectedRuntime();
 
   // Returns whether we have observable data.
   bool HasStatistics();
@@ -51,19 +51,18 @@ public:
 
  private:
 
-  MachineAppStat energy_stats_;
+  double power_;
+
+  MachineAppStat power_stats_;
   MachineAppStat runtime_stats_;
 
-  shared_ptr<MachineStatMap> machine_to_energy_;
-  shared_ptr<MachineStatMap> machine_to_runtime_;
+  shared_ptr<MachinePowerMap> machine_to_power_;
 
+  shared_ptr<MachineRuntimeMap> machine_to_runtime_;
+
+
+  // What is this for?
   shared_ptr<unordered_map<string, CompletionStatistics>> machine_to_completion_stats_;
-
-
-  void SetStat(MachineStatMap &stat_map, MachineAppStat &stats,
-              string &machine, double stat);
-
-  void RecomputeStats(MachineStatMap &stat_map, MachineAppStat &stats);
 
 
 
