@@ -25,7 +25,7 @@ class Victoria {
   void run();
 
  private:
-  std::unordered_map<int, std::string> portToHost;
+  std::vector<pair<int, std::string>> host_port_vector_;
 
   const std::vector<double> *xs;
   const std::vector<double> *ys;

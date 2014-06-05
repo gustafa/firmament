@@ -494,9 +494,11 @@ void Coordinator::HandleEnergyStats(const EnergyStatsMessage& msg) {
     if (!stats_vector) {
       // Create enough elements to fit energy_stats_history length in seconds.
       stats_vector =
-          new WraparoundVector<double>(FLAGS_energy_stats_history / FLAGS_energy_stat_interval);
+          new WraparoundVector<double>(FLAGS_energy_stats_history / FLAGS_energy_stat_interval, 0);
       energy_stats_map[hostname] = stats_vector;
     }
+    VLOG(3) << hostname;
+    CHECK(em.has_totalj());
     stats_vector->PushElement(em.totalj());
   }
 }

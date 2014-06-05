@@ -38,8 +38,6 @@ int binarySearch(const std::vector<double> *a, double key) {
     mid = (low + high) >> 1;
     midVal = (*a)[mid];
 
-    std::cout << "MIDVAL: " << midVal << "LOW " << low << "MID " << mid << " HIGH " << high << "\n";
-
     if (midVal < key)
       low = mid + 1;
     else if (midVal > key)
@@ -70,7 +68,7 @@ Victoria::Victoria(std::string firmament_master, std::vector<double> *xs, std::v
 }
 
 void Victoria::addMonitor(int port, std::string hostname) {
-  portToHost[port] = hostname;
+  host_port_vector_.push_back(make_pair(port, hostname));
 }
 
 bool Victoria::ConnectToCoordinator(const string& coordinator_uri) {
@@ -91,7 +89,6 @@ double Victoria::toRealWatts(double measuredWatt) {
 
   int left_dex = getLeftIndex(xs, measuredWatt);
 
-  std::cout << "LEFT INDEX " << left_dex << "\n";
   // If it isn't the first or last element we can just pick the elements
   // on the side. Should be practically always.
   int size = xs->size();
@@ -99,7 +96,7 @@ double Victoria::toRealWatts(double measuredWatt) {
     int left_idx = left_dex; //insertIndex - 1;
     int right_idx = left_dex + 1;
 
-    printf("VAL: %f, LEFT % f, RIGHT: %f\n", measuredWatt, (*xs)[left_idx], (*xs)[right_idx]);
+    //printf("VAL: %f, LEFT % f, RIGHT: %f\n", measuredWatt, (*xs)[left_idx], (*xs)[right_idx]);
     assert(measuredWatt >= (*xs)[left_idx]);
     assert(measuredWatt <= (*xs)[right_idx]);
     // double left_x = (*xs)[insertIndex -1];
@@ -156,9 +153,11 @@ void Victoria::run() {
 
   pollInt = DEFAULTPOLLINTERVAL;
 
-  std::unordered_map<int, std::string>::iterator iter;
+  sort(host_port_vector_.begin(), host_port_vector_.end());
 
   bool first = true;
+  printf("Running logger...\n");
+
 
   while (true) {
     // TODO verify this.
@@ -176,16 +175,19 @@ void Victoria::run() {
 
       energyStats->set_update_interval(scalingFactor);
 
-      for (iter = portToHost.begin(); iter != portToHost.end(); ++iter) {
+      firmament::EnergyStatsMessage_EnergyMessage* titanic_energy_message = NULL;
+
+      for (auto iter = host_port_vector_.begin(); iter != host_port_vector_.end(); ++iter) {
  //                                // Get samples and write log file
         int port = iter->first;
         std::string hostname = iter->second;
-        firmament::EnergyStatsMessage_EnergyMessage* energy_message =
-            energyStats->add_energy_messages();
-        energy_message->set_hostname(hostname);
-
-
-
+        firmament::EnergyStatsMessage_EnergyMessage* energy_message;
+        if (titanic_energy_message != NULL && hostname.compare("titanic") == 0) {
+          energy_message = titanic_energy_message;
+        } else {
+          energy_message = energyStats->add_energy_messages();
+          energy_message->set_hostname(hostname);
+        }
 
         // printf("Port-%d: ", port);
          sCmd->cmd = CMDGETMETERSTATS;
@@ -200,15 +202,27 @@ void Victoria::run() {
         // We are reporting accumulated mA-secs - convert to kWh assuming
         // in-phase 240V and divide by scaling factor
 
-        energy = ((float) (sRply->accumCur) / scalingFactor); //  * 240.0; // / 1000.0 / 1000.0 / 3600.0;
+        energy = ((float) (sRply->accumCur) / scalingFactor);//  * 240.0; // / 1000.0 / 1000.0 / 3600.0;
+        printf("%.2f\t", energy);
         double delta = (energy - prev[port]) * toWatts;
         prev[port] = energy;
         // printf("%.2f\t",delta * toWatts); // - prev[i]);
         if (!first) {
           double real_delta = toRealWatts(delta);
-          totals[port] = totals[port] + real_delta;
-	  energy_message->set_deltaj(real_delta);
-          energy_message->set_totalj(totals[port]);
+          double total_j = totals[port] + real_delta;
+          totals[port] = total_j;
+          if (hostname.compare("titanic") == 0) {
+            if (titanic_energy_message != NULL) {
+              real_delta += energy_message->deltaj();
+              total_j += energy_message->totalj();
+            } else {
+              titanic_energy_message = energy_message;
+            }
+          }
+
+          energy_message->set_deltaj(real_delta);
+          energy_message->set_totalj(total_j);
+
         } else {
           std::cout << "SKIPPING\n";
         }
@@ -220,6 +234,8 @@ void Victoria::run() {
       } else {
         first = false;
       }
+    printf("\n");
+    fflush(stdout);
 
     nominalPollTime += pollInt;
     //long val = nominalPollTime - time(NULL);
@@ -261,6 +277,7 @@ int main(int argc, char const *argv[]) {
 
 
   victoria.addMonitor(9, "pandaboard");
+  victoria.addMonitor(10, "titanic");
   victoria.addMonitor(11, "uriel");
   victoria.addMonitor(13, "michael");
   victoria.addMonitor(14, "titanic");

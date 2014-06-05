@@ -17,7 +17,7 @@ class ApplicationStatistics {
 // TODO use real MB instead of "units"
 
 typedef map<uint64_t, double> UnitRuntimeMap;
-typedef unordered_map<string, UnitRuntimeMap> MachineRuntimeMap;
+typedef unordered_map<string, UnitRuntimeMap *> MachineRuntimeMap;
 typedef unordered_map<string, double> MachinePowerMap;
 
 
@@ -43,6 +43,8 @@ public:
   // TODO allow for different power levels?
   void SetPower(string machine, double energy);
 
+  void SetRuntimes(string machine, vector<pair<uint64_t, double>> units_runtimes);
+
 
   // Returns whether we have observable data.
   bool HasStatistics();
@@ -51,15 +53,11 @@ public:
 
  private:
 
-  double power_;
-
   MachineAppStat power_stats_;
   MachineAppStat runtime_stats_;
 
   shared_ptr<MachinePowerMap> machine_to_power_;
-
   shared_ptr<MachineRuntimeMap> machine_to_runtime_;
-
 
   // What is this for?
   shared_ptr<unordered_map<string, CompletionStatistics>> machine_to_completion_stats_;

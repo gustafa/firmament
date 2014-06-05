@@ -9,8 +9,13 @@
 namespace firmament {
 
 template<class T>
-WraparoundVector<T>::WraparoundVector(uint64_t max_size) :
-  max_size(max_size), inner_vector_(new vector<T>(max_size)) {
+WraparoundVector<T>::WraparoundVector(uint64_t max_size, T item) :
+  max_size(max_size),
+  inner_vector_(new vector<T>(max_size))  {
+  insert_point_ = 0;
+  for (uint64_t i = 0; i < max_size; ++i) {
+    inner_vector_->push_back(item);
+  }
 }
 
 template<class T>

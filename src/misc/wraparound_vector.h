@@ -11,7 +11,7 @@ namespace firmament {
 template<class T>
 class WraparoundVector {
  public:
-  WraparoundVector(uint64_t max_size);
+  WraparoundVector(uint64_t max_size, T item);
   ~WraparoundVector();
 
   void PushElement(T element);
