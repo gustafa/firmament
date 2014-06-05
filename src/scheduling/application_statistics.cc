@@ -28,7 +28,7 @@ ApplicationStatistics::ApplicationStatistics() :
   }
 
   double ApplicationStatistics::GetRunningRuntime(string machine, uint64_t units, double completed) {
-    UnitRuntimeMap *unit_runtime_map = FindOrNull(*machine_to_runtime_,machine);// size);
+    UnitRuntimeMap *unit_runtime_map = FindPtrOrNull(*machine_to_runtime_,machine);// size);
     // TODO allow for non-defined values.
 
     CHECK_NOTNULL(unit_runtime_map);
@@ -79,13 +79,21 @@ ApplicationStatistics::ApplicationStatistics() :
 
   // TODO allow for different power levels?
   void ApplicationStatistics::SetPower(string machine, double power) {
-
+    (*machine_to_power_)[machine] = power;
   }
 
 
+  void ApplicationStatistics::SetRuntimes(string machine, vector<pair<uint64_t, double>> units_runtimes) {
+    UnitRuntimeMap *unit_runtime_map = FindPtrOrNull(*machine_to_runtime_,machine);
+    if (!unit_runtime_map) {
+      unit_runtime_map = new UnitRuntimeMap();
+      (*machine_to_runtime_)[machine] = unit_runtime_map;
+    }
 
-
-
+    for (auto &units_runtime : units_runtimes) {
+      (*unit_runtime_map)[units_runtime.first] = units_runtime.second;
+    }
+  }
 
 // // Get energy for the given machine with a fraction completed.
 // double ApplicationStatistics::GetEnergy(string machine, double completed) {
