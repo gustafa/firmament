@@ -33,7 +33,7 @@ public:
   ApplicationStatistics();
 
   double GetRunningEnergy(string machine, uint64_t size, double completed);
-  double GetEnergy(string machine, double runtime);
+  double GetPower(string machine);
 
   double GetRunningRuntime(string machine, uint64_t size, double completed);
   double GetRuntime(string machine, uint64_t size);

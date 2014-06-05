@@ -17,7 +17,6 @@
 #include "base/machine_perf_statistics_sample.pb.h"
 #include "base/task_perf_statistics_sample.pb.h"
 #include "base/task_final_report.pb.h"
-#include "scheduling/application_statistics.h"
 
 namespace firmament {
 
@@ -61,8 +60,6 @@ class KnowledgeBase {
 
   uint64_t webreq_window_first_;
   uint64_t webreq_window_last_;
-
-  shared_ptr<AppStatsMap_t> application_stats_;
 
 };
 

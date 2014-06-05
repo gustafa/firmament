@@ -46,7 +46,7 @@ class FlowSchedulingCostModelInterface {
   virtual Cost_t TaskToResourceNodeCost(TaskID_t task_id,
                                         ResourceID_t resource_id) = 0;
   // Populates a vector of cost for the given machine ids and returns the unscheduled cost.
-  virtual Cost_t TaskToResourceNodeCosts(TaskID_t task_id, const vector<ResourceID_t> &machine_ids,  vector<Cost_t> &machine_task_costs);
+  virtual Cost_t TaskToResourceNodeCosts(TaskID_t task_id, const vector<ResourceID_t> &machine_ids,  vector<Cost_t> &machine_task_costs) = 0;
   // Costs within the resource topology
   virtual Cost_t ClusterAggToResourceNodeCost(ResourceID_t target) = 0;
   virtual Cost_t ResourceNodeToResourceNodeCost(ResourceID_t source,

@@ -23,8 +23,8 @@ ApplicationStatistics::ApplicationStatistics() :
   runtime_stats_.min_stat = numeric_limits<double>::max();
 }
 
-  double ApplicationStatistics::GetEnergy(string machine, double runtime) {
-    return (*machine_to_power_)[machine] * runtime;
+  double ApplicationStatistics::GetPower(string machine) {
+    return (*machine_to_power_)[machine];
   }
 
   double ApplicationStatistics::GetRunningRuntime(string machine, uint64_t units, double completed) {

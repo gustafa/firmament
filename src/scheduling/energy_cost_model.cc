@@ -164,9 +164,13 @@ Cost_t EnergyCostModel::BatchTaskToResourceNodeCosts(TaskID_t task_id, TaskDescr
 
 
   vector<pair<double, uint64_t>> runtimes;
-  vector<pair<double, uint64_t>> energies;
+  vector<double> powers;
 
   uint64_t schedulable_on = 0;
+
+
+  double total_schedulable_power = 0;
+
   // for (uint64_t i = 0; i < machine_ids.size(); ++i) {
   //   string host = (*resource_to_host_)[machine_ids[i]];
   //   double completed = 0;
@@ -196,12 +200,33 @@ Cost_t EnergyCostModel::BatchTaskToResourceNodeCosts(TaskID_t task_id, TaskDescr
       machine_task_costs.push_back(POOR_SCHEDULING_CHOICE);
     } else {
       ++schedulable_on;
-      double energy = app_stats->GetEnergy(host, runtime);
-      energies.push_back(make_pair(energy,i));
-      machine_task_costs.push_back(Cost_t(energy));
+      double power = app_stats->GetPower(host);
+      powers.push_back(power);
+      total_schedulable_power += power;
+      machine_task_costs.push_back(Cost_t(power));
     }
   }
+  if (!schedulable_on) {
+    // Shoot! We missed the deadline, now lets wrap this thing up as quickly as possible.
+    sort(runtimes.begin(), runtimes.end());
+    const uint64_t num_considered = 2;
+    // Still use their energies but make it crazy expensive to not schedule this! :)
+    for (uint64_t i = 0; i < num_considered; ++i) {
+      uint64_t machine_idx = runtimes[i].second;
+      machine_task_costs[machine_idx] = powers[machine_idx];
+    }
+    // Do not unschedule por favore ;)
+    return 1000000000ULL;
+  } else {
+    if (schedulable_on > 2) {
+       return Cost_t(total_schedulable_power / double(schedulable_on));
+    } else {
+      // Only two more hosts can still schedule this. Time to get on it!
+      CHECK(powers.size() > 0);
+      return Cost_t(*(max_element(powers.begin(), powers.end())) + 5);
+    }
 
+  }
 }
 
 
