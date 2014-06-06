@@ -13,7 +13,7 @@
 #include "base/types.h"
 #include "scheduling/knowledge_base.h"
 #include "misc/utils.h"
-#include "scheduling/application_statistics.h"
+#include "scheduling/batchapp_statistics.h"
 #include "scheduling/flow_scheduling_cost_model_interface.h"
 
 

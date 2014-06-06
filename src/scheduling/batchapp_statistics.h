@@ -3,8 +3,10 @@
 //
 //
 
-#ifndef FIRMAMENT_SCHEDULING_APPLICATION_STATISTICS_H
-#define FIRMAMENT_SCHEDULING_APPLICATION_STATISTICS_H
+#ifndef FIRMAMENT_SCHEDULING_BATCH_APPLICATION_STATISTICS_H
+#define FIRMAMENT_SCHEDULING_BATCH_APPLICATION_STATISTICS_H
+
+#include "scheduling/application_statistics_interface.h"
 
 #include "base/types.h"
 #include "scheduling/completion_statistics.h"
@@ -12,7 +14,7 @@
 namespace firmament {
 
 
-class ApplicationStatistics {
+class BatchAppStatistics : public ApplicationStatistics {
   // Runtime and energy statistics for an application (on a given host).
 // TODO use real MB instead of "units"
 
@@ -30,7 +32,7 @@ struct MachineAppStat {
 
 
 public:
-  ApplicationStatistics();
+  BatchAppStatistics();
 
   double GetRunningEnergy(string machine, uint64_t size, double completed);
   double GetPower(string machine);
@@ -62,10 +64,8 @@ public:
   // What is this for?
   shared_ptr<unordered_map<string, CompletionStatistics>> machine_to_completion_stats_;
 
-
-
 };
 
 } // namespace firmament
 
-#endif // FIRMAMENT_SCHEDULING_APPLICATION_STATISTICS_H
+#endif // FIRMAMENT_SCHEDULING_BATCH_APPLICATION_STATISTICS_H
