@@ -573,8 +573,7 @@ void Coordinator::HandleTaskHeartbeat(const TaskHeartbeatMessage& msg) {
     // the knowledge base
     if (parent_chan_ != NULL) {
         BaseMessage bm;
-        TaskHeartbeatMessage *tm = new TaskHeartbeatMessage(msg);
-        bm.set_allocated_task_heartbeat(tm);
+        bm.mutable_task_heartbeat()->CopyFrom(msg);
         SendMessageToRemote(parent_chan_, &bm);
     } else {
       knowledge_base_->AddTaskSample(msg.stats());
