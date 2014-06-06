@@ -237,7 +237,7 @@ bool StreamSocketsChannel<T>::SendS(const Envelope<T>& message) {
       *client_socket_, boost::asio::buffer(
           reinterpret_cast<char*>(&msg_size_endian), sizeof(msg_size_endian)),
              boost::asio::transfer_at_least(sizeof(size_t)), error);
-  if (error || len != sizeof(size_t)) {
+  if (error || len != sizeof(uint64_t)) {
     VLOG(1) << "Error sending size preamble on connection: "
             << error.message();
     return false;
