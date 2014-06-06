@@ -567,10 +567,13 @@ void Coordinator::HandleTaskHeartbeat(const TaskHeartbeatMessage& msg) {
                  << task_id << ")!";
   } else {
     LOG(INFO) << "HEARTBEAT from task " << task_id;
-    // Remember the current location of this task
     (*tdp)->set_last_location(msg.location());
+    // Remember the current location of this task
     // Process the profiling information submitted by the task, add it to
     // the knowledge base
+  }
+
+
     if (parent_chan_ != NULL) {
         BaseMessage bm;
         bm.mutable_task_heartbeat()->CopyFrom(msg);
@@ -578,7 +581,7 @@ void Coordinator::HandleTaskHeartbeat(const TaskHeartbeatMessage& msg) {
     } else {
       knowledge_base_->AddTaskSample(msg.stats());
     }
-  }
+
 }
 
 void Coordinator::HandleTaskDelegationRequest(

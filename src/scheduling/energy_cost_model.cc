@@ -105,70 +105,69 @@ Cost_t EnergyCostModel::BatchTaskToResourceNodeCosts(TaskID_t task_id, TaskDescr
   const deque<TaskPerfStatisticsSample>* task_perf = knowledge_base_->GetStatsForTask(task_id);
 
 
+  // Runtime, machine idx
   vector<pair<double, uint64_t>> runtimes;
   vector<double> powers;
 
-  uint64_t schedulable_on = 0;
-
-
   double total_schedulable_power = 0;
 
-  // for (uint64_t i = 0; i < machine_ids.size(); ++i) {
-  //   string host = (*resource_to_host_)[machine_ids[i]];
-  //   double completed = 0;
-  //   if (host == task_host) {
-  //     // We are currently running this task on this machine.
-  //     // UNIMPLEMENTED
-  //     // completed = ...  discount to be added
-  //   }
-  //   //double runtime =
-  //   //runtimes.push_back
-  // }
+  // Set all as poor scheduling choices for now and then we update them later :).
+  machine_task_costs.insert(machine_task_costs.begin(), machine_ids.size(), POOR_SCHEDULING_CHOICE);
 
+  vector<uint64_t> possible_machine_idxs;
 
   for (uint64_t i = 0; i < machine_ids.size(); ++i) {
     ResourceID_t machine_id = machine_ids[i];
       // TODO handle case when we have started a task!
-    double completed = 0;
+    double remaining = 1;
     string host = (*resource_to_host_)[machine_id];
     VLOG(2) << "Estimating cost of " << application  << " on "  << host;
 
-    double runtime = app_stats->GetRuntime(host, td->input_size());
+    double runtime = remaining * app_stats->GetRuntime(host, td->input_size());
+
     runtimes.push_back(make_pair(runtime, i));
+    double power = app_stats->GetPower(host);
+    powers.push_back(power);
 
     if (td->has_absolute_deadline() &&
-      app_stats->GetRuntime(host, completed) > (td->absolute_deadline() - GetCurrentTimestamp())) {
+      (td->absolute_deadline() - GetCurrentTimestamp()) <= runtime) {
       // We are not expected to make the deadline, let the scheduler know.
-      machine_task_costs.push_back(POOR_SCHEDULING_CHOICE);
-    } else {
-      ++schedulable_on;
-      double power = app_stats->GetPower(host);
-      powers.push_back(power);
       total_schedulable_power += power;
-      machine_task_costs.push_back(Cost_t(power));
+      possible_machine_idxs.push_back(i);
     }
+    // Set all to poor scheduling choice initially, we'll change this later.
   }
-  if (!schedulable_on) {
-    // Shoot! We missed the deadline, now lets wrap this thing up as quickly as possible.
+
+  double fastest_runtime = min_element(runtimes.begin(), runtimes.end())->first;
+  if (possible_machine_idxs.size()) {
+    double min_cost = POOR_SCHEDULING_CHOICE;
+    for (auto machine_idx : possible_machine_idxs) {
+      double cost = powers[machine_idx] * runtimes[machine_idx].first / fastest_runtime;
+      machine_task_costs[machine_idx] = cost;
+      if (cost < min_cost) {
+        min_cost = cost;
+      }
+    }
+    if (possible_machine_idxs.size() > 2) {
+      // Unscheduled 15 % more expensive than the cheapest available option
+      return uint64_t(min_cost * 1.15);
+    } else {
+      // Less than two machines can still run this task on time!
+      return uint64_t(min_cost * 20);
+    }
+
+  } else {
+    // Shoot! We missed the deadline (no possible machines to schedule on) now lets wrap this thing up as quickly as possible.
     sort(runtimes.begin(), runtimes.end());
     // Consider a maximum of two resources.
     uint64_t num_considered = machine_ids.size() < 2 ? machine_ids.size() : 2;
     // Still use their energies but make it crazy expensive to not schedule this! :)
     for (uint64_t i = 0; i < num_considered; ++i) {
       uint64_t machine_idx = runtimes[i].second;
-      machine_task_costs[machine_idx] = powers[machine_idx];
+      machine_task_costs[machine_idx] = powers[machine_idx] * runtimes[machine_idx].first / fastest_runtime;
     }
-    // Do not unschedule por favore ;)
-    return 1000000000ULL;
-  } else {
-    if (schedulable_on > 2) {
-       return Cost_t(total_schedulable_power / double(schedulable_on));
-    } else {
-      // Only two more hosts can still schedule this. Time to get on it!
-      CHECK(powers.size() > 0);
-      return Cost_t(*(max_element(powers.begin(), powers.end())) + 5);
-    }
-
+    // Do not unschedule por favor ;)
+    return POOR_SCHEDULING_CHOICE;
   }
 }
 
@@ -210,6 +209,7 @@ void EnergyCostModel::SetInitialStats() {
   wc_stats->SetRuntimes("gustafa", uriel_wcmapred_runtimes);
   wc_stats->SetPower("gustafa", 10);
 
+
   (*application_stats_)[TaskDescriptor::MAPREDUCE_WC] = wc_stats;
 
   BatchAppStatistics *join_stats = new BatchAppStatistics();
@@ -226,6 +226,11 @@ void EnergyCostModel::SetInitialStats() {
   join_stats->SetPower("pandaboard", 0.954096364266);
   join_stats->SetPower("michael", 26.2885511978);
   join_stats->SetPower("titanic", 8.56867123191);
+
+
+  join_stats->SetRuntimes("gustafa", michael_joinmapred_runtimes);
+  join_stats->SetPower("gustafa", 10);
+
 
   (*application_stats_)[TaskDescriptor::MAPREDUCE_WC] = join_stats;
 

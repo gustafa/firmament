@@ -140,49 +140,5 @@ void BatchAppStatistics::PrintStats() {
 // TODO implement
 }
 
-// void BatchAppStatistics::SetStat(MachineStatMap &stat_map, MachineAppStat &stats,
-//                                     string &machine, double stat) {
-//       // Update the value of the hashmap.
-//   stat_map[machine] = stat;
-//   // Check if we are to upset the stat statuses, and if so recompute the stat.
-//   if ((stats.min_machine == machine && stat > stats.min_stat) ||
-//       (stats.max_machine == machine && stat < stats.max_stat)) {
-//     RecomputeStats(stat_map, stats);
-//   } else {
-//     // Otherwise check if we are going above max or below min and update accordingly.
-//     if (stat < stats.min_stat) {
-//       stats.min_stat = stat;
-//       stats.min_machine = machine;
-//     }
-//     if (stat > stats.max_stat) {
-//       stats.max_stat = stat;
-//       stats.max_machine = machine;
-//     }
-//   }
-// }
-
-// void BatchAppStatistics::RecomputeStats(MachineStatMap &stat_map, MachineAppStat &stats) {
-//   // Only recompute if statistics are available.
-//   if (stat_map.size()) {
-//     auto it = stat_map.begin();
-//     // Set initial values to the first element and then iterate over the rest.
-//     // it is a (hostname, stat) pair.
-//     stats.max_machine = it->first;
-//     stats.min_machine = it->first;
-//     stats.min_stat = it->second;
-//     stats.max_stat = it->second;
-//     ++it;
-//     for (; it != stat_map.end(); ++it) {
-//       if (it->second < stats.min_stat) {
-//         stats.min_stat = it->second;
-//         stats.min_machine = it->first;
-//       } else if (it->second > stats.max_stat) {
-//         stats.max_stat = it->second;
-//         stats.max_machine = it->first;
-//       }
-//     }
-//   }
-// }
-
 }
  // namespace firmament
