@@ -14,10 +14,12 @@ export INPUT_FILES=$(ls ${INPUT_DIR} | head -n ${NUM_FILES})
 export FLAGS_mr_inputfile=$INPUT_FILE
 #export FLAGS_tasklib_application=mapreduce
 
-#export FLAGS_coordinator_uri=tcp:localhost:8088
+#export FLAGS_coordinator_uri=tcp:localhost:8098
 #export FLAGS_resource_id=db904ff2-688e-4d8e-900e-f363e11fd256
 export FLAGS_heartbeat_interval=1
 
+# Make sure the libraries can be found
+export PYTHON_PATH=/home/gjrh2/firmament/src/examples/mapreduce/
 
 # For local test runs.
 if [[ -z "$FLAGS_task_id" ]]; then
