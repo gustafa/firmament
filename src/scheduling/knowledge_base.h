@@ -17,7 +17,7 @@
 #include "base/machine_perf_statistics_sample.pb.h"
 #include "base/task_perf_statistics_sample.pb.h"
 #include "base/task_final_report.pb.h"
-#include "scheduling/application_statistics.h"
+#include "scheduling/application_statistics_interface.h"
 
 namespace firmament {
 

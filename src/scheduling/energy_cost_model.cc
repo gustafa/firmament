@@ -35,35 +35,8 @@ EnergyCostModel::EnergyCostModel(shared_ptr<ResourceMap_t> resource_map, shared_
 }
 
 Cost_t EnergyCostModel::TaskToUnscheduledAggCost(TaskID_t task_id, FlowSchedulingPriorityType priority) {
-  // TODO should be inversely proportional to deadline - estimated run-time
-  // and > than cheapest place to schedule task.
-  // Return 0LL.
-  TaskDescriptor::TaskType application = GetTaskType(task_id);
-
-  if (priority == PRIORITY_HIGH) {
-    // If the priority is high we want to insert a very high cost related with not scheduling it.
-    // Currently set as 1 billion. TODO(gustafa): Make this value a multiplier of the energy cost
-    // at the worst machine.
-    VLOG(2) << "Observing a high priority task, penalising unscheduled cost.";
-    return 1000000000ULL;
-  } else {
-    ApplicationStatistics *app_stats = FindPtrOrNull(*application_stats_, application);
-
-
-    // See if we have application statistics setup with observable values.
-    if (app_stats && app_stats->HasStatistics()) {
-      VLOG(2) << "Found application " << application << " setting unscheduled cost proportional "
-              << "to the worst energy choice.";
-
-      //return app_stats->WorstEnergy(); // TODO multiplier? ..TODO FIX
-    } else {
-      VLOG(2) << "New application found. Setting a high unscheduled cost to promote scheduling.";
-
-      // TODO handle case when no application is found. Potentially ensure it gets scheduled somewhere
-      // so we can estimate deadlines?
-      return 1000ULL;
-    }
-  }
+  // Not to be used in this cost model.
+  CHECK(false);
 }
 
 Cost_t EnergyCostModel::UnscheduledAggToSinkCost(JobID_t job_id) {
@@ -76,41 +49,7 @@ Cost_t EnergyCostModel::TaskToClusterAggCost(TaskID_t task_id) {
 
 Cost_t EnergyCostModel::TaskToResourceNodeCost(TaskID_t task_id,
                                                ResourceID_t resource_id) {
-  // TaskDescriptor::TaskType application = GetTaskType(task_id);
-  // string host = (*resource_to_host_)[resource_id];
-  // VLOG(2) << "Estimating cost of " << application  << " on "  << host;
 
-  // ApplicationStatistics *app_stats = FindPtrOrNull(*application_stats_, application);
-
-  // if (!app_stats) {
-  //   VLOG(2) << "Did not find application " << application << " in the database. "
-  //           << "Creating new.";
-  //   app_stats = new ApplicationStatistics();
-  //   // TODO setup the new, unseen program with defaults.
-  //   (*application_stats_)[application] = app_stats;
-  //   return 20ULL;
-
-  // } else {
-  //   // Get the stat for this resource
-  //   // TODO check if this is the resource the task is currently on and
-  //   // apply a discount!
-
-  //   TaskDescriptor *td = FindPtrOrNull(*task_map_, task_id);
-  //   // _Should_ exist.
-  //   CHECK_NOTNULL(td);
-
-  //   // TODO handle case when we have started a task!
-  //   double completed = 0;
-
-
-  //   if (td->has_absolute_deadline() &&
-  //     app_stats->GetRuntime(host, completed) > (td->absolute_deadline() - GetCurrentTimestamp())) {
-  //     // We are not expected to make the deadline, let the scheduler know.
-  //     return POOR_SCHEDULING_CHOICE;
-  //   } else {
-  //     return app_stats->GetEnergy(host, 0);
-  //   }
-  // }
   return 0ULL;
 }
 
@@ -140,12 +79,12 @@ Cost_t EnergyCostModel::BatchTaskToResourceNodeCosts(TaskID_t task_id, TaskDescr
                                                 vector<Cost_t> &machine_task_costs) {
 
   TaskType application = td->task_type();
-  ApplicationStatistics *app_stats = FindPtrOrNull(*application_stats_, application);
+  BatchAppStatistics *app_stats = dynamic_cast<BatchAppStatistics *>(FindPtrOrNull(*application_stats_, application));
   bool new_application = false;
   if (!app_stats) {
     VLOG(2) << "Did not find application " << application << " in the database. "
             << "Creating new.";
-    app_stats = new ApplicationStatistics();
+    app_stats = new BatchAppStatistics();
     // TODO setup the new, unseen program with defaults.
     (*application_stats_)[application] = app_stats;
     new_application = true;
@@ -212,7 +151,8 @@ Cost_t EnergyCostModel::BatchTaskToResourceNodeCosts(TaskID_t task_id, TaskDescr
   if (!schedulable_on) {
     // Shoot! We missed the deadline, now lets wrap this thing up as quickly as possible.
     sort(runtimes.begin(), runtimes.end());
-    const uint64_t num_considered = 2;
+    // Consider a maximum of two resources.
+    uint64_t num_considered = machine_ids.size() < 2 ? machine_ids.size() : 2;
     // Still use their energies but make it crazy expensive to not schedule this! :)
     for (uint64_t i = 0; i < num_considered; ++i) {
       uint64_t machine_idx = runtimes[i].second;
@@ -249,7 +189,7 @@ Cost_t EnergyCostModel::TaskToResourceNodeCosts(TaskID_t task_id, const vector<R
 
 
 void EnergyCostModel::SetInitialStats() {
-  ApplicationStatistics *wc_stats = new ApplicationStatistics();
+  BatchAppStatistics *wc_stats = new BatchAppStatistics();
 
   vector<pair<uint64_t, double>> uriel_wcmapred_runtimes({make_pair(1, 40.120000), make_pair(2, 80.660000), make_pair(3, 120.900000), make_pair(4, 162.200000), make_pair(6, 244.670000), make_pair(7, 283.780000), make_pair(10, 399.990000), make_pair(12, 478.530000)});
   vector<pair<uint64_t, double>> pandaboard_wcmapred_runtimes({make_pair(1, 278.820000), make_pair(2, 551.580000), make_pair(3, 828.310000), make_pair(4, 1111.680000), make_pair(6, 1656.250000)});
@@ -272,6 +212,22 @@ void EnergyCostModel::SetInitialStats() {
 
   (*application_stats_)[TaskDescriptor::MAPREDUCE_WC] = wc_stats;
 
+  BatchAppStatistics *join_stats = new BatchAppStatistics();
+
+  vector<pair<uint64_t, double>> uriel_joinmapred_runtimes({make_pair(1, 46.730000), make_pair(2, 102.060000), make_pair(3, 159.680000), make_pair(4, 227.760000), make_pair(6, 382.210000), make_pair(7, 476.060000), make_pair(10, 782.670000), make_pair(12, 794.940000)});
+  vector<pair<uint64_t, double>> pandaboard_joinmapred_runtimes({make_pair(1, 376.620000), make_pair(2, 866.160000), make_pair(3, 1483.490000), make_pair(4, 2229.270000), make_pair(7, 1611.000000), make_pair(10, 2173.000000), make_pair(12, 2166.000000)});
+  vector<pair<uint64_t, double>> michael_joinmapred_runtimes({make_pair(1, 48.940000), make_pair(2, 99.850000), make_pair(3, 159.640000), make_pair(4, 219.070000), make_pair(6, 365.990000), make_pair(7, 432.600000), make_pair(10, 741.300000), make_pair(12, 751.060000)});
+  vector<pair<uint64_t, double>> titanic_joinmapred_runtimes({make_pair(3, 953.760000), make_pair(7, 3412.840000), make_pair(10, 2229.000000), make_pair(12, 2177.000000)});
+  join_stats->SetRuntimes("michael", michael_joinmapred_runtimes);
+  join_stats->SetRuntimes("uriel", uriel_joinmapred_runtimes);
+  join_stats->SetRuntimes("pandaboard", pandaboard_joinmapred_runtimes);
+  join_stats->SetRuntimes("titanic", titanic_joinmapred_runtimes);
+  join_stats->SetPower("uriel", 51.4161912923);
+  join_stats->SetPower("pandaboard", 0.954096364266);
+  join_stats->SetPower("michael", 26.2885511978);
+  join_stats->SetPower("titanic", 8.56867123191);
+
+  (*application_stats_)[TaskDescriptor::MAPREDUCE_WC] = join_stats;
 
 
 }

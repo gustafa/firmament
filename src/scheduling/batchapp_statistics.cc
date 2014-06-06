@@ -1,4 +1,4 @@
-#include "scheduling/application_statistics.h"
+#include "scheduling/batchapp_statistics.h"
 
 #include "misc/utils.h"
 #include "misc/map-util.h"
@@ -11,7 +11,7 @@ namespace firmament {
 
 
 
-ApplicationStatistics::ApplicationStatistics() :
+BatchAppStatistics::BatchAppStatistics() :
   machine_to_power_(new MachinePowerMap()),
   machine_to_runtime_(new MachineRuntimeMap())
   //machine_to_completion_stats_(new unordered_map<string, CompletionStatistics>())
@@ -23,11 +23,11 @@ ApplicationStatistics::ApplicationStatistics() :
   runtime_stats_.min_stat = numeric_limits<double>::max();
 }
 
-  double ApplicationStatistics::GetPower(string machine) {
+  double BatchAppStatistics::GetPower(string machine) {
     return (*machine_to_power_)[machine];
   }
 
-  double ApplicationStatistics::GetRunningRuntime(string machine, uint64_t units, double completed) {
+  double BatchAppStatistics::GetRunningRuntime(string machine, uint64_t units, double completed) {
     UnitRuntimeMap *unit_runtime_map = FindPtrOrNull(*machine_to_runtime_,machine);// size);
     // TODO allow for non-defined values.
 
@@ -68,22 +68,22 @@ ApplicationStatistics::ApplicationStatistics() :
     return runtime * (1 - completed);
   }
 
-  double ApplicationStatistics::GetRuntime(string machine, uint64_t size) {
+  double BatchAppStatistics::GetRuntime(string machine, uint64_t size) {
     return GetRunningRuntime(machine, size, 0);
   }
 
-  void ApplicationStatistics::SetRuntime(string machine, uint64_t size, double runtime) {
+  void BatchAppStatistics::SetRuntime(string machine, uint64_t size, double runtime) {
 
 
   }
 
   // TODO allow for different power levels?
-  void ApplicationStatistics::SetPower(string machine, double power) {
+  void BatchAppStatistics::SetPower(string machine, double power) {
     (*machine_to_power_)[machine] = power;
   }
 
 
-  void ApplicationStatistics::SetRuntimes(string machine, vector<pair<uint64_t, double>> units_runtimes) {
+  void BatchAppStatistics::SetRuntimes(string machine, vector<pair<uint64_t, double>> units_runtimes) {
     UnitRuntimeMap *unit_runtime_map = FindPtrOrNull(*machine_to_runtime_,machine);
     if (!unit_runtime_map) {
       unit_runtime_map = new UnitRuntimeMap();
@@ -96,51 +96,51 @@ ApplicationStatistics::ApplicationStatistics() :
   }
 
 // // Get energy for the given machine with a fraction completed.
-// double ApplicationStatistics::GetEnergy(string machine, double completed) {
+// double BatchAppStatistics::GetEnergy(string machine, double completed) {
 //   // BUG sideeffects of accessor..
 //   return (*machine_to_energy_)[machine] * (1 - completed);
 // }
 
-// void ApplicationStatistics::SetEnergy(string machine, double energy) {
+// void BatchAppStatistics::SetEnergy(string machine, double energy) {
 //   // TODO consider whether we want energy / s or total energy here!
 //   SetStat(*machine_to_energy_, power_stats_, machine, energy);
 // }
 
 // // Get Runtime for the given machine with a fraction completed.
-// double ApplicationStatistics::GetRuntime(string machine, double completed) {
+// double BatchAppStatistics::GetRuntime(string machine, double completed) {
 //   return (*machine_to_runtime_)[machine] * (1 - completed);
 // }
 
-// void ApplicationStatistics::SetRuntime(string machine, double runtime) {
+// void BatchAppStatistics::SetRuntime(string machine, double runtime) {
 //   SetStat(*machine_to_runtime_, runtime_stats_, machine, runtime);
 // }
 
-// double ApplicationStatistics::BestEnergy(uint64_t units) {
+// double BatchAppStatistics::BestEnergy(uint64_t units) {
 //   return power_stats_.min_stat * pow(units, energy_multiplier_) * ;
 // }
 
-// double ApplicationStatistics::WorstEnergy(uint64_t units) {
+// double BatchAppStatistics::WorstEnergy(uint64_t units) {
 //   return power_stats_.max_stat;
 // }
 
-// double ApplicationStatistics::BestRuntime() {
+// double BatchAppStatistics::BestRuntime() {
 //   return runtime_stats_.min_stat;
 // }
 
-// double ApplicationStatistics::WorstRuntime() {
+// double BatchAppStatistics::WorstRuntime() {
 //   return runtime_stats_.max_stat;
 // }
 
 
-bool ApplicationStatistics::HasStatistics() {
+bool BatchAppStatistics::HasStatistics() {
   return machine_to_runtime_->size() != 0;
 }
 
-void ApplicationStatistics::PrintStats() {
+void BatchAppStatistics::PrintStats() {
 // TODO implement
 }
 
-// void ApplicationStatistics::SetStat(MachineStatMap &stat_map, MachineAppStat &stats,
+// void BatchAppStatistics::SetStat(MachineStatMap &stat_map, MachineAppStat &stats,
 //                                     string &machine, double stat) {
 //       // Update the value of the hashmap.
 //   stat_map[machine] = stat;
@@ -161,7 +161,7 @@ void ApplicationStatistics::PrintStats() {
 //   }
 // }
 
-// void ApplicationStatistics::RecomputeStats(MachineStatMap &stat_map, MachineAppStat &stats) {
+// void BatchAppStatistics::RecomputeStats(MachineStatMap &stat_map, MachineAppStat &stats) {
 //   // Only recompute if statistics are available.
 //   if (stat_map.size()) {
 //     auto it = stat_map.begin();
