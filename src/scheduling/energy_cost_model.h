@@ -23,7 +23,7 @@ namespace firmament {
 
 
 
-typedef uint64_t Cost_t;
+typedef int64_t Cost_t;
 
 typedef unordered_map<ResourceID_t, ApplicationStatistics*, boost::hash<boost::uuids::uuid>> ResourceStatsMap;
 
