@@ -62,8 +62,9 @@ int main(int argc, char **argv) {
   boost::thread t1(&LaunchTasklib);
 
   int i = 0;
+  int max_files = 20;
   for (;i < num_files; ++i) {
-    string current_file = input_dir + "/input" + std::to_string(i);
+    string current_file = input_dir + "/input" + std::to_string(i % max_files);
     ifstream source(current_file, ios::binary);
     ofstream dest(output_dir + "/output" + std::to_string(i), ios::binary);
     dest << source.rdbuf();
