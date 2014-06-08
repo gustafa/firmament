@@ -455,7 +455,7 @@ void Coordinator::HandleHeartbeat(const HeartbeatMessage& msg) {
 }
 
 void Coordinator::HandleTaskFinalReport(const TaskFinalReport& report) {
-
+  VLOG(1) << "Handling task final report! ";
 }
 
 
