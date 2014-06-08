@@ -41,6 +41,6 @@ echo "0.020" > $FLAGS_completion_filename
 # TODO NAMED PIPES! Get PIDS, pass to reducer.
 LD_PRELOAD=$PRELOAD ldpreloader
 
-#rm $FLAGS_output_filename
-#rm $FLAGS_completion_filename
-#rm $FLAGS_tuple_filename
+rm $FLAGS_output_filename
+rm $FLAGS_completion_filename
+rm $FLAGS_tuple_filename
