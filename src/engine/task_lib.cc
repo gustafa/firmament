@@ -78,7 +78,8 @@ TaskLib::TaskLib()
     heartbeat_seq_number_(0),
     stop_(false),
     completed_(0),
-    task_perf_monitor_(1000000)
+    task_perf_monitor_(1000000),
+    internal_completed_(false)
  {
   const char* task_id_env = FLAGS_task_id.c_str();
 
@@ -142,7 +143,7 @@ void TaskLib::AddTaskStatisticsToHeartbeat(
     AddMemcachedStatistics(stats->mutable_memcached_stats());
   }
 
-  if (!FLAGS_completion_filename.empty()) {
+  if (!FLAGS_completion_filename.empty() || internal_completed_) {
     VLOG(3) << "Adding completion stats!";
     AddCompletionStatistics(stats);
   } else {
@@ -151,19 +152,20 @@ void TaskLib::AddTaskStatisticsToHeartbeat(
 }
 
 void TaskLib::AddCompletionStatistics(TaskPerfStatisticsSample *ts) {
-  CHECK(completion_file_);
+  // Retrieve the completion stats externally if the completion filename is set
+  // and simply use the set value otherwise.
+  if (!FLAGS_completion_filename.empty()) {
+    CHECK(completion_file_);
 
-  char str[20];
-  int num_bytes = fread(str, 1, 20, completion_file_.get());
-  rewind(completion_file_.get());
-  str[num_bytes] = '\0';
-
-  if (num_bytes) {
+    char str[20];
+    int num_bytes = fread(str, 1, 20, completion_file_.get());
+    rewind(completion_file_.get());
+    str[num_bytes] = '\0';
+    if (num_bytes) {
     completed_ = strtod(str, NULL);
+    }
   }
-
   ts->set_completed(completed_);
-
   // Mark ourselves as ready to stop once the task progress has been completed.
   if (completed_ >= 1.0) {
     exit_ = true;
@@ -177,6 +179,8 @@ void TaskLib::AwaitNextMessage() {
 
 void TaskLib::SetCompleted(double completed) {
   completed_ = completed;
+  // Mark us as getting updates within the internals.
+  internal_completed_ = true;
 }
 
 bool TaskLib::ConnectToCoordinator(const string& coordinator_uri) {

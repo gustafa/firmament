@@ -23,6 +23,7 @@ type_to_td_type = {'wc': task_desc_pb2.TaskDescriptor.MAPREDUCE_WC, \
                    'join': task_desc_pb2.TaskDescriptor.MAPREDUCE_JOIN, \
                    'mv': task_desc_pb2.TaskDescriptor.FILETRANSFER }
 
+
 def get_and_increment_jobnum(job_type):
   curr = type_to_current_num[job_type]
   type_to_current_num[job_type] = curr + 1

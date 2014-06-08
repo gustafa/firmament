@@ -5,4 +5,4 @@ export FLAGS_task_id=feedcafedeadbeeffeedcafedeadbeeffeedcafedeadbeeffeedcafedea
 export FLAGS_heartbeat_interval=1
 export FLAGS_tasklib_application=filetransfer
 
-build/examples/batchjobs/filetransfer build/examples/batchjobs/ 5 --fromenv=coordinator_uri,resource_id,task_id,heartbeat_interval,tasklib_application
+/home/gjrh2/firmament/build/examples/batchjobs/filetransfer build/examples/batchjobs/ 5 --fromenv=coordinator_uri,resource_id,task_id,heartbeat_interval,tasklib_application

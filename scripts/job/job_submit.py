@@ -52,6 +52,8 @@ job_desc.root_task.input_size = input_size
 
 if binary == 'nginx_firmament':
   job_desc.root_task.task_type = task_desc_pb2.TaskDescriptor.NGINX
+elif binary == 'filetransfer':
+  job_desc.root_task.task_type = task_desc_pb2.TaskDescriptor.FILETRANSFER
 
 binary_set = False
 
@@ -63,6 +65,7 @@ if len(sys.argv) > 5:
       job_desc.root_task.task_type = task_desc_pb2.TaskDescriptor.MAPREDUCE_WC
     elif 'join' in arg:
       job_desc.root_task.task_type = task_desc_pb2.TaskDescriptor.MAPREDUCE_JOIN
+
 
 
 #input_id = binascii.unhexlify('feedcafedeadbeeffeedcafedeadbeeffeedcafedeadbeeffeedcafedeadbeef') #sys.argv[4])

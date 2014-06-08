@@ -9,17 +9,21 @@ import sys
 deadline_fractions = [0.1, 0.3, 0.8, 1.0]
 deadline_idx_to_type = {0: 'short', 1: 'medium', 2: 'long', 3: 'anytime'}
 deadline_multipliers = {'short': 1.2, 'medium': 3, 'long': 15, 'anytime': 10000}
+
+
+
                 #  wc join mv
 job_fractions = [0.3, 0.7, 1.0]
 job_idx_to_type = {0: 'wc', 1: 'join', 2: 'mv'}
 
 job_type_to_binary = {'wc': 'firmareduce', 'join': 'firmareduce', 'mv': 'filetransfer' }
+job_type_to_input_ranges = {'wc': [1, 11], 'mv': }
 
 directory = '/home/gjrh2/firmament/src/examples/'
 
 job_type_to_args = {'wc': ["%s%s%s" % (directory, "mapreduce/", name) for name in ['wcmapper.py', 'wcreducer.py']], \
                     'join': ["%s%s%s" % (directory, "mapreduce/", name) for name in ['joinmapper.py', 'joinreducer.py']], \
-                    'mv': []
+                    'mv': [] #"%s%s%s" %(directory, " bactjobs/", 'filetransfer') ]
                     }
 
 shortest_job_s = 60

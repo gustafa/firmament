@@ -231,9 +231,15 @@ void EnergyCostModel::SetInitialStats() {
   join_stats->SetRuntimes("gustafa", michael_joinmapred_runtimes);
   join_stats->SetPower("gustafa", 10);
 
-
   (*application_stats_)[TaskDescriptor::MAPREDUCE_WC] = join_stats;
 
+  BatchAppStatistics *filetransfer_stats = new BatchAppStatistics();
+
+  vector<pair<uint64_t, double>> gustafa_filetransfer_runtimes({make_pair(1, 60), make_pair(10, 600)});
+  filetransfer_stats->SetPower("gustafa", 20);
+  filetransfer_stats->SetRuntimes("gustafa", gustafa_filetransfer_runtimes);
+
+  (*application_stats_)[TaskDescriptor::FILETRANSFER] = filetransfer_stats;
 
 }
 
