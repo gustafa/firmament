@@ -41,9 +41,9 @@ class KnowledgeBase {
   const deque<MachinePerfStatisticsSample>* GetStatsForMachine(
       ResourceID_t id) const;
   const deque<TaskPerfStatisticsSample>* GetStatsForTask(
-      TaskID_t id) const;
-  const deque<TaskFinalReport>* GetFinalStatsForTask(TaskID_t id) const;
-  void ProcessTaskFinalReport(const TaskFinalReport& report);
+      TaskID_t task_id) const;
+  const deque<TaskFinalReport>* GetFinalStatsForTask(TaskID_t task_type) const; // TaskDescriptor::TaskType
+  void ProcessTaskFinalReport(const TaskDescriptor &td, const TaskFinalReport& report);
 
   uint64_t GetAndResetWebreqs(uint64_t &num_seconds);
 
@@ -51,6 +51,7 @@ class KnowledgeBase {
     return application_stats_;
   }
 
+  string GetRuntimesAsJson();
 
  protected:
   map<ResourceID_t, deque<MachinePerfStatisticsSample> > machine_map_;
@@ -61,7 +62,7 @@ class KnowledgeBase {
   shared_ptr<AppStatsMap_t> application_stats_;
 
 
-  shared_ptr<RuntimeStatsMap_t> runtime_stats_;
+  shared_ptr<RuntimeStatsMap_t> runtime_stats_map_;
 
   uint64_t webreqs_since_last_check_;
 

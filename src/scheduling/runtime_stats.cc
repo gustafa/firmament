@@ -1,30 +1,36 @@
-#include "base/types.h"
-#ifndef FIRMAMENT_SCHEDULING_RUNTIME_STATISTICS_H
-#define FIRMAMENT_SCHEDULING_RUNTIME_STATISTICS_H
+#include "scheduling/runtime_stats.h"
+
 namespace firmament {
-class RuntimeStats {
- public:
-  RuntimeStats();
+RuntimeStats::RuntimeStats() { }
 
-  inline void AddArrivalTime(uint64_t t) {
-    arrival_times_.push_back(t);
+string RuntimeStats::ToJsonString(string name) {
+  stringstream ss;
+  ss << "\"" << name << "\": {\n";
+  sort(arrival_times_.begin(), arrival_times_.end());
+  sort(completion_times_.begin(), completion_times_.end());
+  sort(missed_deadline_times_.begin(), missed_deadline_times_.end());
+
+  ss << "\"arrival_times\": " << VectorToCSV(arrival_times_) << ",\n";
+  ss << "\"completion_times\": " << VectorToCSV(completion_times_) << ",\n";
+  ss << "\"missed_deadline_times_\": " << VectorToCSV(missed_deadline_times_) << "\n}\n";
+  return ss.str();
+}
+
+
+string RuntimeStats::VectorToCSV(vector<uint64_t> &v) {
+  if (!v.size()) {
+    return "[]";
   }
-
-
-  inline void AddCompletionTime(uint64_t t) {
-    completion_times_.push_back(t);
+  stringstream ss;
+  ss << "[";
+  uint64_t last_elem = v.size() - 1;
+  for (uint64_t i = 0; i != last_elem; ++i) {
+    ss << v[i] << ", ";
   }
+  ss << v[last_elem];
+  ss << "]";
 
-
-  inline void AddMissedDeadlineTime(uint64_t t) {
-    missed_deadline_times_.push_back(t);
-  }
-
- private:
-  vector<uint64_t> arrival_times_;
-  vector<uint64_t> completion_times_;
-  vector<uint64_t> missed_deadline_times_;
-};
+  return ss.str();
+}
 
 } // namespace firmament
-#endif // FIRMAMENT_SCHEDULING_RUNTIME_STATISTICS_H

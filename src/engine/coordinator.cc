@@ -455,7 +455,8 @@ void Coordinator::HandleHeartbeat(const HeartbeatMessage& msg) {
 }
 
 void Coordinator::HandleTaskFinalReport(const TaskFinalReport& report) {
-  VLOG(1) << "Handling task final report! ";
+  VLOG(1) << "Handling task final report!";
+  //knowledge_base_->ProcessTaskFinalReport(report);
 }
 
 
@@ -729,7 +730,7 @@ void Coordinator::HandleTaskStateChange(
         // Hack! We don't get this data from
         report.set_finish_time(current_time);
       }
-      knowledge_base_->ProcessTaskFinalReport(report);
+      knowledge_base_->ProcessTaskFinalReport(**td_ptr, report);
       break;
     }
     case TaskDescriptor::FAILED:
@@ -792,11 +793,9 @@ void Coordinator::OutputStats(string filename) {
   }
   output_file << "],\n";
 
-
-
+  output_file << knowledge_base_->GetRuntimesAsJson();
   output_file << "}\n";
   output_file.close();
-
 }
 
 
