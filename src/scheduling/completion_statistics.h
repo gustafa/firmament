@@ -1,5 +1,6 @@
 #include "base/types.h"
-
+#ifndef FIRMAMENT_SCHEDULING_COMPLETION_STATISTICS_H
+#define FIRMAMENT_SCHEDULING_COMPLETION_STATISTICS_H
 namespace firmament {
 class CompletionStatistics {
  public:
@@ -13,3 +14,4 @@ class CompletionStatistics {
 };
 
 } // namespace firmament
+#endif // FIRMAMENT_SCHEDULING_COMPLETION_STATISTICS_H

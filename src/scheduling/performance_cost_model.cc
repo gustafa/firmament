@@ -1,21 +1,23 @@
 // The Firmament project
 // Copyright (c) 2014 Malte Schwarzkopf <malte.schwarzkopf@cl.cam.ac.uk>
 //
-// Energy based cost model.
+// Performance based cost model.
 
 #include <string>
 
 #include "misc/map-util.h"
 #include "misc/utils.h"
 
-#include "scheduling/energy_cost_model.h"
+#include "scheduling/performance_cost_model.h"
 
 
 namespace firmament {
 
+
+
 typedef TaskDescriptor::TaskType TaskType;
 
-EnergyCostModel::EnergyCostModel(shared_ptr<ResourceMap_t> resource_map, shared_ptr<JobMap_t> job_map,
+PerformanceCostModel::PerformanceCostModel(shared_ptr<ResourceMap_t> resource_map, shared_ptr<JobMap_t> job_map,
                   shared_ptr<TaskMap_t> task_map, shared_ptr<KnowledgeBase> knowledge_base,
                   shared_ptr<ResourceHostMap_t> resource_to_host,  map<TaskID_t, ResourceID_t> *task_bindings)
   : resource_map_(resource_map),
@@ -34,48 +36,48 @@ EnergyCostModel::EnergyCostModel(shared_ptr<ResourceMap_t> resource_map, shared_
  //  application_host_stats_["nginx"] = nginx_stats;
 }
 
-Cost_t EnergyCostModel::TaskToUnscheduledAggCost(TaskID_t task_id, FlowSchedulingPriorityType priority) {
+Cost_t PerformanceCostModel::TaskToUnscheduledAggCost(TaskID_t task_id, FlowSchedulingPriorityType priority) {
   // Not to be used in this cost model.
   CHECK(false);
 }
 
-Cost_t EnergyCostModel::UnscheduledAggToSinkCost(JobID_t job_id) {
+Cost_t PerformanceCostModel::UnscheduledAggToSinkCost(JobID_t job_id) {
   return 0ULL;
 }
 
-Cost_t EnergyCostModel::TaskToClusterAggCost(TaskID_t task_id) {
+Cost_t PerformanceCostModel::TaskToClusterAggCost(TaskID_t task_id) {
   return 2ULL;
 }
 
-Cost_t EnergyCostModel::TaskToResourceNodeCost(TaskID_t task_id,
+Cost_t PerformanceCostModel::TaskToResourceNodeCost(TaskID_t task_id,
                                                ResourceID_t resource_id) {
 
   return 0ULL;
 }
 
-Cost_t EnergyCostModel::ClusterAggToResourceNodeCost(ResourceID_t target) {
+Cost_t PerformanceCostModel::ClusterAggToResourceNodeCost(ResourceID_t target) {
   return 5ULL;
 }
 
-Cost_t EnergyCostModel::ResourceNodeToResourceNodeCost(
+Cost_t PerformanceCostModel::ResourceNodeToResourceNodeCost(
     ResourceID_t source,
     ResourceID_t destination) {
   return 0ULL;
 }
 
-Cost_t EnergyCostModel::LeafResourceNodeToSinkCost(ResourceID_t resource_id) {
+Cost_t PerformanceCostModel::LeafResourceNodeToSinkCost(ResourceID_t resource_id) {
   return 0ULL;
 }
 
-Cost_t EnergyCostModel::TaskContinuationCost(TaskID_t task_id) {
+Cost_t PerformanceCostModel::TaskContinuationCost(TaskID_t task_id) {
   return 0ULL;
 }
 
-Cost_t EnergyCostModel::TaskPreemptionCost(TaskID_t task_id) {
+Cost_t PerformanceCostModel::TaskPreemptionCost(TaskID_t task_id) {
   return 0ULL;
 }
 
-Cost_t EnergyCostModel::BatchTaskToResourceNodeCosts(TaskID_t task_id, TaskDescriptor *td, const vector<ResourceID_t> &machine_ids,
+Cost_t PerformanceCostModel::BatchTaskToResourceNodeCosts(TaskID_t task_id, TaskDescriptor *td, const vector<ResourceID_t> &machine_ids,
                                                 vector<Cost_t> &machine_task_costs) {
 
   TaskType application = td->task_type();
@@ -107,9 +109,6 @@ Cost_t EnergyCostModel::BatchTaskToResourceNodeCosts(TaskID_t task_id, TaskDescr
 
   // Runtime, machine idx
   vector<pair<double, uint64_t>> runtimes;
-  vector<double> powers;
-
-  double total_schedulable_power = 0;
 
   // Set all as poor scheduling choices for now and then we update them later :).
   machine_task_costs.insert(machine_task_costs.begin(), machine_ids.size(), POOR_SCHEDULING_CHOICE);
@@ -126,13 +125,10 @@ Cost_t EnergyCostModel::BatchTaskToResourceNodeCosts(TaskID_t task_id, TaskDescr
     double runtime = remaining * app_stats->GetRuntime(host, td->input_size());
 
     runtimes.push_back(make_pair(runtime, i));
-    double power = app_stats->GetPower(host);
-    powers.push_back(power);
 
     if (td->has_absolute_deadline() &&
       (td->absolute_deadline() - GetCurrentTimestamp()) <= runtime) {
       // We are not expected to make the deadline, let the scheduler know.
-      total_schedulable_power += power;
       possible_machine_idxs.push_back(i);
     }
     // Set all to poor scheduling choice initially, we'll change this later.
@@ -142,7 +138,7 @@ Cost_t EnergyCostModel::BatchTaskToResourceNodeCosts(TaskID_t task_id, TaskDescr
   if (possible_machine_idxs.size()) {
     double min_cost = POOR_SCHEDULING_CHOICE;
     for (auto machine_idx : possible_machine_idxs) {
-      double cost = powers[machine_idx] * runtimes[machine_idx].first / fastest_runtime;
+      double cost = MULTIPLIER_ * runtimes[machine_idx].first / fastest_runtime;
       machine_task_costs[machine_idx] = cost;
       if (cost < min_cost) {
         min_cost = cost;
@@ -164,7 +160,7 @@ Cost_t EnergyCostModel::BatchTaskToResourceNodeCosts(TaskID_t task_id, TaskDescr
     // Still use their energies but make it crazy expensive to not schedule this! :)
     for (uint64_t i = 0; i < num_considered; ++i) {
       uint64_t machine_idx = runtimes[i].second;
-      machine_task_costs[machine_idx] = powers[machine_idx] * runtimes[machine_idx].first / fastest_runtime;
+      machine_task_costs[machine_idx] =  (MULTIPLIER_ * runtimes[machine_idx].first) / fastest_runtime;
     }
     // Do not unschedule por favor ;)
     return POOR_SCHEDULING_CHOICE;
@@ -172,7 +168,7 @@ Cost_t EnergyCostModel::BatchTaskToResourceNodeCosts(TaskID_t task_id, TaskDescr
 }
 
 
-Cost_t EnergyCostModel::ServiceTaskToResourceNodeCosts(TaskID_t task_id, TaskDescriptor *td, const vector<ResourceID_t> &machine_ids,
+Cost_t PerformanceCostModel::ServiceTaskToResourceNodeCosts(TaskID_t task_id, TaskDescriptor *td, const vector<ResourceID_t> &machine_ids,
                                                 vector<Cost_t> &machine_task_costs) {
   TaskType application = td->task_type();
   ServiceAppStatistics *app_stats = dynamic_cast<ServiceAppStatistics *>(FindPtrOrNull(*application_stats_, application));
@@ -202,13 +198,13 @@ Cost_t EnergyCostModel::ServiceTaskToResourceNodeCosts(TaskID_t task_id, TaskDes
 
   // Runtime, machine idx
   vector<pair<uint64_t, uint64_t>> max_rpss;
-  vector<double> powers;
-
 
   // Set all as poor scheduling choices for now and then we update them later :).
   machine_task_costs.insert(machine_task_costs.begin(), machine_ids.size(), POOR_SCHEDULING_CHOICE - 100);
 
   vector<uint64_t> possible_machine_idxs;
+
+
 
   for (uint64_t i = 0; i < machine_ids.size(); ++i) {
     ResourceID_t machine_id = machine_ids[i];
@@ -219,19 +215,18 @@ Cost_t EnergyCostModel::ServiceTaskToResourceNodeCosts(TaskID_t task_id, TaskDes
     uint64_t max_rps = app_stats->MaxRPS(host);
     max_rpss.push_back(make_pair(max_rps, i));
 
-    double power = app_stats->GetPower(host, input_size);
-    powers.push_back(power);
-
-    if (input_size > max_rps) {
+    if (input_size <= max_rps) {
       possible_machine_idxs.push_back(i);
     }
     // Set all to poor scheduling choice initially, we'll change this later.
   }
 
+  uint64_t global_max_rps = max_element(max_rpss.begin(), max_rpss.end())->first;
+
   if (possible_machine_idxs.size()) {
     for (auto machine_idx : possible_machine_idxs) {
       // TODO apply discount if running on task already... QQ
-      machine_task_costs[machine_idx] = powers[machine_idx];
+      machine_task_costs[machine_idx] = (global_max_rps * MULTIPLIER_) / max_rpss[machine_idx].first;
     }
   } else {
     // Shoot! We can't keep up with the current RPS (no possible machines to schedule on) now lets do our best
@@ -241,17 +236,17 @@ Cost_t EnergyCostModel::ServiceTaskToResourceNodeCosts(TaskID_t task_id, TaskDes
     // Still use their energies but make it crazy expensive to not schedule this! :)
     for (uint64_t i = 0; i < num_considered; ++i) {
       uint64_t machine_idx = max_rpss[i].second;
-      machine_task_costs[machine_idx] = powers[machine_idx];
+      machine_task_costs[machine_idx] = (global_max_rps * MULTIPLIER_) / max_rpss[machine_idx].first;
     }
   }
 
-  // Not running a service task is always a bad ide
+  // Not running a service task is always a bad idea
   return POOR_SCHEDULING_CHOICE;
 
 
 }
 
-Cost_t EnergyCostModel::TaskToResourceNodeCosts(TaskID_t task_id, const vector<ResourceID_t> &machine_ids,
+Cost_t PerformanceCostModel::TaskToResourceNodeCosts(TaskID_t task_id, const vector<ResourceID_t> &machine_ids,
                                                 vector<Cost_t> &machine_task_costs) {
   TaskDescriptor *td = FindPtrOrNull(*task_map_, task_id);
   CHECK_NOTNULL(td);
@@ -266,7 +261,7 @@ Cost_t EnergyCostModel::TaskToResourceNodeCosts(TaskID_t task_id, const vector<R
 }
 
 
-void EnergyCostModel::SetInitialStats() {
+void PerformanceCostModel::SetInitialStats() {
   BatchAppStatistics *wc_stats = new BatchAppStatistics();
 
   vector<pair<uint64_t, double>> uriel_wcmapred_runtimes({make_pair(1, 40.120000), make_pair(2, 80.660000), make_pair(3, 120.900000), make_pair(4, 162.200000), make_pair(6, 244.670000), make_pair(7, 283.780000), make_pair(10, 399.990000), make_pair(12, 478.530000)});
@@ -322,7 +317,7 @@ void EnergyCostModel::SetInitialStats() {
 
 }
 
-TaskType EnergyCostModel::GetTaskType(TaskID_t task_id) {
+TaskType PerformanceCostModel::GetTaskType(TaskID_t task_id) {
   TaskDescriptor **td = FindOrNull(*task_map_, task_id);
   CHECK_NOTNULL(td);
   return (*td)->task_type();

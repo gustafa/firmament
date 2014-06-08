@@ -55,6 +55,9 @@ class FlowSchedulingCostModelInterface {
   // Costs pertaining to preemption (i.e. already running tasks)
   virtual Cost_t TaskContinuationCost(TaskID_t task_id) = 0;
   virtual Cost_t TaskPreemptionCost(TaskID_t task_id) = 0;
+
+
+  const Cost_t MULTIPLIER_ = 1000;
 };
 
 }  // namespace firmament
