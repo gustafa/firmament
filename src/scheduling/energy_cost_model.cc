@@ -297,7 +297,10 @@ void EnergyCostModel::SetInitialStats() {
   vector<pair<uint64_t, double>> uriel_joinmapred_runtimes({make_pair(1, 46.730000), make_pair(2, 102.060000), make_pair(3, 159.680000), make_pair(4, 227.760000), make_pair(6, 382.210000), make_pair(7, 476.060000), make_pair(10, 782.670000), make_pair(12, 794.940000)});
   vector<pair<uint64_t, double>> pandaboard_joinmapred_runtimes({make_pair(1, 376.620000), make_pair(2, 866.160000), make_pair(3, 1483.490000), make_pair(4, 2229.270000), make_pair(7, 1611.000000), make_pair(10, 2173.000000), make_pair(12, 2166.000000)});
   vector<pair<uint64_t, double>> michael_joinmapred_runtimes({make_pair(1, 48.940000), make_pair(2, 99.850000), make_pair(3, 159.640000), make_pair(4, 219.070000), make_pair(6, 365.990000), make_pair(7, 432.600000), make_pair(10, 741.300000), make_pair(12, 751.060000)});
-  vector<pair<uint64_t, double>> titanic_joinmapred_runtimes({make_pair(3, 953.760000), make_pair(7, 3412.840000), make_pair(10, 2229.000000), make_pair(12, 2177.000000)});
+  vector<pair<uint64_t, double>> titanic_joinmapred_runtimes({make_pair(1, 300), {make_pair(3, 953.760000), make_pair(7, 3412.840000), make_pair(10, 2229.000000), make_pair(12, 2177.000000)});
+                                                            // TODO REMOVE THIS ONE! (1,300) Titanic
+
+
   join_stats->SetRuntimes("michael", michael_joinmapred_runtimes);
   join_stats->SetRuntimes("uriel", uriel_joinmapred_runtimes);
   join_stats->SetRuntimes("pandaboard", pandaboard_joinmapred_runtimes);

@@ -139,6 +139,8 @@ void LocalExecutor::RunTask(TaskDescriptor* td,
   CHECK(td);
   // Save the start time.
   (*task_start_times_)[td->uid()] = GetCurrentTimestamp();
+  // Mark the start time of the task.
+  td->set_started(GetCurrentTimestamp());
   // XXX(malte): Move this over to use RunProcessAsync, instead of custom thread
   // spawning.
   // TODO(malte): We lose the thread reference here, so we can never join this
@@ -148,8 +150,7 @@ void LocalExecutor::RunTask(TaskDescriptor* td,
       boost::bind(&LocalExecutor::_RunTask, this, td, firmament_binary));
   exec_condvar_.wait(lock);
 
-  // Mark the start time of the task.
-  td->set_started(GetCurrentTimestamp());
+
 }
 
 bool LocalExecutor::_RunTask(TaskDescriptor* td,
