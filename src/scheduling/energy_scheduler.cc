@@ -27,6 +27,8 @@
 #include "scheduling/trivial_cost_model.h"
 #include "scheduling/quincy_cost_model.h"
 #include "scheduling/energy_cost_model.h"
+#include "scheduling/performance_cost_model.h"
+
 
 DECLARE_bool(debug_flow_graph);
 DECLARE_int32(flow_scheduling_cost_model);
@@ -97,6 +99,14 @@ EnergyScheduler::EnergyScheduler(
       energy_cost_model->SetInitialStats();
       flow_graph_.reset(new FlowGraph(energy_cost_model));
       VLOG(1) << "Using the energy cost model";
+      break;
+    }
+    case FlowSchedulingCostModelType::COST_MODEL_PERFORMANCE: {
+      PerformanceCostModel *performance_cost_model = new PerformanceCostModel(resource_map, job_map, task_map, knowledge_base, resource_host_map_,
+        &task_bindings_);
+
+      // TODO FIX THE SETTING OF VALUES FOR THE PERFORMANCE COST MODEL
+      flow_graph_.reset(new FlowGraph(performance_cost_model));
       break;
     }
     default:

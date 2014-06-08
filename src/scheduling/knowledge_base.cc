@@ -19,7 +19,8 @@ KnowledgeBase::KnowledgeBase() :
   webreqs_since_last_check_(0),
   webreq_window_first_(0),
   webreq_window_last_(0),
-  application_stats_(new AppStatsMap_t) {
+  application_stats_(new AppStatsMap_t()),
+  runtime_stats_map_(new RuntimeStatsMap_t()) {
 }
 
 void KnowledgeBase::AddMachineSample(
@@ -102,16 +103,35 @@ void KnowledgeBase::DumpMachineStats(const ResourceID_t& res_id) const {
     LOG(INFO) << it->free_ram();
   }
 }
-void KnowledgeBase::ProcessTaskFinalReport(const TaskFinalReport& report) {
-  // TODO Gustafa base this shit on something else!
-  TaskID_t tid = report.task_id();
+void KnowledgeBase::ProcessTaskFinalReport(const TaskDescriptor &td, const TaskFinalReport& report) {
+  VLOG(2) << "Processing the final task report for task "  << td.uid();
+  TaskID_t tid_equiv = report.task_id();
+  CHECK(td.has_task_type());
+
+  RuntimeStats *runtime_stats = FindPtrOrNull(*runtime_stats_map_, td.task_type());
+
+  if (runtime_stats == NULL) {
+    VLOG(2) << "Creating new runtime statistics for task_type " << td.task_type();
+    runtime_stats = new RuntimeStats();
+    (*runtime_stats_map_)[td.task_type()] = runtime_stats;
+  }
+
+  runtime_stats->AddArrivalTime(report.start_time());
+  runtime_stats->AddCompletionTime(report.finish_time());
+  if (td.has_absolute_deadline()) {
+    if (report.finish_time() > td.absolute_deadline()) {
+      // The deadline is marked as missed at the point it expired.
+      runtime_stats->AddMissedDeadlineTime(td.absolute_deadline());
+    }
+  }
+
   // Check if we already have a record for this task
-  deque<TaskFinalReport>* q = FindOrNull(task_exec_reports_, tid);
+  deque<TaskFinalReport>* q = FindOrNull(task_exec_reports_, tid_equiv);
   if (!q) {
     // Add a blank queue for this task
-    CHECK(InsertOrUpdate(&task_exec_reports_, tid,
+    CHECK(InsertOrUpdate(&task_exec_reports_, tid_equiv,
                          deque<TaskFinalReport>()));
-    q = FindOrNull(task_exec_reports_, tid);
+    q = FindOrNull(task_exec_reports_, tid_equiv);
     CHECK_NOTNULL(q);
   }
   if (q->size() * sizeof(report) >= MAX_SAMPLE_QUEUE_CAPACITY)
@@ -120,6 +140,19 @@ void KnowledgeBase::ProcessTaskFinalReport(const TaskFinalReport& report) {
 
 
   VLOG(1) << "Recorded final report for task " << report.task_id();
+}
+
+string KnowledgeBase::GetRuntimesAsJson() {
+  stringstream ss;
+  for (auto it = runtime_stats_map_->begin(); it != runtime_stats_map_->end(); ++it) {
+    stringstream name;
+    name << it->first;
+    ss << it->second->ToJsonString(name.str());
+    if (it != runtime_stats_map_->end()) {
+      ss << ",";
+    }
+  }
+  return ss.str();
 }
 
 }  // namespace firmament

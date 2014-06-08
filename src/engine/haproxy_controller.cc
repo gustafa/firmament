@@ -143,7 +143,7 @@ string HAProxyController::HAProxyCommand(string args) {
 
 
 
-void HAProxyController::GenerateJobs(vector<JobDescriptor*> &jobs, uint64_t number_of_jobs) {
+void HAProxyController::GenerateJobs(vector<JobDescriptor*> &jobs, uint64_t number_of_jobs, uint64_t size_per_job) {
   const int64_t name_size = 32;
   char buffer[name_size];
   char input_buffer[name_size];
@@ -165,6 +165,8 @@ void HAProxyController::GenerateJobs(vector<JobDescriptor*> &jobs, uint64_t numb
         boost::lexical_cast<std::string>(port) + ".conf";
     root_task->add_args(boost::lexical_cast<std::string>(port));
     root_task->add_args("-c " + config_file);
+    root_task->set_input_size(size_per_job);
+
 
 
     ReferenceDescriptor *input_desc = root_task->add_dependencies();

@@ -156,6 +156,16 @@ void EventDrivenScheduler::DeregisterResource(ResourceID_t res_id) {
   delete exec;
 }
 
+ExecutorInterface *EventDrivenScheduler::GetExecutorForTask(TaskID_t task_id) {
+  ResourceID_t* res_id_ptr = FindOrNull(task_bindings_, task_id);
+  CHECK_NOTNULL(res_id_ptr);
+
+  // Record final report
+  ExecutorInterface** exec = FindOrNull(executors_, *res_id_ptr);
+  CHECK_NOTNULL(exec);
+  return *exec;
+}
+
 void EventDrivenScheduler::HandleTaskCompletion(TaskDescriptor* td_ptr,
                                                 TaskFinalReport* report) {
   boost::lock_guard<boost::mutex> lock(scheduling_lock_);

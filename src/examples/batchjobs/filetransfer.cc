@@ -36,34 +36,53 @@ void LaunchTasklib() {
 }
 
 int main(int argc, char **argv) {
-  string dir;
-  if (argc < 3) {
-    std::cerr << "Usage: filetransfer <dir> <num_files>" << std::endl;
+  string input_dir;
+  string output_dir;
+  if (argc < 4) {
+    std::cerr << "Usage: filetransfer <input_dir> <output_dir> <num_files>" << std::endl;
     exit(1);
   }
-  dir = argv[1];
-  int num_files = atoi(argv[2]);
-  std::cout << dir;
+  input_dir = argv[1];
+  output_dir = argv[2];
+  int num_files = atoi(argv[3]);
+  std::cout << input_dir;
+  bool inside_firmament = getenv("FLAGS_coordinator_uri") != NULL;
 
-  firmament::common::InitFirmament(argc, argv);
-  task_lib.reset(new firmament::TaskLib());
-  task_lib->SetCompleted(0);
 
-  boost::thread t1(&LaunchTasklib);
+  // Setup firmament. This check is to allow for benchmarking without a running instance of firmament.
+  if (inside_firmament) {
+    string sargs = "--tryfromenv=coordinator_uri,resource_id,task_id,heartbeat_interval,tasklib_application,completion_filename,nginx_port";
+    string progargs = "nginxy";
+    boost::thread::id task_thread_id = boost::this_thread::get_id();
+
+    char *argv2[1];
+    argv2[0] = const_cast<char*>(sargs.c_str());
+    firmament::common::InitFirmament(1, argv2);
+
+    //firmament::common::InitFirmament(argc, argv);
+    task_lib.reset(new firmament::TaskLib());
+    task_lib->SetCompleted(0);
+    boost::thread t1(&LaunchTasklib);
+  }
+
+
 
   int i = 0;
+  int max_files = 20;
   for (;i < num_files; ++i) {
-    string current_file = dir + "/input" + std::to_string(i);
+    string current_file = input_dir + "/input" + std::to_string(i % max_files);
     ifstream source(current_file, ios::binary);
-    ofstream dest(dir + "/output" + std::to_string(i), ios::binary);
+    ofstream dest(output_dir + "/output" + std::to_string(i % max_files), ios::binary);
     dest << source.rdbuf();
     source.close();
     dest.close();
-    task_lib->SetCompleted((i+1) / double(num_files));
+    if (inside_firmament) {
+      task_lib->SetCompleted((i+1) / double(num_files));
+    }
   }
 
   if (i == 0) {
-    std::cerr << "NO FILES COPIED, could not find any in: " << dir << std::endl;
+    std::cerr << "NO FILES COPIED, could not find any in: " << input_dir << std::endl;
     exit(2);
   } else {
     exit(0);

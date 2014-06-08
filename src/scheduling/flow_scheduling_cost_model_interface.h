@@ -14,13 +14,14 @@
 
 namespace firmament {
 
-typedef uint64_t Cost_t;
+typedef int64_t Cost_t;
 
 // List of cost models supported
 enum FlowSchedulingCostModelType {
   COST_MODEL_TRIVIAL = 0,
   COST_MODEL_QUINCY = 1,
   COST_MODEL_ENERGY = 2,
+  COST_MODEL_PERFORMANCE = 3,
 };
 
 // List of priorities supported
@@ -34,7 +35,7 @@ class FlowSchedulingCostModelInterface {
  public:
   FlowSchedulingCostModelInterface() {};
 
-  const Cost_t POOR_SCHEDULING_CHOICE = std::numeric_limits<Cost_t>::max();
+  const Cost_t POOR_SCHEDULING_CHOICE = std::numeric_limits<int32_t>::max() - 10;
 
   virtual ~FlowSchedulingCostModelInterface() {};
 
@@ -55,6 +56,9 @@ class FlowSchedulingCostModelInterface {
   // Costs pertaining to preemption (i.e. already running tasks)
   virtual Cost_t TaskContinuationCost(TaskID_t task_id) = 0;
   virtual Cost_t TaskPreemptionCost(TaskID_t task_id) = 0;
+
+
+  const Cost_t MULTIPLIER_ = 1000;
 };
 
 }  // namespace firmament

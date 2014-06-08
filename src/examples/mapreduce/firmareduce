@@ -19,7 +19,7 @@ export FLAGS_mr_inputfile=$INPUT_FILE
 export FLAGS_heartbeat_interval=1
 
 # Make sure the libraries can be found
-export PYTHON_PATH=/home/gjrh2/firmament/src/examples/mapreduce/
+export PYTHONPATH=$PYTHONPATH:/home/gjrh2/firmament/src/examples/mapreduce/
 
 # For local test runs.
 if [[ -z "$FLAGS_task_id" ]]; then

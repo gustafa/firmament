@@ -14,7 +14,6 @@ namespace firmament {
 ServiceAppStatistics::ServiceAppStatistics() :
   machine_to_power_(new MachinePowerMap()),
   machine_to_max_rps_(new MachineRPSMap()) {
-
   }
 
   uint64_t ServiceAppStatistics::MaxRPS(string hostname) {

@@ -16,6 +16,7 @@ extern "C" {
 #include "base/types.h"
 #include "misc/equivclasses.h"
 #include "misc/utils.h"
+#include "misc/map-util.h"
 
 DEFINE_bool(debug_tasks, false,
             "Run tasks through a debugger (gdb).");
@@ -45,7 +46,8 @@ LocalExecutor::LocalExecutor(ResourceID_t resource_id,
     : local_resource_id_(resource_id),
       coordinator_uri_(coordinator_uri),
       topology_manager_(topology_mgr),
-      heartbeat_interval_(1000000000ULL) {  // 1 billios nanosec = 1 sec
+      heartbeat_interval_(1000000000ULL),
+      task_start_times_(new unordered_map<TaskID_t,uint64_t>()) {  // 1 billios nanosec = 1 sec
   VLOG(1) << "Executor for resource " << resource_id << " is up: " << *this;
   VLOG(1) << "Tasks will be bound to the resource by the topology manager"
           << "at " << topology_manager_;
@@ -98,7 +100,17 @@ void LocalExecutor::GetPerfDataFromLine(TaskFinalReport* report,
 
 void LocalExecutor::HandleTaskCompletion(const TaskDescriptor& td,
                                          TaskFinalReport* report) {
+  uint64_t end_time = GetCurrentTimestamp();
+  uint64_t *start_time = FindOrNull(*task_start_times_, td.uid());
+  // _SHOULD_ be in the start time from before!
+  CHECK_NOTNULL(start_time);
   report->set_task_id(GenerateTaskEquivClass(td));
+  report->set_start_time(*start_time);
+  report->set_finish_time(end_time);
+   // Remove the start time from the map
+  task_start_times_->erase(td.uid());
+
+
   // Load perf data, if it exists
   if (FLAGS_perf_monitoring) {
     FILE* fptr;
@@ -125,6 +137,8 @@ void LocalExecutor::HandleTaskCompletion(const TaskDescriptor& td,
 void LocalExecutor::RunTask(TaskDescriptor* td,
                             bool firmament_binary) {
   CHECK(td);
+  // Save the start time.
+  (*task_start_times_)[td->uid()] = GetCurrentTimestamp();
   // XXX(malte): Move this over to use RunProcessAsync, instead of custom thread
   // spawning.
   // TODO(malte): We lose the thread reference here, so we can never join this

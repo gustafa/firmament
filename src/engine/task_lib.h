@@ -142,6 +142,7 @@ class TaskLib {
   uint64_t heartbeat_seq_number_;
 
   bool stop_;
+  bool internal_completed_;
 
   // Vector containing previous values of nginx statistics s.t.
   shared_ptr<vector<uint64_t>> nginx_prev_;

@@ -23,10 +23,16 @@ type_to_td_type = {'wc': task_desc_pb2.TaskDescriptor.MAPREDUCE_WC, \
                    'join': task_desc_pb2.TaskDescriptor.MAPREDUCE_JOIN, \
                    'mv': task_desc_pb2.TaskDescriptor.FILETRANSFER }
 
+
+
 def get_and_increment_jobnum(job_type):
   curr = type_to_current_num[job_type]
   type_to_current_num[job_type] = curr + 1
   return curr
+
+
+
+
 
 
 def generate_job_desc(job_dict):
@@ -43,9 +49,12 @@ def generate_job_desc(job_dict):
   job_desc.root_task.state = task_desc_pb2.TaskDescriptor.CREATED
   job_desc.root_task.binary = str(job_dict['binary'])
   job_desc.root_task.task_type = type_to_td_type[job_type]
+  job_desc.root_task.input_size = job_dict['units']
 
   for arg in job_dict['args']:
     job_desc.root_task.args.append(str(arg))
+
+  job_desc.root_task.args.append(str(job_dict['units']))
 
   input_desc = job_desc.root_task.dependencies.add()
   input_desc.scope = reference_desc_pb2.ReferenceDescriptor.PUBLIC

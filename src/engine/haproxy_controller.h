@@ -25,7 +25,7 @@ class HAProxyController {
   bool EnableServer(string hostname, uint64_t port);
   bool DisableServer(string hostname, uint64_t port);
 
-  void GenerateJobs(vector<JobDescriptor*> &jobs, uint64_t number_of_jobs);
+  void GenerateJobs(vector<JobDescriptor*> &jobs, uint64_t number_of_jobs, uint64_t size_per_job);
 
 
   inline uint64_t GetNumActiveJobs() { return num_active_jobs_;}

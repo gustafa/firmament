@@ -253,10 +253,14 @@ class Coordinator : public Node,
   void HandleTaskStateChange(const TaskStateMessage& msg);
   void HandleStorageRegistrationRequest(const StorageRegistrationMessage& msg);
 
+  void HandleTaskFinalReport(const TaskFinalReport& report);
+
   /* Only necessary if storage is not guaranteed to be local*/
   void HandleStorageDiscoverRequest(const StorageDiscoverMessage& msg);
 
   void IssueWebserverJobs();
+
+  void OutputStats(string filename);
 
 #ifdef __HTTP_UI__
   void InitHTTPUI();
@@ -309,6 +313,10 @@ class Coordinator : public Node,
 
   // EnergyStatisticsMap hostname->wraparound vector
   unordered_map<string, WraparoundVector<double>*> energy_stats_map;
+
+  shared_ptr<vector<uint64_t>> numberof_webrequests_;
+
+
 
 #ifdef __SIMULATE_SYNTHETIC_DTG__
   shared_ptr<sim::SimpleDTGGenerator> sim_dtg_generator_;
