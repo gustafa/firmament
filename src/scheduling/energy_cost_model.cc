@@ -150,10 +150,10 @@ Cost_t EnergyCostModel::BatchTaskToResourceNodeCosts(TaskID_t task_id, TaskDescr
     }
     if (possible_machine_idxs.size() > 2) {
       // Unscheduled 15 % more expensive than the cheapest available option
-      return uint64_t(min_cost * 1.15);
+      return uint64_t(min_cost * 1.15) * MULTIPLIER_;
     } else {
       // Less than two machines can still run this task on time!
-      return uint64_t(min_cost * 20);
+      return uint64_t(min_cost * 20)  * MULTIPLIER_;
     }
 
   } else {
