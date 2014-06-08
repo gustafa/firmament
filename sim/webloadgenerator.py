@@ -29,7 +29,7 @@ def main():
 
   for i in range(num_samples):
     mbps = mbps_per_sample[i]
-    weightbenchmarker.set_mbps(mbps)
+    weightbenchmarker.set_mbps(mbps, 'eth4')
     connections = weightbenchmarker.get_num_connections(mbps)
     num_threads = weightbenchmarker.get_num_threads(connections)
     connections = weightbenchmarker.alter_num_connections(connections, num_threads)

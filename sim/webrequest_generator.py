@@ -29,7 +29,7 @@ def main():
   ms_runtime = runtime * 1000
 
   # 10 second wait time
-  wait_time = 1000 * 10
+  wait_time = 1000
   runtime_per_sample = ms_runtime / num_entries
 
   runtimes = [runtime_per_sample * i for i in range(num_entries)]

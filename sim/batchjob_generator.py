@@ -24,7 +24,7 @@ job_type_to_args = {'wc': ["%s%s%s" % (directory, "mapreduce/", name) for name i
 
 shortest_job_s = 60
 longest_job_s = 600
-average_active_jobs = 6
+average_active_jobs = 10
 
 
 out_filename = 'sim/batchload'

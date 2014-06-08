@@ -60,9 +60,7 @@ def get_num_requests(mbps, seconds):
   requests_per_s = rate_per_mbps * mbps_cons
   return requests_per_s * seconds
 
-def set_mbps(mbps):
-  global TC
-  global IF
+def set_mbps(mbps, IF):
   global DRY_RUN
   commands = ['%(tc)s qdisc del dev %(if)s root' % {'tc': TC, 'if': IF}, '%(tc)s qdisc add dev %(if)s root handle 1: htb default 30' % {'tc': TC, 'if': IF}, \
               '%(tc)s class add dev %(if)s parent 1: classid 1:1 htb rate %(mbps)smbit' % {'tc': TC, 'if': IF, 'mbps': str(mbps)},
@@ -124,7 +122,7 @@ def main():
         if hostname != 'titanic' or mbps < 300:
           continue
         # Limit the flowuser's bandwidth to the specified mbps.
-        set_mbps(mbps)
+        set_mbps(mbps, IF)
         num_connections = get_num_connections(mbps)
         num_threads = get_num_threads(num_connections)
         num_connections = alter_num_connections(num_connections,num_threads)
