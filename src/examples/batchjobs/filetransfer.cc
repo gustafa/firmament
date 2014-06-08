@@ -46,20 +46,26 @@ int main(int argc, char **argv) {
   output_dir = argv[2];
   int num_files = atoi(argv[3]);
   std::cout << input_dir;
+  bool inside_firmament = getenv("FLAGS_coordinator_uri") != NULL;
 
-  string sargs = "--tryfromenv=coordinator_uri,resource_id,task_id,heartbeat_interval,tasklib_application,completion_filename,nginx_port";
-  string progargs = "nginxy";
-  boost::thread::id task_thread_id = boost::this_thread::get_id();
 
-  char *argv2[1];
-  argv2[0] = const_cast<char*>(sargs.c_str());
-  firmament::common::InitFirmament(1, argv2);
+  // Setup firmament. This check is to allow for benchmarking without a running instance of firmament.
+  if (inside_firmament) {
+    string sargs = "--tryfromenv=coordinator_uri,resource_id,task_id,heartbeat_interval,tasklib_application,completion_filename,nginx_port";
+    string progargs = "nginxy";
+    boost::thread::id task_thread_id = boost::this_thread::get_id();
 
-  //firmament::common::InitFirmament(argc, argv);
-  task_lib.reset(new firmament::TaskLib());
-  task_lib->SetCompleted(0);
+    char *argv2[1];
+    argv2[0] = const_cast<char*>(sargs.c_str());
+    firmament::common::InitFirmament(1, argv2);
 
-  boost::thread t1(&LaunchTasklib);
+    //firmament::common::InitFirmament(argc, argv);
+    task_lib.reset(new firmament::TaskLib());
+    task_lib->SetCompleted(0);
+    boost::thread t1(&LaunchTasklib);
+  }
+
+
 
   int i = 0;
   int max_files = 20;
@@ -70,7 +76,9 @@ int main(int argc, char **argv) {
     dest << source.rdbuf();
     source.close();
     dest.close();
-    task_lib->SetCompleted((i+1) / double(num_files));
+    if (inside_firmament) {
+      task_lib->SetCompleted((i+1) / double(num_files));
+    }
   }
 
   if (i == 0) {
