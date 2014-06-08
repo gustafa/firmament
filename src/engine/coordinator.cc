@@ -82,7 +82,8 @@ Coordinator::Coordinator(PlatformID platform_id)
     object_store_(new store::SimpleObjectStore(uuid_)),
     parent_chan_(NULL),
     knowledge_base_(new KnowledgeBase()),
-    haproxy_controller_(new HAProxyController("my_servers")) {
+    haproxy_controller_(new HAProxyController("my_servers")),
+    numberof_webrequests_(new vector<uint64_t>()) {
   // Start up a coordinator according to the platform parameter
   string desc_name = "Coordinator on " + hostname_;
   resource_desc_.set_uuid(to_string(uuid_));
@@ -290,6 +291,14 @@ void Coordinator::Run() {
   // We have dropped out of the main loop and are exiting
   // TODO(malte): any cleanup we need to do; hand-over to another coordinator if
   // possible?
+
+  if (parent_chan_ == NULL) {
+    // STATS PRINT TIME WOOOHOOOOO
+    stringstream ss;
+    ss << GetCurrentTimestamp();
+    OutputStats("/home/gjrh2/coordinatorstats" + ss.str());
+  }
+
   Shutdown("dropped out of main loop");
 }
 
@@ -379,6 +388,12 @@ void Coordinator::HandleIncomingMessage(BaseMessage *bm,
     HandleEnergyStats(msg);
     handled_extensions++;
   }
+
+  if (bm->has_taskfinal_report()) {
+    const TaskFinalReport &msg = bm->taskfinal_report();
+    HandleTaskFinalReport(msg);
+    handled_extensions++;
+  }
   // Check that we have handled at least one sub-message
   if (handled_extensions == 0)
     LOG(ERROR) << "Ignored incoming message, no known extension present, "
@@ -438,6 +453,11 @@ void Coordinator::HandleHeartbeat(const HeartbeatMessage& msg) {
       knowledge_base_->AddMachineSample(msg.load());
   }
 }
+
+void Coordinator::HandleTaskFinalReport(const TaskFinalReport& report) {
+
+}
+
 
 void Coordinator::HandleIONotification(const BaseMessage& bm,
                                        const string& remote_uri) {
@@ -687,15 +707,28 @@ void Coordinator::HandleTaskStateChange(
   if ((*td_ptr)->has_delegated_from()) {
     BaseMessage bm;
     bm.mutable_task_state()->CopyFrom(msg);
+
+    // Send along completion statistics to the coordinator as well.
+    // TODO make this all const incuding hantle taskcompletion method and remove duplication from
+    // Switch statement below.
+    executor::ExecutorInterface *executor = scheduler_->GetExecutorForTask((*td_ptr)->uid());
+    TaskFinalReport *report =  bm.mutable_taskfinal_report();
+    executor->HandleTaskCompletion(**td_ptr, report);
+
     m_adapter_->SendMessageToEndpoint((*td_ptr)->delegated_from(), bm);
     return;
   }
   switch (msg.new_state()) {
     case TaskDescriptor::COMPLETED:
     {
+      uint64_t current_time = GetCurrentTimestamp();
       (*td_ptr)->set_state(TaskDescriptor::COMPLETED);
       TaskFinalReport report;
       scheduler_->HandleTaskCompletion(*td_ptr, &report);
+      if (!report.has_finish_time()) {
+        // Hack! We don't get this data from
+        report.set_finish_time(current_time);
+      }
       knowledge_base_->ProcessTaskFinalReport(report);
       break;
     }
@@ -741,6 +774,31 @@ void Coordinator::KillRunningTask(TaskID_t task_id,
   scheduler_->KillRunningTask(task_id, reason);
 
 }
+
+void Coordinator::OutputStats(string filename) {
+  // Woo time to update webserver and batch job data.
+  ofstream output_file;
+  output_file.open(filename);
+  output_file << "{\n";
+
+  output_file << "\"nginx_requests_served\": [";
+  uint64_t last_webrequest_idx = numberof_webrequests_->size()?  numberof_webrequests_->size() -1 : numberof_webrequests_->size();
+  for (uint64_t i = 0; i != last_webrequest_idx; ++i) {
+    output_file << (*numberof_webrequests_)[i] << ", ";
+  }
+
+  if (numberof_webrequests_->size()) {
+    output_file << (*numberof_webrequests_)[last_webrequest_idx];
+  }
+  output_file << "],\n";
+
+
+
+  output_file << "}\n";
+  output_file.close();
+
+}
+
 
 void Coordinator::AddJobsTasksToTables(TaskDescriptor* td, JobID_t job_id) {
   // Set job ID field on task. We do this here since we've only just generated
@@ -803,10 +861,20 @@ void Coordinator::IssueWebserverJobs() {
   uint64_t seconds;
   uint64_t num_requests = knowledge_base_->GetAndResetWebreqs(seconds);
   VLOG(2) << "Currently seeing " << num_requests << " webrequests per second.";
+
+  // Add served webrequests to our totals
+  if (numberof_webrequests_->size()) {
+    // Add anything after we have started observing these.
+    numberof_webrequests_->push_back(num_requests);
+  } else if (num_requests > 3) {
+    // First request!
+    numberof_webrequests_->push_back(num_requests);
+  }
+
   // Provision for a potential 15% increase in jobs.
   uint64_t rps = num_requests / seconds + uint64_t(num_requests * 1.15);
 
-  const uint64_t rps_per_job = 10000;
+  const uint64_t rps_per_job = 5000;
   uint64_t num_jobs = (rps / rps_per_job) + 1;
 
   uint64_t rps_per_server = rps / num_jobs;

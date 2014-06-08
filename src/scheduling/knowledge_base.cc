@@ -19,7 +19,8 @@ KnowledgeBase::KnowledgeBase() :
   webreqs_since_last_check_(0),
   webreq_window_first_(0),
   webreq_window_last_(0),
-  application_stats_(new AppStatsMap_t) {
+  application_stats_(new AppStatsMap_t()),
+  runtime_stats_(new RuntimeStatsMap_t()) {
 }
 
 void KnowledgeBase::AddMachineSample(
@@ -103,8 +104,10 @@ void KnowledgeBase::DumpMachineStats(const ResourceID_t& res_id) const {
   }
 }
 void KnowledgeBase::ProcessTaskFinalReport(const TaskFinalReport& report) {
-  // TODO Gustafa base this shit on something else!
+  // TODO Gustafa hmm painful! No remote executor support
   TaskID_t tid = report.task_id();
+  // Need to get the task desc from here!
+
   // Check if we already have a record for this task
   deque<TaskFinalReport>* q = FindOrNull(task_exec_reports_, tid);
   if (!q) {

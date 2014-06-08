@@ -77,6 +77,9 @@ class SchedulerInterface : public PrintableInterface {
   // scheduler.
   //void ScheduleAllJobs();
 
+  virtual executor::ExecutorInterface *GetExecutorForTask(TaskID_t task_id) = 0;
+
+
 
   // Issues webserver jobs on the scheduler.
   virtual void IssueWebserverJobs() = 0;

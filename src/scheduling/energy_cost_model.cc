@@ -264,7 +264,6 @@ Cost_t EnergyCostModel::TaskToResourceNodeCosts(TaskID_t task_id, const vector<R
   }
 
   return 0;
-
 }
 
 

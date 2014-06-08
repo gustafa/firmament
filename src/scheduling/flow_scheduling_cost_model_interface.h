@@ -21,6 +21,7 @@ enum FlowSchedulingCostModelType {
   COST_MODEL_TRIVIAL = 0,
   COST_MODEL_QUINCY = 1,
   COST_MODEL_ENERGY = 2,
+  COST_MODEL_PERFORMANCE = 3,
 };
 
 // List of priorities supported

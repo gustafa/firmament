@@ -58,6 +58,8 @@ class EventDrivenScheduler : public SchedulerInterface {
     return *stream << "<EventDrivenScheduler>";
   }
 
+  ExecutorInterface *GetExecutorForTask(TaskID_t task_id);
+
   void IssueWebserverJobs();
 
  protected:
