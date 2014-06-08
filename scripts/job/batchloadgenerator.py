@@ -50,11 +50,11 @@ def generate_job_desc(job_dict):
   job_desc.root_task.binary = str(job_dict['binary'])
   job_desc.root_task.task_type = type_to_td_type[job_type]
   job_desc.root_task.input_size = job_dict['units']
+  job_desc.root_task.relative_deadline = job_dict['deadline']
+
 
   for arg in job_dict['args']:
     job_desc.root_task.args.append(str(arg))
-
-  job_desc.root_task.args.append(str(job_dict['units']))
 
   input_desc = job_desc.root_task.dependencies.add()
   input_desc.scope = reference_desc_pb2.ReferenceDescriptor.PUBLIC
@@ -103,14 +103,13 @@ def submit_proto(hostname, port, job_desc):
   conn.close()
 
 
-if len(sys.argv) != 4:
-  print "usage: batchloadgenerator <coordinator hostname> <web UI port> " \
-      "<batchjobfile>"
+if len(sys.argv) != 3:
+  print "usage: batchloadgenerator <coordinator hostname> <web UI port> "
   sys.exit(1)
 
 hostname = sys.argv[1]
 port = sys.argv[2]
-job_filename = sys.argv[3]
+job_filename = '/home/gjrh2/firmament/sim/batchload'
 
 
 with file(job_filename, 'r') as input_file:

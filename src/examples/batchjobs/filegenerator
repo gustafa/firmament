@@ -5,7 +5,16 @@ if [[ $# -ne 3 ]]; then
   exit 1
 fi
 
-MULTIPLIER=$((20 + $1))
+HOST=$(hostname)
+
+
+MULTIPLIER=20
+if [ "$HOST" = "gustafa" ]
+then
+  MULTIPLIER=$((15 + $1))
+else
+  MULTIPLIER=$((20 + $1))
+fi
 
 for (( i = 0; i < $2; i++ )); do
   echo "Generating file $(($i + 1)) of $2"

@@ -311,13 +311,28 @@ void EnergyCostModel::SetInitialStats() {
   join_stats->SetRuntimes("gustafa", michael_joinmapred_runtimes);
   join_stats->SetPower("gustafa", 10);
 
-  (*application_stats_)[TaskDescriptor::MAPREDUCE_WC] = join_stats;
+  (*application_stats_)[TaskDescriptor::MAPREDUCE_JOIN] = join_stats;
 
   BatchAppStatistics *filetransfer_stats = new BatchAppStatistics();
 
-  vector<pair<uint64_t, double>> gustafa_filetransfer_runtimes({make_pair(1, 60), make_pair(10, 600)});
+  vector<pair<uint64_t, double>> uriel_filetransfer_runtimes({make_pair(10, 22.880000), make_pair(20, 45.210000), make_pair(50, 116.880000), make_pair(100, 229.980000), make_pair(150, 346.700000), make_pair(250, 577.120000), make_pair(400, 925.570000), make_pair(600, 1395.030000)});
+  vector<pair<uint64_t, double>> pandaboard_filetransfer_runtimes({make_pair(10, 215.060000), make_pair(20, 435.680000), make_pair(50, 1099.320000), make_pair(100, 2300.210000), make_pair(150, 3395.120000), make_pair(250, 1972.000000), make_pair(400, 1695.000000), make_pair(600, 2658.000000)});
+  vector<pair<uint64_t, double>> michael_filetransfer_runtimes({make_pair(10, 37.940000), make_pair(20, 73.080000), make_pair(50, 123.740000), make_pair(100, 266.990000), make_pair(150, 452.980000), make_pair(250, 696.060000), make_pair(400, 1160.330000), make_pair(600, 1720.590000)});
+  vector<pair<uint64_t, double>> titanic_filetransfer_runtimes({make_pair(10, 44.440000), make_pair(20, 68.520000), make_pair(50, 230.590000), make_pair(100, 449.520000), make_pair(150, 736.880000), make_pair(250, 1180.450000), make_pair(400, 1901.510000), make_pair(600, 2878.910000)});
+  filetransfer_stats->SetPower("uriel", 29.006090878);
+  filetransfer_stats->SetPower("pandaboard", 1.39785491627);
+  filetransfer_stats->SetPower("michael", 18.5887076174);
+  filetransfer_stats->SetPower("titanic", 13.7984403934);
   filetransfer_stats->SetPower("gustafa", 20);
-  filetransfer_stats->SetRuntimes("gustafa", gustafa_filetransfer_runtimes);
+  filetransfer_stats->SetRuntimes("gustafa", michael_filetransfer_runtimes);
+
+
+  filetransfer_stats->SetRuntimes("michael", michael_filetransfer_runtimes);
+  filetransfer_stats->SetRuntimes("uriel", uriel_filetransfer_runtimes);
+  filetransfer_stats->SetRuntimes("titanic", titanic_filetransfer_runtimes);
+  filetransfer_stats->SetRuntimes("pandaboard", pandaboard_filetransfer_runtimes);
+
+
 
   (*application_stats_)[TaskDescriptor::FILETRANSFER] = filetransfer_stats;
 
@@ -337,6 +352,8 @@ void EnergyCostModel::SetInitialStats() {
   nginx_stats->SetPowers("pandaboard", pandaboard_nginx_powers);
   nginx_stats->SetPowers("michael", michael_nginx_powers);
   nginx_stats->SetPowers("titanic", titanic_nginx_powers);
+
+
 
 }
 

@@ -285,7 +285,9 @@ void Coordinator::Run() {
       // TODO IssueWebserverJobs();
     }
 
-    boost::this_thread::sleep(boost::posix_time::milliseconds(FLAGS_sleep_time));
+    if (parent_chan_) {
+      boost::this_thread::sleep(boost::posix_time::milliseconds(FLAGS_sleep_time));
+    }
   }
 
   // We have dropped out of the main loop and are exiting
