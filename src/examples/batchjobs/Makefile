@@ -25,4 +25,4 @@ filegenerator: $(FT_OUTPUT_DIR)/input0
 
 $(FT_OUTPUT_DIR)/input0:
 	@echo "Generating input files for the filetransfer batch job"
-	@./filegenerator 5 5 $(FT_OUTPUT_DIR)
+	@./filegenerator 8 20 $(FT_OUTPUT_DIR)
