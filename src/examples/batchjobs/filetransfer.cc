@@ -72,7 +72,7 @@ int main(int argc, char **argv) {
   for (;i < num_files; ++i) {
     string current_file = input_dir + "/input" + std::to_string(i % max_files);
     ifstream source(current_file, ios::binary);
-    ofstream dest(output_dir + "/output" + std::to_string(i), ios::binary);
+    ofstream dest(output_dir + "/output" + std::to_string(i % max_files), ios::binary);
     dest << source.rdbuf();
     source.close();
     dest.close();
