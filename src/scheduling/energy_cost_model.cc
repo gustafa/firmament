@@ -257,7 +257,9 @@ Cost_t EnergyCostModel::TaskToResourceNodeCosts(TaskID_t task_id, const vector<R
   CHECK_NOTNULL(td);
   TaskDescriptor::TaskType application = td->task_type();
 
-  if (application != TaskDescriptor::NGINX) {
+  if (application == TaskDescriptor::NGINX) {
+    return ServiceTaskToResourceNodeCosts(task_id, td, machine_ids, machine_task_costs);
+  } else {
     return BatchTaskToResourceNodeCosts(task_id, td, machine_ids, machine_task_costs);
   }
 
