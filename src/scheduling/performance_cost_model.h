@@ -1,10 +1,10 @@
 // The Firmament project
 // Copyright (c) 2014 Malte Schwarzkopf <malte.schwarzkopf@cl.cam.ac.uk>
 //
-// Energy scheduling cost model.
+// Performance scheduling cost model.
 
-#ifndef FIRMAMENT_SCHEDULING_ENERGY_COST_MODEL_H
-#define FIRMAMENT_SCHEDULING_ENERGY_COST_MODEL_H
+#ifndef FIRMAMENT_SCHEDULING_PERFORMANCE_COST_MODEL_H
+#define FIRMAMENT_SCHEDULING_PERFORMANCE_COST_MODEL_H
 
 #include <string>
 #include <unordered_map>
@@ -27,9 +27,9 @@ typedef uint64_t Cost_t;
 
 typedef unordered_map<ResourceID_t, ApplicationStatistics*, boost::hash<boost::uuids::uuid>> ResourceStatsMap;
 
-class EnergyCostModel : public FlowSchedulingCostModelInterface {
+class PerformanceCostModel : public FlowSchedulingCostModelInterface {
  public:
-  EnergyCostModel(shared_ptr<ResourceMap_t> resource_map, shared_ptr<JobMap_t> job_map,
+  PerformanceCostModel(shared_ptr<ResourceMap_t> resource_map, shared_ptr<JobMap_t> job_map,
                   shared_ptr<TaskMap_t> task_map, shared_ptr<KnowledgeBase> knowledge_base,
                   shared_ptr<ResourceHostMap_t> resource_to_host,
                   map<TaskID_t, ResourceID_t> *task_bindings);
@@ -77,9 +77,9 @@ class EnergyCostModel : public FlowSchedulingCostModelInterface {
                                                        vector<Cost_t> &machine_task_costs);
 
   Cost_t ServiceTaskToResourceNodeCosts(TaskID_t task_id, TaskDescriptor *td, const vector<ResourceID_t> &machine_ids,
-                                      vector<Cost_t> &machine_task_costs);
+                                                       vector<Cost_t> &machine_task_costs);
 };
 
 }  // namespace firmament
 
-#endif  // FIRMAMENT_SCHEDULING_ENERGY_COST_MODEL_H
+#endif  // FIRMAMENT_SCHEDULING_PERFORMANCE_COST_MODEL_H

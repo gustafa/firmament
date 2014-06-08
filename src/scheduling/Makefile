@@ -9,7 +9,7 @@ LIB = libfirmament_scheduling.a
 OBJS = dimacs_exporter.o event_driven_scheduler.o flow_graph.o \
        quincy_cost_model.o quincy_scheduler.o  simple_scheduler.o \
        energy_scheduler.o trivial_cost_model.o energy_cost_model.o batchapp_statistics.o \
-       serviceapp_statistics.o completion_statistics.o knowledge_base.o
+       serviceapp_statistics.o completion_statistics.o knowledge_base.o performance_cost_model.o
 
 PBS = flow_node_type.pb.o scheduling_parameters.pb.o scheduling_delta.pb.o
 TESTS = dimacs_exporter_test flow_graph_test
@@ -20,6 +20,7 @@ TESTS_dimacs_exporter_DEPS = $(OBJ_DIR)/flow_graph.o \
 			     $(OBJ_DIR)/trivial_cost_model.o \
 			     $(OBJ_DIR)/quincy_cost_model.o \
  			     $(OBJ_DIR)/energy_cost_model.o \
+ 			     $(OBJ_DIR)/performance_cost_model.o \
  			     $(OBJ_DIR)/batchapp_statistics.o \
  			     $(OBJ_DIR)/serviceapp_statistics.o \
 			     $(BUILD_DIR)/misc/libfirmament_misc.a \
@@ -29,7 +30,8 @@ TESTS_flow_graph_DEPS = $(OBJ_DIR)/flow_node_type.pb.o \
       $(OBJ_DIR)/knowledge_base.o \
 			$(OBJ_DIR)/trivial_cost_model.o \
 			$(OBJ_DIR)/quincy_cost_model.o \
-     	$(OBJ_DIR)/energy_cost_model.o \
+		     	$(OBJ_DIR)/energy_cost_model.o \
+		     	$(OBJ_DIR)/performance_cost_model.o \
  			$(OBJ_DIR)/batchapp_statistics.o \
  			$(OBJ_DIR)/serviceapp_statistics.o \
  			$(BUILD_DIR)/misc/libfirmament_misc.a \

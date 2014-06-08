@@ -809,6 +809,7 @@ void Coordinator::IssueWebserverJobs() {
   const uint64_t rps_per_job = 10000;
   uint64_t num_jobs = (rps / rps_per_job) + 1;
 
+  uint64_t rps_per_server = rps / num_jobs;
   // Get the number of active servers
   uint64_t current_num_webservers = haproxy_controller_->GetNumActiveJobs();
 
@@ -818,7 +819,7 @@ void Coordinator::IssueWebserverJobs() {
     // We need more resources add the difference in numbers
     int64_t num_new_jobs = num_jobs - current_num_webservers;
     vector<JobDescriptor *> webserver_jobs;
-    haproxy_controller_->GenerateJobs(webserver_jobs, num_new_jobs);
+    haproxy_controller_->GenerateJobs(webserver_jobs, num_new_jobs, rps_per_server);
     VLOG(2) << "Starting up " << num_new_jobs << " additional webservers.";
     for (auto job : webserver_jobs) {
       VLOG(2) <<"Job with root task: " << job->root_task().name();
