@@ -35,7 +35,7 @@ class FlowSchedulingCostModelInterface {
  public:
   FlowSchedulingCostModelInterface() {};
 
-  const Cost_t POOR_SCHEDULING_CHOICE = std::numeric_limits<Cost_t>::max() - 10;
+  const Cost_t POOR_SCHEDULING_CHOICE = std::numeric_limits<int32_t>::max() - 10;
 
   virtual ~FlowSchedulingCostModelInterface() {};
 
