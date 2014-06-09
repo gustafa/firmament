@@ -13,6 +13,8 @@
 
 //TODO remove
 #include <iostream>
+#include <unistd.h>
+#include <string>
 
 #include "base/common.h"
 #include "base/data_object.h"
@@ -50,6 +52,8 @@ DEFINE_string(completion_filename, "",
 DEFINE_uint64(nginx_port, 0,
               "Port which nginx runs from. MUST be set if nginx is the application");
 
+DEFINE_uint64(idle_secs_to_termination, 25,
+              "Number of seconds without traffic before self terminating.");
 
 #define SET_PROTO_IF_DICT_HAS_INT(proto, dict, member, val) \
   val = json_object_get(dict, # member); \
@@ -79,7 +83,8 @@ TaskLib::TaskLib()
     stop_(false),
     completed_(0),
     task_perf_monitor_(1000000),
-    internal_completed_(false)
+    internal_completed_(false),
+    seconds_without_traffic_(0)
  {
   const char* task_id_env = FLAGS_task_id.c_str();
 
@@ -103,6 +108,15 @@ TaskLib::TaskLib()
     nginx_uri = "localhost:" + ss.str();
   }
 
+  stringstream ss;
+  ss << "/tmp/" << task_id_env << ".pid";
+  string pid_filename = ss.str();
+
+  ofstream pid_file;
+  pid_file.open(pid_filename);
+  pid_file << getpid();
+
+
 }
 
 TaskLib::~TaskLib() {
@@ -118,9 +132,11 @@ void TaskLib::Stop() {
     boost::this_thread::sleep(boost::posix_time::milliseconds(50));
     // Wait until the monitor has stopped before sending the finalize message.
   }
+  printf("Sending finalize message\n");
   SendFinalizeMessage(true);
-
+  printf("Finalise message sent\n");
 }
+
 
 void TaskLib::AddTaskStatisticsToHeartbeat(
     const ProcFSMonitor::ProcessStatistics_t& proc_stats,
@@ -299,7 +315,6 @@ void TaskLib::RunMonitor(boost::thread::id main_thread_id) {
 
 
   while (!stop_) {
-      sleep(FLAGS_heartbeat_interval);
       // TODO(malte): Check if we've exited with an error
       // if(error)
       //   task_error_ = true;
@@ -308,6 +323,8 @@ void TaskLib::RunMonitor(boost::thread::id main_thread_id) {
       VLOG(1) << "Task thread has not yet joined, sending heartbeat...";
       task_perf_monitor_.ProcessInformation(pid_, &current_stats);
       SendHeartbeat(current_stats);
+
+      sleep(FLAGS_heartbeat_interval);
       // TODO(malte): We'll need to receive any potential messages from the
       // coordinator here, too. This is probably best done by a simple RecvA on
       // the channel.
@@ -343,10 +360,26 @@ void TaskLib::AddNginxStatistics(TaskPerfStatisticsSample::NginxStatistics *ns) 
     }
 
     // Send diffs of stats to the coordinator.
+
     ns->set_active_connections(values[0] - (*nginx_prev_)[0]);
-    ns->set_reading(values[1] - (*nginx_prev_)[1]);
+
+    uint64_t reading = values[1] - (*nginx_prev_)[1];
+    ns->set_reading(reading);
     ns->set_writing(values[2] - (*nginx_prev_)[2]);
     ns->set_waiting(values[3] - (*nginx_prev_)[3]);
+
+    if (reading < 4) {
+      seconds_without_traffic_ += 1;
+    } else {
+      seconds_without_traffic_ = 0;
+    }
+
+    if (seconds_without_traffic_ > FLAGS_idle_secs_to_termination) {
+      //No traffic for a long while now! Let the webserver task be rescheduled somewhere else (if necessary).
+      stringstream termination_stream;
+      termination_stream << "taskpidkiller " << task_id_;
+      system(termination_stream.str().c_str());
+    }
 
     // Store new values as previous.
 

@@ -13,7 +13,7 @@ deadline_multipliers = {'short': 1.2, 'medium': 3, 'long': 15, 'anytime': 10000}
 job_type_to_inputrange = {'wc': (1,12), 'mv': (20, 250), 'join': (1,10)}
 
                 #  wc join mv
-job_fractions = (0.3, 0.7, 1.0)
+job_fractions = (0.45, 0.90, 1.0)
 job_idx_to_type = {0: 'wc', 1: 'join', 2: 'mv'}
 
 job_type_to_binary = {'wc': 'firmareduce', 'join': 'firmareduce', 'mv': 'filetransfer' }
