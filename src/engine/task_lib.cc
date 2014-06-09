@@ -365,6 +365,7 @@ void TaskLib::AddNginxStatistics(TaskPerfStatisticsSample::NginxStatistics *ns) 
     }
 
     if (i != num_nginx_stats_) {
+      printf("Found an unexpected number of Nginx statistics, quitting!");
       LOG(FATAL) << "Found an unexpected number of Nginx statistics!";
     }
 
@@ -375,6 +376,8 @@ void TaskLib::AddNginxStatistics(TaskPerfStatisticsSample::NginxStatistics *ns) 
     uint64_t reading = values[1] - (*nginx_prev_)[1];
     ns->set_reading(reading);
     ns->set_writing(values[2] - (*nginx_prev_)[2]);
+
+    // TODO THIS IS THE GOD DAMN NUMBER OF REQUESTS THEE RETARDO
     ns->set_waiting(values[3] - (*nginx_prev_)[3]);
 
     if (reading < 4) {
