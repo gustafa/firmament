@@ -83,7 +83,7 @@ Coordinator::Coordinator(PlatformID platform_id)
     parent_chan_(NULL),
     knowledge_base_(new KnowledgeBase()),
     haproxy_controller_(new HAProxyController("my_servers")),
-    numberof_webrequests_(new vector<uint64_t>()) {
+    numberof_webrequests_(new vector<pair<uint64_t, uint64_t>>()) {
   // Start up a coordinator according to the platform parameter
   string desc_name = "Coordinator on " + hostname_;
   resource_desc_.set_uuid(to_string(uuid_));
@@ -795,11 +795,13 @@ void Coordinator::OutputStats(string filename) {
   output_file << "\"nginx_requests_served\": [";
   uint64_t last_webrequest_idx = numberof_webrequests_->size()?  numberof_webrequests_->size() -1 : numberof_webrequests_->size();
   for (uint64_t i = 0; i != last_webrequest_idx; ++i) {
-    output_file << (*numberof_webrequests_)[i] << ", ";
+    pair<uint64_t, uint64_t> &time_reqs = (*numberof_webrequests_)[i];
+    output_file << "(" << time_reqs.first << ", " << time_reqs.second << ")" << ", ";
   }
 
   if (numberof_webrequests_->size()) {
-    output_file << (*numberof_webrequests_)[last_webrequest_idx];
+    pair<uint64_t, uint64_t> &time_reqs = (*numberof_webrequests_)[last_webrequest_idx];
+    output_file << "(" << time_reqs.first << ", " << time_reqs.second << ")";
   }
   output_file << "],\n";
 
@@ -872,12 +874,11 @@ void Coordinator::IssueWebserverJobs() {
   VLOG(2) << "Currently seeing " << num_requests << " webrequests per second.";
 
   // Add served webrequests to our totals
-  if (numberof_webrequests_->size()) {
-    // Add anything after we have started observing these.
-    numberof_webrequests_->push_back(num_requests);
-  } else if (num_requests > 3) {
-    // First request!
-    numberof_webrequests_->push_back(num_requests);
+
+  uint64_t current_time = GetCurrentTimestamp();
+  if (numberof_webrequests_->size() || num_requests > 3) {
+    // Add anything after we have started observing requests.
+    numberof_webrequests_->push_back(make_pair(current_time, num_requests));
   }
 
   // Provision for a potential 15% increase in jobs.

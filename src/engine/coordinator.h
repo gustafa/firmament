@@ -314,7 +314,7 @@ class Coordinator : public Node,
   // EnergyStatisticsMap hostname->wraparound vector
   unordered_map<string, WraparoundVector<double>*> energy_stats_map;
 
-  shared_ptr<vector<uint64_t>> numberof_webrequests_;
+  shared_ptr<vector<pair<uint64_t, uint64_t>>> numberof_webrequests_;
 
 
 
