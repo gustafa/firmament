@@ -121,10 +121,11 @@ runtime = data['runtime']
 
 # Generate protobufs in advance
 job_descs = [generate_job_desc(job) for job in jobs]
+while True:
+  for job_desc in job_descs:
+    if DRY_RUN:
+      print 'desc: %s' % text_format.MessageToString(job_desc)
+    else:
+      submit_proto(hostname, port, job_desc)
+      sleep(interval_s)
 
-for job_desc in job_descs:
-  if DRY_RUN:
-    print 'desc: %s' % text_format.MessageToString(job_desc)
-  else:
-    submit_proto(hostname, port, job_desc)
-    sleep(interval_s)

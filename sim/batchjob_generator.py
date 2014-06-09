@@ -35,21 +35,25 @@ job_type_to_input_dir = {
   'mv'
 }
 
-shortest_job_s = 60
-longest_job_s = 600
+shortest_job_s = 30
+longest_job_s = 180
 average_active_jobs = 10
 
 
 def get_input_size_runtime(job_type, wanted_rt):
+  print 'Wanted runtime ' + str(wanted_rt)
   data = input_size_seconds[job_type][:]
 
   left_idx = 0
   right_idx = 0
   for i in range(len(data)):
     (size, seconds) = data[i]
-    if seconds >= wanted_rt:
+    if seconds < wanted_rt:
       left_idx = i - 1
       right_idx = i
+  if left_idx < 0:
+    left_idx = 0
+  print 'left idx %d' % left_idx
 
   take_left = abs(data[left_idx][1] - wanted_rt) < abs(data[right_idx][1] - wanted_rt)
 
@@ -71,7 +75,7 @@ def generate_job(current_time, max_time, force_job_s=False):
   if force_job_s:
     runtime = force_job_s
   else:
-    runtime = shortest_job_s * random.randint(1, (longest_job_s / shortest_job_s) + 1)
+    runtime = random.randint(shortest_job_s, longest_job_s)
   job_idx = get_index(random.random(), job_fractions)
   job_type = job_idx_to_type[job_idx]
   (units, runtime) = get_input_size_runtime(job_type, runtime)
@@ -97,10 +101,10 @@ def main():
   if len(sys.argv) != 2:
     print 'usage batchjob_generator.py <experiment time>'
     sys.exit(1)
-
+  gamma = 1.8 # multiplier of real expected runtime.
   runtime_in_s = int(sys.argv[1])
   max_runtime = int(runtime_in_s * 1.3)
-  average_job_s = (shortest_job_s + longest_job_s) / float(2)
+  average_job_s = ((shortest_job_s + longest_job_s) / float(2)) * gamma
   interval_s = average_job_s / average_active_jobs
   num_jobs = int(runtime_in_s / interval_s)
   current_time = 1
