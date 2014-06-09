@@ -16,7 +16,7 @@ def main():
   with open('sim/webload') as inputdata:
     data = json.load(inputdata)
 
-  attack_host = 'raphael'
+  attack_host = '10.11.12.63'
 
   wait_time = data['wait_time']
   runtime_per_sample = data['runtime_per_sample']
