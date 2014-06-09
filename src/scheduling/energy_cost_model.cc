@@ -23,7 +23,7 @@ EnergyCostModel::EnergyCostModel(shared_ptr<ResourceMap_t> resource_map, shared_
   task_map_(task_map),
   knowledge_base_(knowledge_base),
   resource_to_host_(resource_to_host),
-  task_bindings_(task_bindings_) {
+  task_bindings_(task_bindings) {
   application_stats_ = knowledge_base_->AppStats();
   CHECK_NOTNULL(task_bindings_);
 

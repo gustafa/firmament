@@ -344,7 +344,7 @@ void TaskLib::RunMonitor(boost::thread::id main_thread_id) {
 }
 void TaskLib::AddNginxStatistics(TaskPerfStatisticsSample::NginxStatistics *ns) { // NOLINT
   string nginx_stats_page = nginx_uri + "/nginx_status";
-  printf("NGINX STATS PAGE%s",nginx_stats_page.c_str());
+  printf("NGINX STATS PAGE %s", nginx_stats_page.c_str());
   CURLcode curl_code = GetWebpageContents(nginx_stats_page.c_str());
   if (curl_code != CURLE_OK) {
     // Report inability to retrieve nginx statistics when.
