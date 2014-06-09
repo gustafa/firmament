@@ -93,6 +93,8 @@ TaskLib::TaskLib()
     completion_file_.reset(fopen(FLAGS_completion_filename.c_str(), "r"));
   }
 
+  use_procfs_ = boost::asio::ip::host_name().compare("titanic") != 0;
+
   VLOG(1) << "Task ID is " << task_id_env;
   CHECK_NOTNULL(task_id_env);
   task_id_ = TaskIDFromString(task_id_env);
@@ -144,12 +146,16 @@ void TaskLib::AddTaskStatisticsToHeartbeat(
   // Task ID and timestamp
   stats->set_task_id(task_id_);
   stats->set_timestamp(GetCurrentTimestamp());
-  // Memory allocated and used
-  stats->set_vsize(proc_stats.vsize);
-  stats->set_rsize(proc_stats.rss * getpagesize());
-  // Scheduler statistics
-  stats->set_sched_run(proc_stats.sched_run_ticks);
-  stats->set_sched_wait(proc_stats.sched_wait_runnable_ticks);
+
+  if (use_procfs_) {
+    // Memory allocated and used
+    stats->set_vsize(proc_stats.vsize);
+    stats->set_rsize(proc_stats.rss * getpagesize());
+    // Scheduler statistics
+    stats->set_sched_run(proc_stats.sched_run_ticks);
+    stats->set_sched_wait(proc_stats.sched_wait_runnable_ticks);
+  }
+
 
 
   VLOG(2) << "Tasklib application " << FLAGS_tasklib_application;
@@ -321,7 +327,10 @@ void TaskLib::RunMonitor(boost::thread::id main_thread_id) {
       // Notify the coordinator that we're still running happily
 
       VLOG(1) << "Task thread has not yet joined, sending heartbeat...";
-      task_perf_monitor_.ProcessInformation(pid_, &current_stats);
+
+      if (use_procfs_) {
+        task_perf_monitor_.ProcessInformation(pid_, &current_stats);
+      }
       SendHeartbeat(current_stats);
 
       sleep(FLAGS_heartbeat_interval);
