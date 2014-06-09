@@ -1,10 +1,13 @@
 #!/usr/bin/python2
 import json
 from time import sleep
+
 from subprocess import call, Popen
 
 import weightbenchmarker
-
+import os
+import signal
+import sys
 
 
 def sleep_for(ms):
@@ -13,10 +16,15 @@ def sleep_for(ms):
 
 
 def main():
+
+  if len(sys.argv) != 2:
+    print 'usage: webloadgenerator <interface>'
+    sys.exit(1)
+  interface = sys.argv[1]
   with open('sim/webload') as inputdata:
     data = json.load(inputdata)
 
-  attack_host = 'raphael'
+  attack_host = '10.10.0.10'
 
   wait_time = data['wait_time']
   runtime_per_sample = data['runtime_per_sample']
@@ -29,7 +37,7 @@ def main():
 
   for i in range(num_samples):
     mbps = mbps_per_sample[i]
-    weightbenchmarker.set_mbps(mbps)
+    weightbenchmarker.set_mbps(mbps, interface)
     connections = weightbenchmarker.get_num_connections(mbps)
     num_threads = weightbenchmarker.get_num_threads(connections)
     connections = weightbenchmarker.alter_num_connections(connections, num_threads)
@@ -40,9 +48,9 @@ def main():
                 'threads': num_threads, 'hostname': attack_host}
     print test_command
     # Launch web requests and sleep for the intended duration
-    p = Popen(test_command, shell=True)
+    p = Popen(test_command, shell=True, preexec_fn=os.setsid)
     sleep_for(runtime_per_sample)
-    p.terminate()
+    os.killpg(p.pid, signal.SIGTERM)
 
 
 if __name__ == '__main__':
