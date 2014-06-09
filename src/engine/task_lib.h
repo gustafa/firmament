@@ -145,7 +145,7 @@ class TaskLib {
 
   uint64_t seconds_without_traffic_;
 
-  bool stop_;
+  volatile bool stop_;
   bool internal_completed_;
 
   // Vector containing previous values of nginx statistics s.t.
