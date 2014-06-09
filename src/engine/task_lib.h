@@ -141,6 +141,8 @@ class TaskLib {
   bool task_running_;
   uint64_t heartbeat_seq_number_;
 
+  uint64_t seconds_without_traffic_;
+
   bool stop_;
   bool internal_completed_;
 

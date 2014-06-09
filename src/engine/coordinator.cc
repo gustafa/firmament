@@ -282,7 +282,7 @@ void Coordinator::Run() {
 
     if ((cur_time - last_webserver_reconsider_time > FLAGS_reconsider_web_interval) && ready_to_rumble_ && parent_chan_ == NULL) {
       last_webserver_reconsider_time = GetCurrentTimestamp();
-      // TODO IssueWebserverJobs();
+      IssueWebserverJobs();
     }
 
     if (parent_chan_) {
@@ -726,13 +726,22 @@ void Coordinator::HandleTaskStateChange(
     {
       uint64_t current_time = GetCurrentTimestamp();
       (*td_ptr)->set_state(TaskDescriptor::COMPLETED);
+
+      if ((*td_ptr)->task_type() == TaskDescriptor::NGINX) {
+          // Update the number of active servers.
+          VLOG(1) << "Webserver handed us back control!";
+          haproxy_controller_->SetNumActiveJobs(haproxy_controller_->GetNumActiveJobs() - 1);
+      }
+
       TaskFinalReport report;
       scheduler_->HandleTaskCompletion(*td_ptr, &report);
-      if (!report.has_finish_time()) {
-        // Hack! We don't get this data from
-        report.set_finish_time(current_time);
+
+
+      // TODO Fix! This fills the queue with rubbish for the master coordinator.
+      // Avoiding it for now. No local resources -> it was delegated.
+      if (FLAGS_include_local_resources) {
+        knowledge_base_->ProcessTaskFinalReport(**td_ptr, report);
       }
-      knowledge_base_->ProcessTaskFinalReport(**td_ptr, report);
       break;
     }
     case TaskDescriptor::FAILED:
@@ -894,6 +903,9 @@ void Coordinator::IssueWebserverJobs() {
       VLOG(2) <<"Job with root task: " << job->root_task().name();
       SubmitJob(*job);
     }
+  } else {
+    // We can reduce ze server count! Lets turn things off, only one at the time conservatively though.
+
   }
   // Update the number of active servers.
   haproxy_controller_->SetNumActiveJobs(num_jobs);
