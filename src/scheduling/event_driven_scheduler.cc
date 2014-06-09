@@ -187,7 +187,7 @@ void EventDrivenScheduler::HandleTaskCompletion(TaskDescriptor* td_ptr,
   td_ptr->set_state(TaskDescriptor::COMPLETED);
 
 
-  if (td_ptr->has_delegated_from()) {
+  if (!td_ptr->has_delegated_from()) {
     // Run scheduling algorithms from this task
     set<DataObjectID_t*> outputs = DataObjectIDsFromProtobuf(td_ptr->outputs());
     LazyGraphReduction(outputs, td_ptr, JobIDFromString(td_ptr->job_id()));

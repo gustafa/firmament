@@ -7,7 +7,7 @@ worker_processes  1;
 
 #pid        logs/nginx.pid;
 daemon off;
-master_process on;
+master_process off;
 
 events {
     worker_connections  1024;
