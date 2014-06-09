@@ -129,7 +129,8 @@ void Victoria::run() {
   double toWatts = 240 / (double) 3000;
   double prev[32] = {0};
   double totals[32] = {0};
-
+  struct tm *gmt;
+  char timeStr[30];
 
   while (true) {
     if (ConnectToCoordinator(coordinator_uri)) {
@@ -168,15 +169,18 @@ void Victoria::run() {
 
     sleep(2);
 
+
     while (true) {
-      t = time (NULL);
       firmament::BaseMessage bm;
       firmament::EnergyStatsMessage *energyStats = bm.mutable_energy_stats();
-
-      energyStats->set_update_interval(scalingFactor);
-
       firmament::EnergyStatsMessage_EnergyMessage* titanic_energy_message = NULL;
 
+      energyStats->set_update_interval(scalingFactor);
+      t = time (NULL);
+      gmt = gmtime(&t);
+      strftime (timeStr, 30, "%Y-%m-%dT%H:%M:%SZ", gmt);
+
+      printf("%s\t", timeStr);
       for (auto iter = host_port_vector_.begin(); iter != host_port_vector_.end(); ++iter) {
  //                                // Get samples and write log file
         int port = iter->first;
@@ -224,7 +228,6 @@ void Victoria::run() {
           energy_message->set_totalj(total_j);
 
         } else {
-          std::cout << "SKIPPING\n";
         }
 
       }
