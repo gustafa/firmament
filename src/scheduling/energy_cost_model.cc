@@ -294,10 +294,10 @@ void EnergyCostModel::SetInitialStats() {
 
   BatchAppStatistics *join_stats = new BatchAppStatistics();
 
-  vector<pair<uint64_t, double>> uriel_joinmapred_runtimes({make_pair(1, 46.730000), make_pair(2, 102.060000), make_pair(3, 159.680000), make_pair(4, 227.760000), make_pair(6, 382.210000), make_pair(7, 476.060000), make_pair(10, 782.670000), make_pair(12, 794.940000)});
-  vector<pair<uint64_t, double>> pandaboard_joinmapred_runtimes({make_pair(1, 376.620000), make_pair(2, 866.160000), make_pair(3, 1483.490000), make_pair(4, 2229.270000), make_pair(7, 1611.000000), make_pair(10, 2173.000000), make_pair(12, 2166.000000)});
-  vector<pair<uint64_t, double>> michael_joinmapred_runtimes({make_pair(1, 48.940000), make_pair(2, 99.850000), make_pair(3, 159.640000), make_pair(4, 219.070000), make_pair(6, 365.990000), make_pair(7, 432.600000), make_pair(10, 741.300000), make_pair(12, 751.060000)});
-  vector<pair<uint64_t, double>> titanic_joinmapred_runtimes({make_pair(1, 300), make_pair(3, 953.760000), make_pair(7, 3412.840000), make_pair(10, 2229.000000), make_pair(12, 2177.000000)});
+  vector<pair<uint64_t, double>> uriel_joinmapred_runtimes({make_pair(0, 0), make_pair(1, 46.730000), make_pair(2, 102.060000), make_pair(3, 159.680000), make_pair(4, 227.760000), make_pair(6, 382.210000), make_pair(7, 476.060000), make_pair(10, 782.670000), make_pair(12, 794.940000)});
+  vector<pair<uint64_t, double>> pandaboard_joinmapred_runtimes({make_pair(0, 0), make_pair(1, 376.620000), make_pair(2, 866.160000), make_pair(3, 1483.490000), make_pair(4, 2229.270000), make_pair(7, 1611.000000), make_pair(10, 2173.000000), make_pair(12, 2166.000000)});
+  vector<pair<uint64_t, double>> michael_joinmapred_runtimes({make_pair(0, 0), make_pair(1, 48.940000), make_pair(2, 99.850000), make_pair(3, 159.640000), make_pair(4, 219.070000), make_pair(6, 365.990000), make_pair(7, 432.600000), make_pair(10, 741.300000), make_pair(12, 751.060000)});
+  vector<pair<uint64_t, double>> titanic_joinmapred_runtimes({make_pair(0, 0), make_pair(1, 300), make_pair(3, 953.760000), make_pair(7, 3412.840000), make_pair(10, 2229.000000), make_pair(12, 2177.000000)});
                                                             // TODO REMOVE THIS ONE! (1,300) Titanic
 
 
@@ -318,10 +318,10 @@ void EnergyCostModel::SetInitialStats() {
 
   BatchAppStatistics *filetransfer_stats = new BatchAppStatistics();
 
-  vector<pair<uint64_t, double>> uriel_filetransfer_runtimes({make_pair(10, 22.880000), make_pair(20, 45.210000), make_pair(50, 116.880000), make_pair(100, 229.980000), make_pair(150, 346.700000), make_pair(250, 577.120000), make_pair(400, 925.570000), make_pair(600, 1395.030000)});
-  vector<pair<uint64_t, double>> pandaboard_filetransfer_runtimes({make_pair(10, 215.060000), make_pair(20, 435.680000), make_pair(50, 1099.320000), make_pair(100, 2300.210000), make_pair(150, 3395.120000), make_pair(250, 1972.000000), make_pair(400, 1695.000000), make_pair(600, 2658.000000)});
-  vector<pair<uint64_t, double>> michael_filetransfer_runtimes({make_pair(10, 37.940000), make_pair(20, 73.080000), make_pair(50, 123.740000), make_pair(100, 266.990000), make_pair(150, 452.980000), make_pair(250, 696.060000), make_pair(400, 1160.330000), make_pair(600, 1720.590000)});
-  vector<pair<uint64_t, double>> titanic_filetransfer_runtimes({make_pair(10, 44.440000), make_pair(20, 68.520000), make_pair(50, 230.590000), make_pair(100, 449.520000), make_pair(150, 736.880000), make_pair(250, 1180.450000), make_pair(400, 1901.510000), make_pair(600, 2878.910000)});
+  vector<pair<uint64_t, double>> uriel_filetransfer_runtimes({make_pair(0, 0), make_pair(10, 22.880000), make_pair(20, 45.210000), make_pair(50, 116.880000), make_pair(100, 229.980000), make_pair(150, 346.700000), make_pair(250, 577.120000), make_pair(400, 925.570000), make_pair(600, 1395.030000)});
+  vector<pair<uint64_t, double>> pandaboard_filetransfer_runtimes({make_pair(0, 0), make_pair(10, 215.060000), make_pair(20, 435.680000), make_pair(50, 1099.320000), make_pair(100, 2300.210000), make_pair(150, 3395.120000), make_pair(250, 1972.000000), make_pair(400, 1695.000000), make_pair(600, 2658.000000)});
+  vector<pair<uint64_t, double>> michael_filetransfer_runtimes({make_pair(0, 0), make_pair(10, 37.940000), make_pair(20, 73.080000), make_pair(50, 123.740000), make_pair(100, 266.990000), make_pair(150, 452.980000), make_pair(250, 696.060000), make_pair(400, 1160.330000), make_pair(600, 1720.590000)});
+  vector<pair<uint64_t, double>> titanic_filetransfer_runtimes({make_pair(0, 0), make_pair(10, 44.440000), make_pair(20, 68.520000), make_pair(50, 230.590000), make_pair(100, 449.520000), make_pair(150, 736.880000), make_pair(250, 1180.450000), make_pair(400, 1901.510000), make_pair(600, 2878.910000)});
   filetransfer_stats->SetPower("uriel", 29.006090878);
   filetransfer_stats->SetPower("pandaboard", 1.39785491627);
   filetransfer_stats->SetPower("michael", 18.5887076174);
