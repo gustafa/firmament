@@ -37,6 +37,7 @@ def main():
 
   for i in range(num_samples):
     mbps = mbps_per_sample[i]
+    print "running with " + str(mbps)
     weightbenchmarker.set_mbps(mbps, interface)
     connections = weightbenchmarker.get_num_connections(mbps)
     num_threads = weightbenchmarker.get_num_threads(connections)

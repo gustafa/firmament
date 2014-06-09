@@ -3,11 +3,11 @@ import sys
 import json
 
 def generate_rps(mean, fraction):
-  max_web_rps = 235000
+  max_web_rps = 100000 
   return max_web_rps * mean * fraction
 
 web_means = [0.40, 0.45, 0.52 ,0.58, 0.65, 0.71, 0.78, 0.80, 0.86, 0.9 , 0.91 , 0.92, 0.84 , 0.9 , 0.85, 0.85, 0.82, 0.79, 0.75, 0.75, 0.74, 0.76, 0.77, 0.78 , 0.77 , 0.78 , 0.75, 0.70, 0.68, 0.62, 0.60, 0.52, 0.42, 0.38, 0.32, 0.23, 0.20, 0.15, 0.12, 0.10 , 0.10, 0.11, 0.12, 0.15, 0.20, 0.28, 0.36, 0.42]
-rps_per_mbps = 296
+rps_per_mbps = 500
 num_entries = 48
 
 def generate_rps_list(fraction):
@@ -28,7 +28,7 @@ def main():
   runtime = int(sys.argv[2])
   ms_runtime = runtime * 1000
 
-  # 10 second wait time
+  # 1 second wait time
   wait_time = 1000
   runtime_per_sample = ms_runtime / num_entries
 
