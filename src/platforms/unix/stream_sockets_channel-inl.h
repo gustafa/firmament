@@ -173,7 +173,6 @@ const string StreamSocketsChannel<T>::LocalEndpointString() {
   boost::system::error_code ec;
   switch (type_) {
     case SS_TCP:
-      CHECK(false);
       printf("FOUND TCP\n");
       protocol = "tcp:";
       printf("ADDRESS: %s\n", address.c_str());
@@ -182,6 +181,7 @@ const string StreamSocketsChannel<T>::LocalEndpointString() {
       printf("ADDRESS: %s\n", address.c_str());
       port = to_string<uint64_t>(client_socket_->local_endpoint(ec).port());
       printf("PORT: %s\n", port.c_str());
+      CHECK(!ec);
       if (ec)
         return "";
       else
