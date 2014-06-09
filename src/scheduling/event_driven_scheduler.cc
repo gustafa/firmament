@@ -280,7 +280,7 @@ bool EventDrivenScheduler::PlaceDelegatedTask(TaskDescriptor* td,
   // Is the resource still idle?
   if (rd->state() != ResourceDescriptor::RESOURCE_IDLE) {
     // Resource is no longer idle
-    LOG(WARNING) << "Attempted to place delegated task " << td->uid()
+    LOG(WARNING)   << "Attempted to place delegated task " << td->uid()
                  << " on resource " << target_resource << ", which is "
                  << "not idle!";
     return false;

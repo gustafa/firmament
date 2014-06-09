@@ -706,34 +706,32 @@ void Coordinator::HandleTaskStateChange(
   TaskDescriptor** td_ptr = FindOrNull(*task_table_, msg.id());
   CHECK(td_ptr) << "Received task state change message for task "
                 << msg.id();
-  // First check if this is a delegated task, and forward the message if so
-  if ((*td_ptr)->has_delegated_from()) {
-    BaseMessage bm;
-    bm.mutable_task_state()->CopyFrom(msg);
 
-    // Send along completion statistics to the coordinator as well.
-    // TODO make this all const incuding hantle taskcompletion method and remove duplication from
-    // Switch statement below.
-    executor::ExecutorInterface *executor = scheduler_->GetExecutorForTask((*td_ptr)->uid());
-    TaskFinalReport *report =  bm.mutable_taskfinal_report();
-    executor->HandleTaskCompletion(**td_ptr, report);
-
-    m_adapter_->SendMessageToEndpoint((*td_ptr)->delegated_from(), bm);
-    return;
-  }
   switch (msg.new_state()) {
     case TaskDescriptor::COMPLETED:
     {
       (*td_ptr)->set_state(TaskDescriptor::COMPLETED);
+      TaskFinalReport report;
+      scheduler_->HandleTaskCompletion(*td_ptr, &report);
+      // First check if this is a delegated task, and forward the message if so
+      if ((*td_ptr)->has_delegated_from()) {
+        BaseMessage bm;
+        bm.mutable_task_state()->CopyFrom(msg);
 
-      if ((*td_ptr)->task_type() == TaskDescriptor::NGINX) {
+        // Send along completion statistics to the coordinator as well.
+        // TODO make this all const incuding hantle taskcompletion method and remove duplication from
+        // Switch statement below.
+        executor::ExecutorInterface *executor = scheduler_->GetExecutorForTask((*td_ptr)->uid());
+        bm.mutable_taskfinal_report()->CopyFrom(report);
+
+        m_adapter_->SendMessageToEndpoint((*td_ptr)->delegated_from(), bm);
+      } else if ((*td_ptr)->task_type() == TaskDescriptor::NGINX) {
           // Update the number of active servers.
           VLOG(1) << "Webserver handed us back control!";
           haproxy_controller_->SetNumActiveJobs(haproxy_controller_->GetNumActiveJobs() - 1);
+          // TODO Report to local  coordinator the task is free again
       }
 
-      TaskFinalReport report;
-      scheduler_->HandleTaskCompletion(*td_ptr, &report);
 
 
       // TODO Fix! This fills the queue with rubbish for the master coordinator.
@@ -741,6 +739,7 @@ void Coordinator::HandleTaskStateChange(
       if (FLAGS_include_local_resources) {
         knowledge_base_->ProcessTaskFinalReport(**td_ptr, report);
       }
+
       break;
     }
     case TaskDescriptor::FAILED:
@@ -755,6 +754,11 @@ void Coordinator::HandleTaskStateChange(
       (*td_ptr)->set_state(msg.new_state());
       break;
   }
+  // Do not run if delegated
+  if ((*td_ptr)->has_delegated_from()) {
+    return;
+  }
+
   // This task state change may have caused the job to have schedulable tasks
   // TODO(malte): decide if we should do invoke the scheduler here, or kick off
   // the scheduling iteration from within the earlier handler call into the
