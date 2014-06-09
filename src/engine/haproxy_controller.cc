@@ -9,6 +9,7 @@
 #include <fcntl.h>
 #include <stdio.h>
 #include <sys/stat.h>
+#include <stdlib.h>
 
 
 
@@ -29,6 +30,7 @@ HAProxyController::HAProxyController(string server_backend) :
   num_active_jobs_(0),
   start_port_(16000)
  {
+  srand (time(NULL));
   //stats_headers.reset(new vector<string>());
   //stats_map.reset(new unordered_map<string, unordered_map<string, string>>);
 }
@@ -42,6 +44,24 @@ bool HAProxyController::DisableServer(string hostname, uint64_t port) {
   HAProxyCommand(command);
   return true;
 }
+
+bool HAProxyController::DisableServer(string webserver_name) {
+  VLOG(2) << "HAPROXY Disabling server: " << webserver_name;
+  string command = "disable server my_servers/" + webserver_name;
+  running_servers_.erase(webserver_name);
+  HAProxyCommand(command);
+  return true;
+}
+
+
+void HAProxyController::DisableRandomServer(uint64_t rps_per_server) {
+  // TODO take the highest cost and disable that instead when we have the energy based model.
+  uint64_t server_idx_kill = rand() % running_servers_.size();
+  auto kill_itt = running_servers_.begin();
+  advance(kill_itt,server_idx_kill);
+  DisableServer(*kill_itt);
+ }
+
 
 bool HAProxyController::EnableServer(string hostname, uint64_t port) {
   string webserver_name = hostname + boost::lexical_cast<std::string>(port);
