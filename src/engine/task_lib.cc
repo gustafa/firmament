@@ -373,14 +373,15 @@ void TaskLib::AddNginxStatistics(TaskPerfStatisticsSample::NginxStatistics *ns) 
 
     ns->set_active_connections(values[0] - (*nginx_prev_)[0]);
 
-    uint64_t reading = values[1] - (*nginx_prev_)[1];
-    ns->set_reading(reading);
+    ns->set_reading(values[1] - (*nginx_prev_)[1]);
     ns->set_writing(values[2] - (*nginx_prev_)[2]);
 
-    // TODO THIS IS THE GOD DAMN NUMBER OF REQUESTS THEE RETARDO
-    ns->set_waiting(values[3] - (*nginx_prev_)[3]);
+    uint64_t total_reqs = values[3] - (*nginx_prev_)[3];
 
-    if (reading < 4) {
+    // TODO THIS IS THE GOD DAMN NUMBER OF REQUESTS THEE RETARDO
+    ns->set_waiting(total_reqs);
+
+    if (total_reqs < 4) {
       seconds_without_traffic_ += 1;
     } else {
       seconds_without_traffic_ = 0;
