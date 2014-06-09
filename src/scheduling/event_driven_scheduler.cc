@@ -185,11 +185,16 @@ void EventDrivenScheduler::HandleTaskCompletion(TaskDescriptor* td_ptr,
   (*exec)->HandleTaskCompletion(*td_ptr, report);
   // Mark task ask completed
   td_ptr->set_state(TaskDescriptor::COMPLETED);
-  // Run scheduling algorithms from this task
-  set<DataObjectID_t*> outputs = DataObjectIDsFromProtobuf(td_ptr->outputs());
-  LazyGraphReduction(outputs, td_ptr, JobIDFromString(td_ptr->job_id()));
-  // TODO(malte): Check if this job still has any outstanding tasks, otherwise
-  // mark it as completed.
+
+
+  if (td_ptr->has_delegated_from()) {
+    // Run scheduling algorithms from this task
+    set<DataObjectID_t*> outputs = DataObjectIDsFromProtobuf(td_ptr->outputs());
+    LazyGraphReduction(outputs, td_ptr, JobIDFromString(td_ptr->job_id()));
+    // TODO(malte): Check if this job still has any outstanding tasks, otherwise
+    // mark it as completed.
+  }
+
 }
 
 
