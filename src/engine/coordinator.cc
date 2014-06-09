@@ -724,7 +724,6 @@ void Coordinator::HandleTaskStateChange(
   switch (msg.new_state()) {
     case TaskDescriptor::COMPLETED:
     {
-      uint64_t current_time = GetCurrentTimestamp();
       (*td_ptr)->set_state(TaskDescriptor::COMPLETED);
 
       if ((*td_ptr)->task_type() == TaskDescriptor::NGINX) {

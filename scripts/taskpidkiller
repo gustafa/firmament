@@ -1,0 +1,12 @@
+#!/usr/bin/python2
+import sys
+import subprocess
+
+task_id = sys.argv[1]
+filename = "/tmp/%s.pid" % task_id
+command_run = 'kill -s term $(cat %s)' % filename
+subprocess.call(command_run, shell=True)
+
+rm_command = 'rm %s' % filename
+
+subprocess.call('rm_command, shell=True')

@@ -13,6 +13,8 @@
 
 //TODO remove
 #include <iostream>
+#include <unistd.h>
+#include <string>
 
 #include "base/common.h"
 #include "base/data_object.h"
@@ -106,6 +108,15 @@ TaskLib::TaskLib()
     nginx_uri = "localhost:" + ss.str();
   }
 
+  stringstream ss;
+  ss << "/tmp/" << task_id_env << ".pid";
+  string pid_filename = ss.str();
+
+  ofstream pid_file;
+  pid_file.open(pid_filename);
+  pid_file << getpid();
+
+
 }
 
 TaskLib::~TaskLib() {
@@ -116,18 +127,16 @@ TaskLib::~TaskLib() {
 }
 
 void TaskLib::Stop() {
-  if (!stop_) {
-    stop_ = true;
-    while (task_running_) {
-      boost::this_thread::sleep(boost::posix_time::milliseconds(50));
-      // Wait until the monitor has stopped before sending the finalize message.
-    }
-    printf("Sending finalize message\n");
-    SendFinalizeMessage(true);
-    printf("Finalise message sent\n");
-
+  stop_ = true;
+  while (task_running_) {
+    boost::this_thread::sleep(boost::posix_time::milliseconds(50));
+    // Wait until the monitor has stopped before sending the finalize message.
   }
+  printf("Sending finalize message\n");
+  SendFinalizeMessage(true);
+  printf("Finalise message sent\n");
 }
+
 
 void TaskLib::AddTaskStatisticsToHeartbeat(
     const ProcFSMonitor::ProcessStatistics_t& proc_stats,
@@ -365,10 +374,10 @@ void TaskLib::AddNginxStatistics(TaskPerfStatisticsSample::NginxStatistics *ns) 
       seconds_without_traffic_ = 0;
     }
 
-    if (seconds_without_traffic_ > FLAGS_idle_secs_to_termination) {
-      // No traffic for a long while now! Let the webserver task be rescheduled somewhere else (if necessary).
-      exit(0);
-    }
+    // if (seconds_without_traffic_ > FLAGS_idle_secs_to_termination) {
+    //   // No traffic for a long while now! Let the webserver task be rescheduled somewhere else (if necessary).
+    //   exit(0);
+    // }
 
     // Store new values as previous.
 
