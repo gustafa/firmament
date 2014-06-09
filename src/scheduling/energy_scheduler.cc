@@ -204,7 +204,7 @@ uint64_t EnergyScheduler::ApplySchedulingDeltas(
 
 void EnergyScheduler::HandleTaskCompletion(TaskDescriptor* td_ptr,
                                            TaskFinalReport* report) {
-  {
+  if (!td_ptr->has_delegated_from()) {
     boost::lock_guard<boost::mutex> lock(scheduling_lock_);
     // Find the task's node
     FlowGraphNode* task_node = flow_graph_->NodeForTaskID(td_ptr->uid());
