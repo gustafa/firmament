@@ -180,7 +180,7 @@ void HAProxyController::GenerateJobs(vector<JobDescriptor*> &jobs, uint64_t numb
     root_task->set_task_type(TaskDescriptor::NGINX);
     root_task->set_state(TaskDescriptor_TaskState_CREATED);
     root_task->set_binary("nginx_firmament");
-    uint64_t port = current_start_port + (current_web_job_ % num_ports);
+    uint64_t port = start_port_ + (current_web_job_ % num_ports_);
     root_task->set_port(port);
     string config_file = "/home/gjrh2/firmament/configs/nginx/nginx" +
         boost::lexical_cast<std::string>(port) + ".conf";
