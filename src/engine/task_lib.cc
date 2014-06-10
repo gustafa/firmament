@@ -88,12 +88,14 @@ TaskLib::TaskLib()
  {
   const char* task_id_env = FLAGS_task_id.c_str();
 
+  hostname_ = boost::asio::ip::host_name();
+
   if (!FLAGS_completion_filename.empty()) {
     // Open a completion file if the flag is set.
     completion_file_.reset(fopen(FLAGS_completion_filename.c_str(), "r"));
   }
 
-  use_procfs_ = boost::asio::ip::host_name().compare("titanic") != 0;
+  use_procfs_ = hostname_.compare("titanic") != 0;
 
   VLOG(1) << "Task ID is " << task_id_env;
   CHECK_NOTNULL(task_id_env);
@@ -152,6 +154,7 @@ void TaskLib::AddTaskStatisticsToHeartbeat(
   // Task ID and timestamp
   stats->set_task_id(task_id_);
   stats->set_timestamp(GetCurrentTimestamp());
+  stats->set_hostname(hostname_);
 
   if (use_procfs_) {
     // Memory allocated and used

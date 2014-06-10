@@ -88,5 +88,6 @@ message TaskPerfStatisticsSample {
   optional NginxStatistics nginx_stats = 7;
   optional MemcachedStatistics memcached_stats = 8;
   optional double completed = 9;
+  optional string hostname = 10;
 
 }

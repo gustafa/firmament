@@ -142,6 +142,7 @@ class TaskLib {
   uint64_t heartbeat_seq_number_;
 
   bool use_procfs_;
+  string hostname_;
 
   uint64_t seconds_without_traffic_;
 
