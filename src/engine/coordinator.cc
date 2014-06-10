@@ -721,7 +721,6 @@ void Coordinator::HandleTaskStateChange(
         // Send along completion statistics to the coordinator as well.
         // TODO make this all const incuding hantle taskcompletion method and remove duplication from
         // Switch statement below.
-        executor::ExecutorInterface *executor = scheduler_->GetExecutorForTask((*td_ptr)->uid());
         bm.mutable_taskfinal_report()->CopyFrom(report);
 
         m_adapter_->SendMessageToEndpoint((*td_ptr)->delegated_from(), bm);
