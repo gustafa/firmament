@@ -1,8 +1,2 @@
 #!/bin/bash
-export FLAGS_coordinator_uri=tcp:localhost:8088
-export FLAGS_resource_id=db904ff2-688e-4d8e-900e-f363e11fd256
-export FLAGS_task_id=feedcafedeadbeeffeedcafedeadbeeffeedcafedeadbeeffeedcafedeadbeef
-export FLAGS_heartbeat_interval=1
-export FLAGS_tasklib_application=filetransfer
-
 /home/gjrh2/firmament/build/examples/batchjobs/filetransfer build/examples/batchjobs/ 5 --fromenv=coordinator_uri,resource_id,task_id,heartbeat_interval,tasklib_application

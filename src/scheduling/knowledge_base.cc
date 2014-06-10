@@ -82,7 +82,7 @@ void KnowledgeBase::AddTaskSample(const TaskPerfStatisticsSample& sample) {
 double KnowledgeBase::GetAndResetWebloads() {
   if (!num_web_loads_) {
     VLOG(1) << "Error! No Values found for virtual webloads";
-    return 0.5;
+    return 0.45;
   }
 
   double virtual_web_load = virtual_web_loads_ / num_web_loads_;
