@@ -61,7 +61,7 @@ DEFINE_uint64(energy_stats_history, 600,
 DEFINE_uint64(energy_stat_interval, 3,
               "Time between energy stats messages");
 
-DEFINE_uint64(reconsider_web_interval, 3000000, "Interval in microseconds for the scheduler "
+DEFINE_uint64(reconsider_web_interval, 5000000, "Interval in microseconds for the scheduler "
               "to reconsider webrequests");
 
 DEFINE_bool(master_scheduler_on, true, "Whether to use the master scheduler option");
@@ -887,13 +887,13 @@ void Coordinator::IssueWebserverJobs() {
     numberof_webrequests_->push_back(make_pair(current_time, num_requests));
   }
 
-  double const increase_if_above = 0.7;
-  double const decrease_if_below = 0.3;
+  double const increase_if_above = 0.55;
+  double const decrease_if_below = 0.15;
 
   double current_load = knowledge_base_->GetAndResetWebloads();
   uint64_t current_num_webservers = haproxy_controller_->GetNumActiveJobs();
 
-  if (current_load > increase_if_above) {
+  if (current_load > increase_if_above || !current_num_webservers) {
     // TODO should be more clever than this and maybe use load or something.
     const uint64_t rps_per_server = 500;
     VLOG(1) << "Starting up another webserver.";
