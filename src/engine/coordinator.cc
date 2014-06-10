@@ -37,6 +37,7 @@
 // It is necessary to declare listen_uri here, since "node.o" comes after
 // "coordinator.o" in linking order (I *think*).
 DECLARE_string(listen_uri);
+DECLARE_int32(flow_scheduling_cost_model);
 DEFINE_string(parent_uri, "", "The URI of the parent coordinator to register "
         "with.");
 DEFINE_bool(include_local_resources, true, "Add local machine's resources; "
@@ -794,6 +795,7 @@ void Coordinator::OutputStats(string filename) {
   ofstream output_file;
   output_file.open(filename);
   output_file << "{\n";
+  output_file << "\"cost model\": " << FLAGS_flow_scheduling_cost_model << ",\n";
 
   output_file << "\"nginx_requests_served\": [";
   uint64_t last_webrequest_idx = numberof_webrequests_->size()?  numberof_webrequests_->size() -1 : numberof_webrequests_->size();
@@ -807,8 +809,10 @@ void Coordinator::OutputStats(string filename) {
     output_file << "(" << time_reqs.first << ", " << time_reqs.second << ")";
   }
   output_file << "],\n";
+  string runtime_json = knowledge_base_->GetRuntimesAsJson();
 
-  output_file << knowledge_base_->GetRuntimesAsJson();
+  VLOG(2) << runtime_json;
+  output_file << runtime_json;
   output_file << "}\n";
   output_file.close();
 }

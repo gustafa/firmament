@@ -144,11 +144,14 @@ void KnowledgeBase::ProcessTaskFinalReport(const TaskDescriptor &td, const TaskF
 }
 
 string KnowledgeBase::GetRuntimesAsJson() {
+  VLOG(2) << "Creating runtime stats string";
   stringstream ss;
-  for (auto it = runtime_stats_map_->begin(); it != runtime_stats_map_->end(); ++it) {
+  for (auto it = runtime_stats_map_->begin(); it != runtime_stats_map_->end();) {
     stringstream name;
     name << it->first;
+    VLOG(2) << "Outputting stats for: " << name;
     ss << it->second->ToJsonString(name.str());
+    ++it;
     if (it != runtime_stats_map_->end()) {
       ss << ",";
     }

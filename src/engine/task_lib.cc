@@ -10,7 +10,7 @@
 #include <jansson.h>
 #include <vector>
 #include <stdlib.h>
- 
+
 //TODO remove
 #include <iostream>
 #include <unistd.h>
@@ -52,7 +52,7 @@ DEFINE_string(completion_filename, "",
 DEFINE_uint64(nginx_port, 0,
               "Port which nginx runs from. MUST be set if nginx is the application");
 
-DEFINE_uint64(idle_secs_to_termination, 8,
+DEFINE_uint64(idle_secs_to_termination, 20,
               "Number of seconds without traffic before self terminating.");
 
 #define SET_PROTO_IF_DICT_HAS_INT(proto, dict, member, val) \
@@ -399,7 +399,7 @@ void TaskLib::AddNginxStatistics(TaskPerfStatisticsSample::NginxStatistics *ns) 
       //stringstream termination_stream;
       //termination_stream << "taskpidkiller " << task_id_;
       //system(termination_stream.str().c_str());
-      exit(0); 
+      exit(0);
     }
 
     // Store new values as previous.
