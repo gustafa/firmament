@@ -31,8 +31,8 @@
 
 
 // TODO(gustafa): FIX later!
-DEFINE_string(coordinator_uri, "tcp:localhost:8088",
-              "The URI to contact the coordinator at.");
+//DEFINE_string(coordinator_uri, "tcp:localhost:8088",
+//              "The URI to contact the coordinator at.");
 DEFINE_string(resource_id,
               "feedcafedeadbeeffeedcafedeadbeeffeedcafedeadbeeffeedcafedeadbeef", // NOLINT
               "The resource ID that is running this task.");
@@ -74,7 +74,7 @@ TaskLib::TaskLib()
   : m_adapter_(new StreamSocketsAdapter<BaseMessage>()),
     chan_(new StreamSocketsChannel<BaseMessage>(
         StreamSocketsChannel<BaseMessage>::SS_TCP)),
-    coordinator_uri_(FLAGS_coordinator_uri), //getenv("FLAGS_coordinator_uri")
+    coordinator_uri_(getenv("FLAGS_coordinator_uri")), //getenv("FLAGS_coordinator_uri")
     resource_id_(ResourceIDFromString(FLAGS_resource_id)),
     pid_(getpid()),
     task_error_(false),
@@ -307,7 +307,7 @@ bool TaskLib::PullTaskInformationFromCoordinator(TaskID_t task_id,
 
 
 void TaskLib::RunMonitor(boost::thread::id main_thread_id) {
-  VLOG(3) << "COORDINATOR URI: " << FLAGS_coordinator_uri;
+  //VLOG(3) << "COORDINATOR URI: " << FLAGS_coordinator_uri;
   ConnectToCoordinator(coordinator_uri_);
   VLOG(3) << "Setting up storage engine";
   setUpStorageEngine();

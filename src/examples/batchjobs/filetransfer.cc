@@ -50,8 +50,8 @@ int main(int argc, char **argv) {
 
 
   // Setup firmament. This check is to allow for benchmarking without a running instance of firmament.
-  if (inside_firmament) {
-    string sargs = "--tryfromenv=coordinator_uri,resource_id,task_id,heartbeat_interval,tasklib_application,completion_filename,nginx_port";
+  // (inside_firmament) {
+    string sargs = "--tryfromenv=coordinator_uri,resource_id,task_id,heartbeat_interval,tasklib_application";
     string progargs = "nginxy";
     boost::thread::id task_thread_id = boost::this_thread::get_id();
 
@@ -63,7 +63,7 @@ int main(int argc, char **argv) {
     task_lib.reset(new firmament::TaskLib());
     task_lib->SetCompleted(0);
     boost::thread t1(&LaunchTasklib);
-  }
+  //}
 
 
 
