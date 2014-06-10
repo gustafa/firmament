@@ -27,19 +27,26 @@ listen stats :9039
     stats uri /
 '''
 
-def generate_server(hostname, port):
-  return '   server %(hostname)s%(port)d %(hostname)s:%(port)d disabled check' % \
-      {'hostname': hostname, 'port': port}
+def generate_server(hostname, max_rps, rps, port):
+  MAX_WEIGHT = 256
+  weight = int((rps / float(max_rps)) * MAX_WEIGHT)
+  return '   server %(hostname)s%(port)d %(hostname)s:%(port)d weight %(weight)d disabled check' % \
+      {'hostname': hostname, 'port': port, 'weight': weight}
 
 
 def main():
-  hostnames = ['michael', 'uriel', 'pandaboard', 'titanic']
+  hostname_rpss = (('michael', 10608), ('uriel', 10610), ('pandaboard', 930), ('titanic',8222))
   start_port = 16000
   num_ports = 100
+  max_rps = max([h[1] for h in hostname_rpss])
   servers = []
 
-  for hostname in hostnames:
-    servers.extend([generate_server(hostname, port + start_port) for port in range(num_ports)])
+  for hostname_rps in hostname_rpss:
+    hostname = hostname_rps[0]
+    rps = hostname_rps[1]
+    print hostname
+    print rps
+    servers.extend([generate_server(hostname, max_rps, rps, port + start_port) for port in range(num_ports)])
 
   f = open('configs/haproxy.cfg', 'w')
   f.write(cfg_text % {'servers': '\n'.join(servers)})
