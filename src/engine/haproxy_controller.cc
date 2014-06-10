@@ -57,10 +57,12 @@ bool HAProxyController::DisableServer(string webserver_name) {
 
 void HAProxyController::DisableRandomServer(double load) {
   // TODO take the highest cost and disable that instead when we have the energy based model.
-  uint64_t server_idx_kill = rand() % running_servers_.size();
-  auto kill_itt = running_servers_.begin();
-  advance(kill_itt,server_idx_kill);
-  DisableServer(*kill_itt);
+  if (running_servers_.size() > 1) {
+    uint64_t server_idx_kill = rand() % running_servers_.size();
+    auto kill_itt = running_servers_.begin();
+    advance(kill_itt,server_idx_kill);
+    DisableServer(*kill_itt);
+  }
  }
 
 

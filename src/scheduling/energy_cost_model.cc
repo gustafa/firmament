@@ -278,10 +278,14 @@ void EnergyCostModel::SetInitialStats() {
   wc_stats->SetRuntimes("michael", michael_wcmapred_runtimes);
   wc_stats->SetRuntimes("uriel", uriel_wcmapred_runtimes);
   wc_stats->SetRuntimes("pandaboard", pandaboard_wcmapred_runtimes);
+  wc_stats->SetRuntimes("wandboard", pandaboard_wcmapred_runtimes);
+
   wc_stats->SetRuntimes("titanic", titanic_wcmapred_runtimes);
 
   wc_stats->SetPower("uriel", 50.9101429584);
   wc_stats->SetPower("pandaboard", 1.171791979);
+  wc_stats->SetPower("wandboard", 1.171791979);
+
   wc_stats->SetPower("michael", 26.4011700789);
   wc_stats->SetPower("titanic", 92.7074207076);
 
@@ -304,9 +308,12 @@ void EnergyCostModel::SetInitialStats() {
   join_stats->SetRuntimes("michael", michael_joinmapred_runtimes);
   join_stats->SetRuntimes("uriel", uriel_joinmapred_runtimes);
   join_stats->SetRuntimes("pandaboard", pandaboard_joinmapred_runtimes);
+  join_stats->SetRuntimes("wandboard", pandaboard_joinmapred_runtimes);
+
   join_stats->SetRuntimes("titanic", titanic_joinmapred_runtimes);
   join_stats->SetPower("uriel", 51.4161912923);
   join_stats->SetPower("pandaboard", 0.954096364266);
+  join_stats->SetPower("wandboard", 0.954096364266);
   join_stats->SetPower("michael", 26.2885511978);
   join_stats->SetPower("titanic", 8.56867123191);
 
