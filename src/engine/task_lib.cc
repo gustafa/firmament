@@ -10,7 +10,7 @@
 #include <jansson.h>
 #include <vector>
 #include <stdlib.h>
-
+ 
 //TODO remove
 #include <iostream>
 #include <unistd.h>
@@ -52,7 +52,7 @@ DEFINE_string(completion_filename, "",
 DEFINE_uint64(nginx_port, 0,
               "Port which nginx runs from. MUST be set if nginx is the application");
 
-DEFINE_uint64(idle_secs_to_termination, 25,
+DEFINE_uint64(idle_secs_to_termination, 8,
               "Number of seconds without traffic before self terminating.");
 
 #define SET_PROTO_IF_DICT_HAS_INT(proto, dict, member, val) \
@@ -129,14 +129,20 @@ TaskLib::~TaskLib() {
 }
 
 void TaskLib::Stop() {
+  printf("STOP CALLED\n");
+  fflush(stdout);
   stop_ = true;
-  while (task_running_) {
-    boost::this_thread::sleep(boost::posix_time::milliseconds(50));
-    // Wait until the monitor has stopped before sending the finalize message.
-  }
+  //while (task_running_) {
+  //  boost::this_thread::sleep(boost::posix_time::milliseconds(50));
+  //   //Wait until the monitor has stopped before sending the finalize message.
+  //}
+  sleep(1);
   printf("Sending finalize message\n");
+  fflush(stdout);
   SendFinalizeMessage(true);
   printf("Finalise message sent\n");
+  fflush(stdout);
+  //exit(0);
 }
 
 
@@ -338,7 +344,8 @@ void TaskLib::RunMonitor(boost::thread::id main_thread_id) {
       // coordinator here, too. This is probably best done by a simple RecvA on
       // the channel.
     }
-
+  printf("STOPPING HEARTBEATS\n");
+  fflush(stdout);
   task_running_ = false;
 
 }
@@ -389,9 +396,10 @@ void TaskLib::AddNginxStatistics(TaskPerfStatisticsSample::NginxStatistics *ns) 
 
     if (seconds_without_traffic_ > FLAGS_idle_secs_to_termination) {
       //No traffic for a long while now! Let the webserver task be rescheduled somewhere else (if necessary).
-      stringstream termination_stream;
-      termination_stream << "taskpidkiller " << task_id_;
-      system(termination_stream.str().c_str());
+      //stringstream termination_stream;
+      //termination_stream << "taskpidkiller " << task_id_;
+      //system(termination_stream.str().c_str());
+      exit(0); 
     }
 
     // Store new values as previous.

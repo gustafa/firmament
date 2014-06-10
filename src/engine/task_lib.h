@@ -138,7 +138,7 @@ class TaskLib {
  private:
   pid_t pid_;
   bool task_error_;
-  bool task_running_;
+  volatile bool task_running_;
   uint64_t heartbeat_seq_number_;
 
   bool use_procfs_;
