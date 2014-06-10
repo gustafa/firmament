@@ -880,42 +880,40 @@ void Coordinator::IssueWebserverJobs() {
   uint64_t num_requests = knowledge_base_->GetAndResetWebreqs(seconds);
   VLOG(2) << "Currently seeing " << num_requests << " webrequests per second.";
 
-  // Add served webrequests to our totals
-
+  // Stats keeping
   uint64_t current_time = GetCurrentTimestamp();
   if (numberof_webrequests_->size() || num_requests > 3) {
     // Add anything after we have started observing requests.
     numberof_webrequests_->push_back(make_pair(current_time, num_requests));
   }
 
-  // Provision for a potential 15% increase in jobs.
-  uint64_t rps = num_requests / seconds + uint64_t(num_requests * 1.15);
+  double const increase_if_above = 0.7;
+  double const decrease_if_below = 0.3;
 
-  const uint64_t rps_per_job = 5000;
-  uint64_t num_jobs = (rps / rps_per_job) + 1;
-
-  uint64_t rps_per_server = rps / num_jobs;
-  // Get the number of active servers
+  double current_load = knowledge_base_->GetAndResetWebloads();
   uint64_t current_num_webservers = haproxy_controller_->GetNumActiveJobs();
 
-  if (num_jobs == current_num_webservers) {
-    // Do Nothing.
-  } else if (num_jobs > current_num_webservers) {
-    // We need more resources add the difference in numbers
-    int64_t num_new_jobs = num_jobs - current_num_webservers;
+  if (current_load > increase_if_above) {
+    // TODO should be more clever than this and maybe use load or something.
+    const uint64_t rps_per_server = 500;
+    VLOG(1) << "Starting up another webserver.";
     vector<JobDescriptor *> webserver_jobs;
-    haproxy_controller_->GenerateJobs(webserver_jobs, num_new_jobs, rps_per_server);
-    VLOG(2) << "Starting up " << num_new_jobs << " additional webservers.";
+    current_num_webservers++;
+    haproxy_controller_->GenerateJobs(webserver_jobs, 1, rps_per_server);
+
     for (auto job : webserver_jobs) {
       VLOG(2) <<"Job with root task: " << job->root_task().name();
       SubmitJob(*job);
     }
-  } else {
-    // We can reduce ze server count! Lets turn things off, only one at the time conservatively though.
-
+  } else if (current_load < decrease_if_below && current_num_webservers > 0) {
+    VLOG(1) << "Suggesting shutdown of webserver.";
+    // We have more than one webserver running and we are not observing much load.
+    haproxy_controller_->DisableRandomServer(0.5);
+    current_num_webservers--;
   }
+
   // Update the number of active servers.
-  haproxy_controller_->SetNumActiveJobs(num_jobs);
+  haproxy_controller_->SetNumActiveJobs(current_num_webservers);
 }
 
 const string Coordinator::SubmitJob(const JobDescriptor& job_descriptor) {

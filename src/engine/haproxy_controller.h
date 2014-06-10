@@ -33,7 +33,7 @@ class HAProxyController {
   inline uint64_t GetNumActiveJobs() { return num_active_jobs_;}
   inline void SetNumActiveJobs(uint64_t active_jobs) { num_active_jobs_ = active_jobs;}
 
-  void DisableRandomServer(uint64_t rps_per_server);
+  void DisableRandomServer(double load);
 
  private:
   string HAProxyCommand(string args);

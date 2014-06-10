@@ -312,7 +312,7 @@ bool StreamSocketsChannel<T>::RecvS(Envelope<T>* message) {
   CHECK_EQ(sizeof(size_t), len);
   uint64_t msg_size = *reinterpret_cast<uint64_t*>(&size_buf[0]);
   CHECK_GT(msg_size, 0);
-  VLOG(2) << "RecvS Size of incoming protobuf from" << LocalEndpointString << "is " << msg_size << " bytes.";
+  VLOG(2) << "RecvS Size of incoming protobuf from" << RemoteEndpointString() << "is " << msg_size << " bytes.";
   vector<char> buf(msg_size);
   len = read(*client_socket_,
              boost::asio::mutable_buffers_1(&buf[0], msg_size),
@@ -384,7 +384,7 @@ void StreamSocketsChannel<T>::RecvASecondStage(
   CHECK_EQ(sizeof(uint64_t), bytes_read);
   uint64_t msg_size = be64toh(*reinterpret_cast<uint64_t*>(&(*async_recv_buffer_vec_)[0]));
   CHECK_GT(msg_size, 0);
-  VLOG(2) << "RecvA Size of incoming protobuf from" << LocalEndpointString << "is " << msg_size << " bytes.";
+  VLOG(2) << "RecvA Size of incoming protobuf from" << RemoteEndpointString() << "is " << msg_size << " bytes.";
   // We still hold the async_recv_lock_ mutex here.
   async_recv_buffer_vec_.reset(new vector<char>(msg_size));
   async_recv_buffer_.reset(new boost::asio::mutable_buffers_1(

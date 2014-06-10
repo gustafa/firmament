@@ -55,7 +55,7 @@ bool HAProxyController::DisableServer(string webserver_name) {
 }
 
 
-void HAProxyController::DisableRandomServer(uint64_t rps_per_server) {
+void HAProxyController::DisableRandomServer(double load) {
   // TODO take the highest cost and disable that instead when we have the energy based model.
   uint64_t server_idx_kill = rand() % running_servers_.size();
   auto kill_itt = running_servers_.begin();

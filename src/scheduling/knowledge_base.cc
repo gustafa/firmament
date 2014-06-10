@@ -10,6 +10,8 @@
 #include "misc/equivclasses.h"
 #include "misc/map-util.h"
 #include "misc/utils.h"
+#include "scheduling/serviceapp_statistics.h"
+
 
 namespace firmament {
 
@@ -19,6 +21,8 @@ KnowledgeBase::KnowledgeBase() :
   webreqs_since_last_check_(0),
   webreq_window_first_(0),
   webreq_window_last_(0),
+  virtual_web_loads_(0),
+  num_web_loads_(0),
   application_stats_(new AppStatsMap_t()),
   runtime_stats_map_(new RuntimeStatsMap_t()) {
 }
@@ -58,8 +62,34 @@ void KnowledgeBase::AddTaskSample(const TaskPerfStatisticsSample& sample) {
 
   if (sample.has_nginx_stats()) {
     // TODO Waiting holds the total number of requests, silly but true!
-    webreqs_since_last_check_ += sample.nginx_stats().waiting();
+    uint64_t webreqs = sample.nginx_stats().waiting();
+    ServiceAppStatistics *app_stat = dynamic_cast<ServiceAppStatistics *>(FindPtrOrNull(*application_stats_,TaskDescriptor::NGINX));
+    CHECK_NOTNULL(app_stat);
+    uint64_t max_reqs = app_stat->MaxRPS(sample.hostname());
+
+    // Update our cost model if we observe new max vals!
+    if (webreqs > max_reqs) {
+      app_stat->SetMaxRPS(sample.hostname(), webreqs);
+      max_reqs = webreqs;
+    }
+
+    virtual_web_loads_ += webreqs / double(max_reqs);
+    webreqs_since_last_check_ += webreqs;
+    num_web_loads_ += 1;
   }
+}
+
+double KnowledgeBase::GetAndResetWebloads() {
+  if (!num_web_loads_) {
+    VLOG(1) << "Error! No Values found for virtual webloads";
+    return 0.5;
+  }
+
+  double virtual_web_load = virtual_web_loads_ / num_web_loads_;
+  num_web_loads_ = 0;
+  virtual_web_loads_ = 0;
+
+  return virtual_web_load;
 }
 
 uint64_t KnowledgeBase::GetAndResetWebreqs(uint64_t &num_seconds) {

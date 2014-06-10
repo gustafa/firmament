@@ -47,6 +47,8 @@ class KnowledgeBase {
 
   uint64_t GetAndResetWebreqs(uint64_t &num_seconds);
 
+  double GetAndResetWebloads();
+
   inline  shared_ptr<AppStatsMap_t>  AppStats() {
     return application_stats_;
   }
@@ -61,6 +63,9 @@ class KnowledgeBase {
   map<TaskID_t, deque<TaskFinalReport> > task_exec_reports_;
   shared_ptr<AppStatsMap_t> application_stats_;
 
+  double virtual_web_loads_;
+
+  uint64_t num_web_loads_;
 
   shared_ptr<RuntimeStatsMap_t> runtime_stats_map_;
 
