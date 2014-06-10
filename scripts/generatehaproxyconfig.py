@@ -33,7 +33,7 @@ def generate_server(hostname, port):
 
 
 def main():
-  hostnames = ['michael', 'uriel']
+  hostnames = ['michael', 'uriel', 'pandaboard', 'titanic']
   start_port = 16000
   num_ports = 50
   servers = []
