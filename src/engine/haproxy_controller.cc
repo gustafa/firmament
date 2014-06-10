@@ -28,7 +28,8 @@ HAProxyController::HAProxyController(string server_backend) :
   stats_headers(new vector<string>()),
   current_web_job_(0),
   num_active_jobs_(0),
-  start_port_(16000)
+  start_port_(16000),
+  num_ports_(100)
  {
   srand (time(NULL));
   //stats_headers.reset(new vector<string>());
@@ -169,7 +170,7 @@ void HAProxyController::GenerateJobs(vector<JobDescriptor*> &jobs, uint64_t numb
   char input_buffer[name_size];
   int fd = open("/dev/urandom", O_RDONLY);
   read(fd, buffer, name_size);
-  uint64_t current_start_port = start_port_ + num_active_jobs_;
+  //uint64_t current_start_port = start_port_ + ;
   for (uint64_t i = 0; i < number_of_jobs; ++i) {
     JobDescriptor *job_desc = new JobDescriptor();
     TaskDescriptor *root_task = job_desc->mutable_root_task();
@@ -179,7 +180,7 @@ void HAProxyController::GenerateJobs(vector<JobDescriptor*> &jobs, uint64_t numb
     root_task->set_task_type(TaskDescriptor::NGINX);
     root_task->set_state(TaskDescriptor_TaskState_CREATED);
     root_task->set_binary("nginx_firmament");
-    uint64_t port = current_start_port + i;
+    uint64_t port = current_start_port + (current_web_job_ % num_ports);
     root_task->set_port(port);
     string config_file = "/home/gjrh2/firmament/configs/nginx/nginx" +
         boost::lexical_cast<std::string>(port) + ".conf";

@@ -45,6 +45,8 @@ class HAProxyController {
   uint64_t current_web_job_;
   uint64_t num_active_jobs_;
   uint64_t start_port_;
+  uint64_t num_ports_;
+
 
   unordered_set<string> running_servers_;
 };
