@@ -6,20 +6,27 @@
 #ifndef FIRMAMENT_SCHEDULING_QUINCY_COST_MODEL_H
 #define FIRMAMENT_SCHEDULING_QUINCY_COST_MODEL_H
 
+
 #include <string>
+#include <unordered_map>
 
 #include "base/common.h"
 #include "base/types.h"
+#include "scheduling/knowledge_base.h"
+#include "misc/utils.h"
+#include "scheduling/batchapp_statistics.h"
+#include "scheduling/serviceapp_statistics.h"
 #include "scheduling/flow_scheduling_cost_model_interface.h"
-
 namespace firmament {
 
 typedef int64_t Cost_t;
 
 class QuincyCostModel : public FlowSchedulingCostModelInterface {
  public:
-  QuincyCostModel();
-
+  QuincyCostModel(shared_ptr<ResourceMap_t> resource_map, shared_ptr<JobMap_t> job_map,
+                  shared_ptr<TaskMap_t> task_map, shared_ptr<KnowledgeBase> knowledge_base,
+                  shared_ptr<ResourceHostMap_t> resource_to_host,
+                  map<TaskID_t, ResourceID_t> *task_bindings);
   // Costs pertaining to leaving tasks unscheduled
   Cost_t TaskToUnscheduledAggCost(TaskID_t task_id, FlowSchedulingPriorityType priority);
   Cost_t UnscheduledAggToSinkCost(JobID_t job_id);
@@ -36,6 +43,23 @@ class QuincyCostModel : public FlowSchedulingCostModelInterface {
   // Costs pertaining to preemption (i.e. already running tasks)
   Cost_t TaskContinuationCost(TaskID_t task_id);
   Cost_t TaskPreemptionCost(TaskID_t task_id);
+
+  void SetInitialStats();
+
+ private:
+
+  // Lookup maps for various resources from the scheduler.
+  shared_ptr<ResourceMap_t> resource_map_;
+
+  // Information regarding tasks.
+  shared_ptr<KnowledgeBase> knowledge_base_;
+  shared_ptr<JobMap_t> job_map_;
+  shared_ptr<TaskMap_t> task_map_;
+  shared_ptr<ResourceHostMap_t> resource_to_host_;
+  shared_ptr<AppStatsMap_t> application_stats_;
+
+  map<TaskID_t, ResourceID_t> *task_bindings_;
+
 };
 
 }  // namespace firmament

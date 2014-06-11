@@ -88,10 +88,15 @@ EnergyScheduler::EnergyScheduler(
       flow_graph_.reset(new FlowGraph(new TrivialCostModel()));
       VLOG(1) << "Using the trivial cost model";
       break;
-    case FlowSchedulingCostModelType::COST_MODEL_QUINCY:
-      flow_graph_.reset(new FlowGraph(new QuincyCostModel()));
+    case FlowSchedulingCostModelType::COST_MODEL_QUINCY: {
+      QuincyCostModel *quincy_cost_model = new QuincyCostModel(resource_map, job_map, task_map, knowledge_base, resource_host_map_,
+        &task_bindings_);
+      // Load initial values before setting up the flow graph.
+      quincy_cost_model->SetInitialStats();
+      flow_graph_.reset(new FlowGraph(quincy_cost_model));
       VLOG(1) << "Using the quincy cost model";
       break;
+    }
     case FlowSchedulingCostModelType::COST_MODEL_ENERGY: {
       EnergyCostModel *energy_cost_model = new EnergyCostModel(resource_map, job_map, task_map, knowledge_base, resource_host_map_,
         &task_bindings_);
