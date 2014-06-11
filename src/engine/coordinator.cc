@@ -319,6 +319,11 @@ const JobDescriptor* Coordinator::DescriptorForJob(const string& job_id) {
 void Coordinator::HandleIncomingMessage(BaseMessage *bm,
                                         const string& remote_endpoint) {
   uint32_t handled_extensions = 0;
+  if (bm->has_taskfinal_report()) {
+    const TaskFinalReport &msg = bm->taskfinal_report();
+    HandleTaskFinalReport(msg);
+    handled_extensions++;
+  }
   // Registration message
   if (bm->has_registration()) {
     const RegistrationMessage& msg = bm->registration();
@@ -397,11 +402,6 @@ void Coordinator::HandleIncomingMessage(BaseMessage *bm,
     handled_extensions++;
   }
 
-  if (bm->has_taskfinal_report()) {
-    const TaskFinalReport &msg = bm->taskfinal_report();
-    HandleTaskFinalReport(msg);
-    handled_extensions++;
-  }
   // Check that we have handled at least one sub-message
   if (handled_extensions == 0)
     LOG(ERROR) << "Ignored incoming message, no known extension present, "
@@ -464,7 +464,12 @@ void Coordinator::HandleHeartbeat(const HeartbeatMessage& msg) {
 
 void Coordinator::HandleTaskFinalReport(const TaskFinalReport& report) {
   VLOG(1) << "Handling task final report!";
-  //knowledge_base_->ProcessTaskFinalReport(report);
+  TaskDescriptor *td_ptr = FindPtrOrNull(*task_table_, report.real_task_id());
+
+  if (parent_chan_ == NULL) {
+    CHECK_NOTNULL(td_ptr);
+    knowledge_base_->ProcessTaskFinalReport(*td_ptr, report);
+  }
 }
 
 
@@ -727,7 +732,9 @@ void Coordinator::HandleTaskStateChange(
         // Send along completion statistics to the coordinator as well.
         // TODO make this all const incuding hantle taskcompletion method and remove duplication from
         // Switch statement below.
-        bm.mutable_taskfinal_report()->CopyFrom(report);
+        TaskFinalReport *sending_rep = bm.mutable_taskfinal_report();
+        sending_rep->CopyFrom(report);
+        sending_rep->set_real_task_id((*td_ptr)->uid());
 
         m_adapter_->SendMessageToEndpoint((*td_ptr)->delegated_from(), bm);
       } else if ((*td_ptr)->task_type() == TaskDescriptor::NGINX) {

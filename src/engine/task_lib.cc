@@ -75,7 +75,7 @@ TaskLib::TaskLib()
     chan_(new StreamSocketsChannel<BaseMessage>(
         StreamSocketsChannel<BaseMessage>::SS_TCP)),
     coordinator_uri_(getenv("FLAGS_coordinator_uri")), //getenv("FLAGS_coordinator_uri")
-    resource_id_(ResourceIDFromString(FLAGS_resource_id)),
+    resource_id_(ResourceIDFromString(getenv("FLAGS_resource_id"))),
     pid_(getpid()),
     task_error_(false),
     task_running_(false),
@@ -86,7 +86,7 @@ TaskLib::TaskLib()
     internal_completed_(false),
     seconds_without_traffic_(0)
  {
-  const char* task_id_env = FLAGS_task_id.c_str();
+  const char* task_id_env = getenv("FLAGS_task_id");
 
   hostname_ = boost::asio::ip::host_name();
 
