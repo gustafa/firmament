@@ -55,9 +55,10 @@ int main(int argc, char **argv) {
     string progargs = "nginxy";
     boost::thread::id task_thread_id = boost::this_thread::get_id();
 
-    char *argv2[1];
-    argv2[0] = const_cast<char*>(sargs.c_str());
-    firmament::common::InitFirmament(1, argv2);
+    // char *argv2[1];
+    // argv2[0] = argv[0];
+    // //argv2[1] = const_cast<char*>(sargs.c_str());
+    // firmament::common::InitFirmament(1, argv2);
 
     //firmament::common::InitFirmament(argc, argv);
     task_lib.reset(new firmament::TaskLib());
