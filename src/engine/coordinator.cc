@@ -969,7 +969,7 @@ const string Coordinator::SubmitJob(const JobDescriptor& job_descriptor) {
   // Compute the absolute deadline for the root task if it has a deadline
   // set.
   if (root_task->has_relative_deadline()) {
-    root_task->set_absolute_deadline(GetCurrentTimestamp() + root_task->relative_deadline());
+    root_task->set_absolute_deadline(GetCurrentTimestamp() + root_task->relative_deadline() * 1000000);
   }
 
   // Create a dynamic task graph for the job
