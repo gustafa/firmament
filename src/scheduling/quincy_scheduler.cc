@@ -75,10 +75,10 @@ QuincyScheduler::QuincyScheduler(
       flow_graph_.reset(new FlowGraph(new TrivialCostModel()));
       VLOG(1) << "Using the trivial cost model";
       break;
-    case FlowSchedulingCostModelType::COST_MODEL_QUINCY:
-      flow_graph_.reset(new FlowGraph(new QuincyCostModel()));
-      VLOG(1) << "Using the quincy cost model";
-      break;
+    // case FlowSchedulingCostModelType::COST_MODEL_QUINCY:
+    //   flow_graph_.reset(new FlowGraph(new QuincyCostModel()));
+    //   VLOG(1) << "Using the quincy cost model";
+    //   break;
     default:
       LOG(FATAL) << "Unknown flow scheduling cost model specificed "
                  << "(" << FLAGS_flow_scheduling_cost_model << ")";
