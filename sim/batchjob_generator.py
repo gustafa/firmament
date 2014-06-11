@@ -19,7 +19,7 @@ job_idx_to_type = {0: 'wc', 1: 'join', 2: 'mv'}
 job_type_to_binary = {'wc': 'firmareduce', 'join': 'firmareduce', 'mv': 'filetransfer' }
 
 directory = '/home/gjrh2/firmament/src/examples/'
-mv_dir = '/home/gjrh2/firmament/build/examples/batchjobs'
+mv_dir = '/home/gjrh2/firmament/ext/filetransfer'
 mapreduce_dir = directory + "mapreduce/"
 job_type_to_args = {'wc': (mapreduce_dir +  'wcmapper.py', mapreduce_dir + 'wcreducer.py', '/home/gjrh2/firmament/sim/wcfiles'), \
                     'join': (mapreduce_dir + "joinmapper.py", mapreduce_dir + 'joinreducer.py', '/home/gjrh2/firmament/sim/joinfiles'), \

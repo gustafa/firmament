@@ -84,6 +84,20 @@ export PB2JSON_LIB
 TSSTLC_INC_DIR ?= $(EXT_DIR)/thread-safe-stl-containers-svn/
 export TSSTLC_INC_DIR
 
+#######################################
+# pion-SPECIFIC DEFINITIONS
+#######################################
+
+# Header directory for pion
+PION_INC_DIR ?= $(EXT_DIR)/pion-build/include/
+export PION_INC_DIR
+
+# Path to the compiled googletest library (usually under
+# "make" in the googletest directory in "ext").
+PION_LIB ?= $(EXT_DIR)/pion-build/lib/libpion.a
+export PION_LIB
+ 
+
 
 #######################################
 # INCLUDES
@@ -91,6 +105,7 @@ export TSSTLC_INC_DIR
 
 INCLUDES = -I$(SRC_ROOT_DIR) -I$(SRC_GEN_DIR) -I$(CSRC_GEN_DIR) \
 	   -I$(GTEST_INC_DIR) -I$(PB2JSON_INC_DIR) -I$(TSSTLC_INC_DIR) \
+	   -I$(PION_INC_DIR)
 	   #-I$(GPERFTOOLS_INC_DIR)
 
 
@@ -118,9 +133,9 @@ OPTFLAGS = -g -O0  # debug
 #OPTFLAGS = -O3    # release
 
 # for clang++, uncomment this line
-#CPPFLAGS = $(INCLUDES) -Wall -Wextra -Werror -pedantic -Wno-error=unused-parameter -Wno-long-long -Wno-variadic-macros -Wno-language-extension-token -Wno-deprecated -Wno-error=unused-function -Wno-vla
+#CPPFLAGS = $(INCLUDES) -Wall -Wextra Werror -pedantic -Wno-error=unused-parameter -Wno-long-long -Wno-variadic-macros -Wno-language-extension-token -Wno-deprecated -Wno-error=unused-function -Wno-vla
 # for g++, uncomment this line
-CPPFLAGS = $(INCLUDES) -Wall -Wextra -Werror -pedantic -Wno-error=unused-parameter -Wno-long-long -Wno-variadic-macros -Wno-deprecated -Wno-error=unused-function -Wno-vla
+CPPFLAGS = $(INCLUDES) -Wall -Wextra  -pedantic -Wno-error=unused-parameter -Wno-long-long -Wno-variadic-macros -Wno-deprecated -Wno-error=unused-function -Wno-vla -std=gnu++0x -fPIC
 
 # To build statically linked executables, uncomment the following line AND make
 # sure that tcmalloc is NOT linked.
