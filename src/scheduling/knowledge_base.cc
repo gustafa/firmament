@@ -146,16 +146,7 @@ void KnowledgeBase::ProcessTaskFinalReport(const TaskDescriptor &td, const TaskF
     runtime_stats = new RuntimeStats();
     (*runtime_stats_map_)[td.task_type()] = runtime_stats;
   }
-
-  runtime_stats->AddArrivalTime(report.start_time());
-  runtime_stats->AddCompletionTime(report.finish_time());
-  if (td.has_absolute_deadline()) {
-    if (report.finish_time() > td.absolute_deadline()) {
-      // The deadline is marked as missed at the point it expired.
-      runtime_stats->AddMissedDeadlineTime(td.absolute_deadline());
-    }
-  }
-
+  runtime_stats->AddSample(td, report);
   // Check if we already have a record for this task
   deque<TaskFinalReport>* q = FindOrNull(task_exec_reports_, tid_equiv);
   if (!q) {
