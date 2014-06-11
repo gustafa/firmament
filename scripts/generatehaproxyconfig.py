@@ -38,7 +38,7 @@ def main():
   if socket.gethostname() == 'gustafa':
     hostname_rpss = (('gustafa', 10608), )
   else:
-    hostname_rpss = (('michael', 10608), ('uriel', 10610), ('pandaboard', 930), ('titanic',8222))
+    hostname_rpss = (('michael', 10608), ('uriel', 10610), ('pandaboard', 930), ('titanic',8222), ('wandboard', 930))
   start_port = 16000
   num_ports = 100
   max_rps = max([h[1] for h in hostname_rpss])

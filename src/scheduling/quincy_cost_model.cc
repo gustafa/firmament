@@ -150,6 +150,7 @@ void QuincyCostModel::SetInitialStats() {
   vector<pair<uint64_t, double>> titanic_filetransfer_runtimes({make_pair(0, 0), make_pair(10, 44.440000), make_pair(20, 68.520000), make_pair(50, 230.590000), make_pair(100, 449.520000), make_pair(150, 736.880000), make_pair(250, 1180.450000), make_pair(400, 1901.510000), make_pair(600, 2878.910000)});
   filetransfer_stats->SetPower("uriel", 29.006090878);
   filetransfer_stats->SetPower("pandaboard", 1.39785491627);
+  filetransfer_stats->SetPower("wandboard", 1.39785491627);
   filetransfer_stats->SetPower("michael", 18.5887076174);
   filetransfer_stats->SetPower("titanic", 13.7984403934);
   filetransfer_stats->SetPower("gustafa", 20);
@@ -160,6 +161,7 @@ void QuincyCostModel::SetInitialStats() {
   filetransfer_stats->SetRuntimes("uriel", uriel_filetransfer_runtimes);
   filetransfer_stats->SetRuntimes("titanic", titanic_filetransfer_runtimes);
   filetransfer_stats->SetRuntimes("pandaboard", pandaboard_filetransfer_runtimes);
+  filetransfer_stats->SetRuntimes("wandboard", pandaboard_filetransfer_runtimes);
 
 
 
@@ -174,12 +176,14 @@ void QuincyCostModel::SetInitialStats() {
   vector<pair<uint64_t, double>> titanic_nginx_powers({make_pair(0, 0),make_pair(59, 0.000000), make_pair(148, 0.000000), make_pair(296, 3.429421), make_pair(592, 0.000000), make_pair(1184, 3.352577), make_pair(2368, 9.076655), make_pair(2960, 7.822112), make_pair(4440, 13.242242), make_pair(5920, 16.425469), make_pair(7400, 8.529208), make_pair(8880, 2.134986), make_pair(11840, 5.086099), make_pair(14800, 8.221943), make_pair(17760, 11.487016), make_pair(20720, 9.196698)});
   nginx_stats->SetMaxRPS("uriel", 10610);
   nginx_stats->SetMaxRPS("pandaboard", 930);
+  nginx_stats->SetMaxRPS("wandboard", 930);
   nginx_stats->SetMaxRPS("michael", 10608);
   nginx_stats->SetMaxRPS("titanic", 8222);
   nginx_stats->SetMaxRPS("gustafa", 8222);
 
   nginx_stats->SetPowers("uriel", uriel_nginx_powers);
   nginx_stats->SetPowers("pandaboard", pandaboard_nginx_powers);
+  nginx_stats->SetPowers("wandboard", pandaboard_nginx_powers);
   nginx_stats->SetPowers("michael", michael_nginx_powers);
   nginx_stats->SetPowers("gustafa", michael_nginx_powers);
 
