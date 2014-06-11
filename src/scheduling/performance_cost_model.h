@@ -1,7 +1,7 @@
 // The Firmament project
 // Copyright (c) 2014 Malte Schwarzkopf <malte.schwarzkopf@cl.cam.ac.uk>
 //
-// Performance scheduling cost model.
+// Energy scheduling cost model.
 
 #ifndef FIRMAMENT_SCHEDULING_PERFORMANCE_COST_MODEL_H
 #define FIRMAMENT_SCHEDULING_PERFORMANCE_COST_MODEL_H
@@ -77,9 +77,9 @@ class PerformanceCostModel : public FlowSchedulingCostModelInterface {
                                                        vector<Cost_t> &machine_task_costs);
 
   Cost_t ServiceTaskToResourceNodeCosts(TaskID_t task_id, TaskDescriptor *td, const vector<ResourceID_t> &machine_ids,
-                                                       vector<Cost_t> &machine_task_costs);
+                                      vector<Cost_t> &machine_task_costs);
 };
 
 }  // namespace firmament
 
-#endif  // FIRMAMENT_SCHEDULING_PERFORMANCE_COST_MODEL_H
+#endif  // FIRMAMENT_SCHEDULING_ENERGY_COST_MODEL_H
