@@ -464,7 +464,7 @@ void Coordinator::HandleHeartbeat(const HeartbeatMessage& msg) {
 
 void Coordinator::HandleTaskFinalReport(const TaskFinalReport& report) {
   VLOG(1) << "Handling task final report!";
-  TaskDescriptor *td_ptr = FindPtrOrNull(*task_table_, report.task_id());
+  TaskDescriptor *td_ptr = FindPtrOrNull(*task_table_, report.real_task_id());
 
   if (parent_chan_ == NULL) {
     CHECK_NOTNULL(td_ptr);
@@ -732,7 +732,9 @@ void Coordinator::HandleTaskStateChange(
         // Send along completion statistics to the coordinator as well.
         // TODO make this all const incuding hantle taskcompletion method and remove duplication from
         // Switch statement below.
-        bm.mutable_taskfinal_report()->CopyFrom(report);
+        TaskFinalReport *sending_rep = bm.mutable_taskfinal_report();
+        sending_rep->CopyFrom(report);
+        sending_rep->set_real_task_id((*td_ptr)->uid());
 
         m_adapter_->SendMessageToEndpoint((*td_ptr)->delegated_from(), bm);
       } else if ((*td_ptr)->task_type() == TaskDescriptor::NGINX) {
