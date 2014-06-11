@@ -82,6 +82,8 @@ int main(int argc, char **argv) {
     }
   }
 
+  task_lib->Stop();
+
   if (i == 0) {
     std::cerr << "NO FILES COPIED, could not find any in: " << input_dir << std::endl;
     exit(2);
