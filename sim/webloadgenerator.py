@@ -16,11 +16,7 @@ def sleep_for(ms):
 
 
 def main():
-
-  if len(sys.argv) != 2:
-    print 'usage: webloadgenerator <interface>'
-    sys.exit(1)
-  interface = sys.argv[1]
+  interface = 'p4p1.2'
   with open('sim/webload') as inputdata:
     data = json.load(inputdata)
 
@@ -34,24 +30,21 @@ def main():
   sleep_for(wait_time)
 
   base_test = 'sudo -u flowuser weighttp -k '
-
+  connections = weightbenchmarker.get_num_connections(400)
+  num_threads = weightbenchmarker.get_num_threads(connections)
+  connections = weightbenchmarker.alter_num_connections(connections, num_threads)
+  test_command = '%(base_command)s -n 10000000000 -c %(connections)d -t %(threads)d %(hostname)s/' % \
+       {'base_command': base_test, 'connections': connections, \
+                'threads': num_threads, 'hostname': attack_host}
+  p = Popen(test_command, shell=True, preexec_fn=os.setsid)
   for i in range(num_samples):
     mbps = mbps_per_sample[i]
     print "running with " + str(mbps)
     weightbenchmarker.set_mbps(mbps, interface)
-    connections = weightbenchmarker.get_num_connections(mbps)
-    num_threads = weightbenchmarker.get_num_threads(connections)
-    connections = weightbenchmarker.alter_num_connections(connections, num_threads)
 
-    # Will be killed later anyways
-    test_command = '%(base_command)s -n 1000000000 -c %(connections)d -t %(threads)d %(hostname)s/' % \
-       {'base_command': base_test, 'connections': connections, \
-                'threads': num_threads, 'hostname': attack_host}
-    print test_command
     # Launch web requests and sleep for the intended duration
-    p = Popen(test_command, shell=True, preexec_fn=os.setsid)
     sleep_for(runtime_per_sample)
-    os.killpg(p.pid, signal.SIGTERM)
+  os.killpg(p.pid, signal.SIGTERM)
 
 
 if __name__ == '__main__':
