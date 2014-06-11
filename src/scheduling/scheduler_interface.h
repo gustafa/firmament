@@ -57,6 +57,10 @@ class SchedulerInterface : public PrintableInterface {
   // TODO(malte): comment
   virtual bool PlaceDelegatedTask(TaskDescriptor* td,
                                   ResourceID_t target_resource) = 0;
+
+  virtual void RunSchedIfTimedOut(uint64_t timeout) = 0;
+
+
   // Kills a running task.
   virtual void KillRunningTask(TaskID_t task_id,
                                TaskKillMessage::TaskKillReason reason) = 0;

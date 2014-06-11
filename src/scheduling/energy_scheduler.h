@@ -56,6 +56,7 @@ class EnergyScheduler : public EventDrivenScheduler {
     return *stream << "<EnergyScheduler, parameters: "
                    << parameters_.DebugString() << ">";
   }
+  void RunSchedIfTimedOut(uint64_t timeout);
 
   void IssueWebserverJobs();
 

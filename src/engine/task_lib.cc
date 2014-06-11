@@ -398,11 +398,8 @@ void TaskLib::AddNginxStatistics(TaskPerfStatisticsSample::NginxStatistics *ns) 
     }
 
     if (seconds_without_traffic_ > FLAGS_idle_secs_to_termination) {
-      //No traffic for a long while now! Let the webserver task be rescheduled somewhere else (if necessary).
-      //stringstream termination_stream;
-      //termination_stream << "taskpidkiller " << task_id_;
-      //system(termination_stream.str().c_str());
-      exit(0);
+      // Since ugh
+      //exit(0);
     }
 
     // Store new values as previous.

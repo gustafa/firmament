@@ -60,6 +60,8 @@ class EventDrivenScheduler : public SchedulerInterface {
 
   ExecutorInterface *GetExecutorForTask(TaskID_t task_id);
 
+  void RunSchedIfTimedOut(uint64_t timeout);
+
   void IssueWebserverJobs();
 
  protected:
@@ -102,6 +104,8 @@ class EventDrivenScheduler : public SchedulerInterface {
   // Flag (effectively a lock) indicating if the scheduler is currently
   // in the process of making scheduling decisions.
   boost::mutex scheduling_lock_;
+
+  uint64_t last_iteration_;
 };
 
 }  // namespace scheduler

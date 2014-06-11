@@ -316,6 +316,11 @@ void EventDrivenScheduler::RegisterLocalResource(ResourceID_t res_id) {
   CHECK(InsertIfNotPresent(&executors_, res_id, exec));
 }
 
+void EventDrivenScheduler::RunSchedIfTimedOut(uint64_t timeout) {
+  LOG(FATAL) << "Not implemented!";
+}
+
+
 void EventDrivenScheduler::RegisterRemoteResource(ResourceID_t res_id) {
   // Create an executor for each resource.
   VLOG(1) << "Adding executor for remote resource " << res_id;

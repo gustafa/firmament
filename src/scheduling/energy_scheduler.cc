@@ -170,8 +170,6 @@ uint64_t EnergyScheduler::ApplySchedulingDeltas(
         break;
       }
 
-
-
       case SchedulingDelta::PLACE: {
         VLOG(1) << "Trying to place task " << task_id
                 << " on resource " << (*it)->resource_id();
@@ -200,6 +198,15 @@ uint64_t EnergyScheduler::ApplySchedulingDeltas(
                  // within loop!
   }
   return deltas.size();
+}
+
+void EnergyScheduler::RunSchedIfTimedOut(uint64_t timeout) {
+  if ((GetCurrentTimestamp() - last_iteration_ > timeout)
+      && scheduling_lock_.try_lock()) {
+    // We now have the scheduling lock and it's about time we run..
+    RunSchedulingIteration();
+    scheduling_lock_.unlock();
+  }
 }
 
 void EnergyScheduler::HandleTaskCompletion(TaskDescriptor* td_ptr,
@@ -443,6 +450,7 @@ uint64_t EnergyScheduler::RunSchedulingIteration() {
     deltas.push_back(delta);
   }
   uint64_t num_scheduled = ApplySchedulingDeltas(deltas);
+  last_iteration_ = GetCurrentTimestamp();
   return num_scheduled;
 }
 

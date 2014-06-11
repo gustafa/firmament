@@ -64,6 +64,9 @@ DEFINE_uint64(energy_stat_interval, 3,
 DEFINE_uint64(reconsider_web_interval, 5000000, "Interval in microseconds for the scheduler "
               "to reconsider webrequests");
 
+DEFINE_uint64(max_time_between_scheduling, 10000000, "Interval in microseconds for the scheduler "
+              "to reconsider webrequests");
+
 DEFINE_bool(master_scheduler_on, true, "Whether to use the master scheduler option");
 
 namespace firmament {
@@ -289,6 +292,8 @@ void Coordinator::Run() {
     if (parent_chan_) {
       boost::this_thread::sleep(boost::posix_time::milliseconds(FLAGS_sleep_time));
     }
+
+    scheduler_->RunSchedIfTimedOut(FLAGS_max_time_between_scheduling);
   }
 
   // We have dropped out of the main loop and are exiting
@@ -906,10 +911,11 @@ void Coordinator::IssueWebserverJobs() {
       SubmitJob(*job);
     }
   } else if (current_load < decrease_if_below && current_num_webservers > 0) {
-    VLOG(1) << "Suggesting shutdown of webserver.";
-    // We have more than one webserver running and we are not observing much load.
-    haproxy_controller_->DisableRandomServer(0.5);
-    current_num_webservers--;
+    // Since ugh
+    // VLOG(1) << "Suggesting shutdown of webserver.";
+    // // We have more than one webserver running and we are not observing much load.
+    // haproxy_controller_->DisableRandomServer(0.5);
+    // current_num_webservers--;
   }
 
   // Update the number of active servers.
