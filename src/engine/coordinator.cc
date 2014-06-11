@@ -293,7 +293,10 @@ void Coordinator::Run() {
       boost::this_thread::sleep(boost::posix_time::milliseconds(FLAGS_sleep_time));
     }
 
-    scheduler_->RunSchedIfTimedOut(FLAGS_max_time_between_scheduling);
+    if (FLAGS_parent_uri == "") {
+      // Schedule at least once every FLAGS_max_time_between_scheduling on the master coordinator.
+      scheduler_->RunSchedIfTimedOut(FLAGS_max_time_between_scheduling);
+    }
   }
 
   // We have dropped out of the main loop and are exiting
