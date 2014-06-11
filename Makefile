@@ -21,7 +21,7 @@
 # Get common build settings
 include include/Makefile.config
 
-all: tests-clean ext platforms misc engine scripts power
+all: tests-clean ext platforms misc engine scripts
 
 help: info
 
