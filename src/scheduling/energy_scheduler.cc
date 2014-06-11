@@ -178,15 +178,18 @@ uint64_t EnergyScheduler::ApplySchedulingDeltas(
         BindTaskToResource(*td, (*rs)->mutable_descriptor());
         flow_graph_->UpdateArcsForBoundTask(task_id, res_id);
 
+        string *hostname = FindOrNull(*resource_host_map_, res_id);
+        CHECK_NOTNULL(hostname);
+
         // If this is a webserver inform the proxy we can start routing requests there.
         if ((*td)->task_type() == TaskDescriptor::NGINX) {
           VLOG(2) << "FOUND NGINX APP";
-          string *hostname = FindOrNull(*resource_host_map_, res_id);
-          CHECK_NOTNULL(hostname);
           CHECK((*td)->has_port());
           VLOG(2) << "ENABLING NGINX SERVER";
           haproxy_controller_->EnableServer(*hostname, (*td)->port());
         }
+
+        knowledge_base_->AddScheduledTaskStat((*td)->task_type(), *hostname);
 
         break;
       }

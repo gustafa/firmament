@@ -1,5 +1,5 @@
 #!/usr/bin/python2
-
+import socket
 cfg_text = '''global
     daemon
     maxconn 256
@@ -35,7 +35,10 @@ def generate_server(hostname, max_rps, rps, port):
 
 
 def main():
-  hostname_rpss = (('michael', 10608), ('uriel', 10610), ('pandaboard', 930), ('titanic',8222))
+  if socket.gethostname() == 'gustafa':
+    hostname_rpss = (('gustafa', 10608), )
+  else:
+    hostname_rpss = (('michael', 10608), ('uriel', 10610), ('pandaboard', 930), ('titanic',8222))
   start_port = 16000
   num_ports = 100
   max_rps = max([h[1] for h in hostname_rpss])

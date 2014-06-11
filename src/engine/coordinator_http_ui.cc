@@ -122,6 +122,15 @@ void CoordinatorHTTPUI::HandleJobSubmitURI(http::request_ptr& http_request,  // 
   FinishOkResponse(writer);
 }
 
+void CoordinatorHTTPUI::HandleGenerateStatsURI(http::request_ptr& http_request,  // NOLINT
+                                         tcp::connection_ptr& tcp_conn) {  // NOLINT
+  LogRequest(http_request);
+  http::response_writer_ptr writer = InitOkResponse(http_request, tcp_conn);
+  string output = coordinator_->OutputStats();
+  writer->write(output);
+  FinishOkResponse(writer);
+}
+
 void CoordinatorHTTPUI::HandleRootURI(http::request_ptr& http_request,  // NOLINT
                                       tcp::connection_ptr& tcp_conn) {  // NOLINT
   LogRequest(http_request);
@@ -766,8 +775,12 @@ void __attribute__((no_sanitize_address)) CoordinatorHTTPUI::Init(uint16_t port)
     coordinator_http_server_->add_resource("/task/", boost::bind(
         &CoordinatorHTTPUI::HandleTaskURI, this, _1, _2));
     // Shutdown request
+    coordinator_http_server_->add_resource("/generate_stats/", boost::bind(
+        &CoordinatorHTTPUI::HandleGenerateStatsURI, this, _1, _2));
+    // Generate stats request
     coordinator_http_server_->add_resource("/shutdown/", boost::bind(
         &CoordinatorHTTPUI::HandleShutdownURI, this, _1, _2));
+
     // Start the HTTP server
     coordinator_http_server_->start();  // spawns a thread!
     LOG(INFO) << "Coordinator HTTP interface up!";

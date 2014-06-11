@@ -106,6 +106,8 @@ class Coordinator : public Node,
     return (res ? (*res)->mutable_descriptor() : NULL);
   }
 
+  string OutputStats();
+
   // Hacky DFS to extract the RTND for a specific resource from the tree.
   // We ought to have a better solution for this, however -- either a
   // lookup table of some sort, or something else. The DFS won't scale to
@@ -260,7 +262,6 @@ class Coordinator : public Node,
 
   void IssueWebserverJobs();
 
-  void OutputStats(string filename);
 
 #ifdef __HTTP_UI__
   void InitHTTPUI();

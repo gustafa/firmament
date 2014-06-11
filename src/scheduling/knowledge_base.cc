@@ -189,4 +189,18 @@ string KnowledgeBase::GetRuntimesAsJson() {
   return ss.str();
 }
 
+
+
+void KnowledgeBase::AddScheduledTaskStat(TaskDescriptor::TaskType type, string hostname) {
+  RuntimeStats *runtime_stats = FindPtrOrNull(*runtime_stats_map_, type);
+
+  if (runtime_stats == NULL) {
+    VLOG(2) << "Creating new runtime statistics for task_type " << type;
+    runtime_stats = new RuntimeStats();
+    (*runtime_stats_map_)[type] = runtime_stats;
+  }
+
+  runtime_stats->AddScheduledStat(hostname);
+}
+
 }  // namespace firmament

@@ -24,6 +24,7 @@ class RuntimeStats {
   }
 
   string ToJsonString(string name);
+  void AddScheduledStat(string hostname);
 
 
 
@@ -31,6 +32,8 @@ class RuntimeStats {
   vector<uint64_t> arrival_times_;
   vector<uint64_t> completion_times_;
   vector<uint64_t> missed_deadline_times_;
+
+  shared_ptr<unordered_map<string, uint64_t>> host_to_schedules_;
 
   string VectorToCSV(vector<uint64_t> &v);
 };

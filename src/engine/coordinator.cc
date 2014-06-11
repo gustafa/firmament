@@ -300,12 +300,12 @@ void Coordinator::Run() {
   // TODO(malte): any cleanup we need to do; hand-over to another coordinator if
   // possible?
 
-  if (parent_chan_ == NULL) {
-    // STATS PRINT TIME WOOOHOOOOO
-    stringstream ss;
-    ss << GetCurrentTimestamp();
-    OutputStats("/home/gjrh2/coordinatorstats" + ss.str());
-  }
+  // if (parent_chan_ == NULL) {
+  //   // STATS PRINT TIME WOOOHOOOOO
+  //   stringstream ss;
+  //   ss << GetCurrentTimestamp();
+  //   OutputStats("/home/gjrh2/coordinatorstats" + ss.str());
+  // }
 
   Shutdown("dropped out of main loop");
 }
@@ -795,31 +795,30 @@ void Coordinator::KillRunningTask(TaskID_t task_id,
 
 }
 
-void Coordinator::OutputStats(string filename) {
+string Coordinator::OutputStats() {
   // Woo time to update webserver and batch job data.
-  ofstream output_file;
-  output_file.open(filename);
-  output_file << "{\n";
-  output_file << "\"cost model\": " << FLAGS_flow_scheduling_cost_model << ",\n";
+  stringstream json_output;
+  json_output << "{\n";
+  json_output << "\"cost model\": " << FLAGS_flow_scheduling_cost_model << ",\n";
 
-  output_file << "\"nginx_requests_served\": [";
+  json_output << "\"nginx_requests_served\": [";
   uint64_t last_webrequest_idx = numberof_webrequests_->size()?  numberof_webrequests_->size() -1 : numberof_webrequests_->size();
   for (uint64_t i = 0; i != last_webrequest_idx; ++i) {
     pair<uint64_t, uint64_t> &time_reqs = (*numberof_webrequests_)[i];
-    output_file << "(" << time_reqs.first << ", " << time_reqs.second << ")" << ", ";
+    json_output << "(" << time_reqs.first << ", " << time_reqs.second << ")" << ", ";
   }
 
   if (numberof_webrequests_->size()) {
     pair<uint64_t, uint64_t> &time_reqs = (*numberof_webrequests_)[last_webrequest_idx];
-    output_file << "(" << time_reqs.first << ", " << time_reqs.second << ")";
+    json_output << "(" << time_reqs.first << ", " << time_reqs.second << ")";
   }
-  output_file << "],\n";
+  json_output << "],\n";
   string runtime_json = knowledge_base_->GetRuntimesAsJson();
 
   VLOG(2) << runtime_json;
-  output_file << runtime_json;
-  output_file << "}\n";
-  output_file.close();
+  json_output << runtime_json;
+  json_output << "}\n";
+  return json_output.str();
 }
 
 

@@ -75,6 +75,8 @@ class CoordinatorHTTPUI {
                      tcp::connection_ptr& tcp_conn);
   void HandleShutdownURI(http::request_ptr& http_request,  // NOLINT
                          tcp::connection_ptr& tcp_conn);
+  void HandleGenerateStatsURI(http::request_ptr& http_request,  // NOLINT
+                              tcp::connection_ptr& tcp_conn);
   void Shutdown(bool block);
 
   inline bool active() { return active_; }

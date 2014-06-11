@@ -55,6 +55,8 @@ class KnowledgeBase {
 
   string GetRuntimesAsJson();
 
+  void AddScheduledTaskStat(TaskDescriptor::TaskType type, string hostname);
+
  protected:
   map<ResourceID_t, deque<MachinePerfStatisticsSample> > machine_map_;
   // TODO(malte): note that below sample queue has no awareness of time within a
