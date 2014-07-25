@@ -63,6 +63,8 @@ void KnowledgeBase::AddTaskSample(const TaskPerfStatisticsSample& sample) {
   q->push_back(sample);
 
   if (sample.has_nginx_stats()) {
+
+
     // TODO Waiting holds the total number of requests, silly but true!
     uint64_t webreqs = sample.nginx_stats().waiting();
     ServiceAppStatistics *app_stat = dynamic_cast<ServiceAppStatistics *>(FindPtrOrNull(*application_stats_,TaskDescriptor::NGINX));
@@ -209,8 +211,9 @@ void KnowledgeBase::RegisterWebserver(string machine, uint64_t port) {
     (*running_webservers_)[machine] = (*current_num_webservers) +1;
   }
   stringstream ss;
-  ss << port;
-  running_webs_->push_back(machine + ss.str());
+  ss << machine << port;
+  VLOG(1) << "Registerbling " << ss.str();
+  running_webs_->push_back(ss.str());
 
 }
 
