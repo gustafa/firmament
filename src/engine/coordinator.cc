@@ -815,12 +815,12 @@ string Coordinator::OutputStats() {
   uint64_t last_webrequest_idx = numberof_webrequests_->size()?  numberof_webrequests_->size() -1 : numberof_webrequests_->size();
   for (uint64_t i = 0; i != last_webrequest_idx; ++i) {
     pair<uint64_t, uint64_t> &time_reqs = (*numberof_webrequests_)[i];
-    json_output << "(" << time_reqs.first << ", " << time_reqs.second << ")" << ", ";
+    json_output << "[" << time_reqs.first << ", " << time_reqs.second << "]" << ", ";
   }
 
   if (numberof_webrequests_->size()) {
     pair<uint64_t, uint64_t> &time_reqs = (*numberof_webrequests_)[last_webrequest_idx];
-    json_output << "(" << time_reqs.first << ", " << time_reqs.second << ")";
+    json_output << "[" << time_reqs.first << ", " << time_reqs.second << "]";
   }
   json_output << "],\n";
   string runtime_json = knowledge_base_->GetRuntimesAsJson();
@@ -908,7 +908,6 @@ void Coordinator::IssueWebserverJobs() {
   uint64_t current_num_webservers = haproxy_controller_->GetNumActiveJobs();
 
   if (current_load > increase_if_above || !current_num_webservers) {
-    // TODO should be more clever than this and maybe use load or something.
     const uint64_t rps_per_server = 500;
     VLOG(1) << "Starting up another webserver.";
     vector<JobDescriptor *> webserver_jobs;
