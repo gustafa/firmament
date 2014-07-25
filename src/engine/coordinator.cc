@@ -920,7 +920,7 @@ void Coordinator::IssueWebserverJobs() {
     const uint64_t rps_per_server = 80;
     VLOG(1) << "Starting up another webserver.";
     if (current_num_webservers < (*running_webservers).size()) {
-      string server_to_enable = (*running_webservers)[current_num_webservers + 1];
+      string server_to_enable = (*running_webservers)[current_num_webservers];
 
       // Port 0 means ignore port.
       haproxy_controller_->EnableServer(server_to_enable, 0);
@@ -937,7 +937,7 @@ void Coordinator::IssueWebserverJobs() {
   current_num_webservers++;
 
   } else if (current_load < decrease_if_below && current_num_webservers > 1) {
-    string shutdown_server = (*running_webservers)[0];
+    string shutdown_server = (*running_webservers)[current_num_webservers -1];
     haproxy_controller_->DisableServer(shutdown_server);
     current_num_webservers--;
   }
