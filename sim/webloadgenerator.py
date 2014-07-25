@@ -45,6 +45,7 @@ def main():
     # Launch web requests and sleep for the intended duration
     sleep_for(runtime_per_sample)
   os.killpg(p.pid, signal.SIGTERM)
+  call("killall weighttp", shell=True)
 
 
 if __name__ == '__main__':
