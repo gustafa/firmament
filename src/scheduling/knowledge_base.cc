@@ -25,7 +25,8 @@ KnowledgeBase::KnowledgeBase() :
   num_web_loads_(0),
   application_stats_(new AppStatsMap_t()),
   runtime_stats_map_(new RuntimeStatsMap_t()),
-  running_webservers_(new ResourceCountMap_t()) {
+  running_webservers_(new ResourceCountMap_t()),
+  running_webs_(new vector<string>()) {
 }
 
 void KnowledgeBase::AddMachineSample(
@@ -200,13 +201,17 @@ void KnowledgeBase::DeregisterWebserver(string machine) {
   }
 }
 
-void KnowledgeBase::RegisterWebserver(string machine) {
+void KnowledgeBase::RegisterWebserver(string machine, uint64_t port) {
   uint64_t *current_num_webservers = FindOrNull(*running_webservers_, machine);
   if (current_num_webservers == NULL) {
     (*running_webservers_)[machine] = 1;
   } else {
     (*running_webservers_)[machine] = (*current_num_webservers) +1;
   }
+  stringstream ss;
+  ss << port;
+  running_webs_->push_back(machine + ss.str());
+
 }
 
 

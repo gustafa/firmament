@@ -909,29 +909,37 @@ void Coordinator::IssueWebserverJobs() {
     numberof_webrequests_->push_back(make_pair(current_time, num_requests));
   }
 
-  double const increase_if_above = 0.55;
-  double const decrease_if_below = 0.15;
+  double const increase_if_above = 0.65;
+  double const decrease_if_below = 0.30;
 
   double current_load = knowledge_base_->GetAndResetWebloads();
   uint64_t current_num_webservers = haproxy_controller_->GetNumActiveJobs();
+  shared_ptr<vector<string>> running_webservers = knowledge_base_->GetRunningWebservers();
 
   if (current_load > increase_if_above || !current_num_webservers) {
-    const uint64_t rps_per_server = 500;
+    const uint64_t rps_per_server = 80;
     VLOG(1) << "Starting up another webserver.";
-    vector<JobDescriptor *> webserver_jobs;
-    current_num_webservers++;
-    haproxy_controller_->GenerateJobs(webserver_jobs, 1, rps_per_server);
+    if (current_num_webservers < (*running_webservers).size()) {
+      string server_to_enable = (*running_webservers)[current_num_webservers + 1];
 
-    for (auto job : webserver_jobs) {
-      VLOG(2) <<"Job with root task: " << job->root_task().name();
-      SubmitJob(*job);
+      // Port 0 means ignore port.
+      haproxy_controller_->EnableServer(server_to_enable, 0);
+    } else {
+      vector<JobDescriptor *> webserver_jobs;
+      haproxy_controller_->GenerateJobs(webserver_jobs, 1, rps_per_server);
+      for (auto job : webserver_jobs) {
+        //WraparoundVector
+        //LOG(2) <<"Job with root task: " << job->root_task().name();
+        SubmitJob(*job);
+      }
     }
-  } else if (current_load < decrease_if_below && current_num_webservers > 0) {
-    // Since ugh
-    // VLOG(1) << "Suggesting shutdown of webserver.";
-    // // We have more than one webserver running and we are not observing much load.
-    // haproxy_controller_->DisableRandomServer(0.5);
-    // current_num_webservers--;
+
+  current_num_webservers++;
+
+  } else if (current_load < decrease_if_below && current_num_webservers > 1) {
+    string shutdown_server = (*running_webservers)[0];
+    haproxy_controller_->DisableServer(shutdown_server);
+    current_num_webservers--;
   }
 
   // Update the number of active servers.

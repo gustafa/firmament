@@ -65,9 +65,15 @@ void HAProxyController::DisableRandomServer(double load) {
   }
  }
 
-
 bool HAProxyController::EnableServer(string hostname, uint64_t port) {
-  string webserver_name = hostname + boost::lexical_cast<std::string>(port);
+
+  string webserver_name;
+  if (port == 0) {
+    webserver_name = hostname;
+  } else {
+    webserver_name = hostname + boost::lexical_cast<std::string>(port);
+  }
+
   VLOG(2) << "HAPROXY Enabling server: " << webserver_name;
   string command = "enable server my_servers/" + webserver_name;
   HAProxyCommand(command);

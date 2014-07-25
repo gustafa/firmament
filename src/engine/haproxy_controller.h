@@ -49,6 +49,8 @@ class HAProxyController {
 
 
   unordered_set<string> running_servers_;
+
+
 };
 
 } // namespace firmament

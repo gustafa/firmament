@@ -318,6 +318,8 @@ class Coordinator : public Node,
   shared_ptr<vector<pair<uint64_t, uint64_t>>> numberof_webrequests_;
 
 
+  //uint64_t curr_server_pos_;
+
 
 #ifdef __SIMULATE_SYNTHETIC_DTG__
   shared_ptr<sim::SimpleDTGGenerator> sim_dtg_generator_;

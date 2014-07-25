@@ -53,14 +53,18 @@ class KnowledgeBase {
     return application_stats_;
   }
 
-
+  inline shared_ptr<vector<string>> GetRunningWebservers() {
+    return running_webs_;
+  }
 
   uint64_t NumRunningWebservers(string machine);
   void DeregisterWebserver(string machine);
-  void RegisterWebserver(string machine);
+  void RegisterWebserver(string machine, uint64_t port);
   string GetRuntimesAsJson();
 
   void AddScheduledTaskStat(TaskDescriptor::TaskType type, string hostname);
+
+
 
  protected:
   map<ResourceID_t, deque<MachinePerfStatisticsSample> > machine_map_;
@@ -82,6 +86,9 @@ class KnowledgeBase {
 
   uint64_t webreq_window_first_;
   uint64_t webreq_window_last_;
+
+  shared_ptr<vector<string>> running_webs_;
+
 
 };
 
