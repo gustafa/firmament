@@ -112,7 +112,7 @@ Cost_t EnergyCostModel::BatchTaskToResourceNodeCosts(TaskID_t task_id, TaskDescr
   double total_schedulable_power = 0;
 
   // Set all as poor scheduling choices for now and then we update them later :).
-  machine_task_costs.insert(machine_task_costs.begin(), machine_ids.size(), POOR_SCHEDULING_CHOICE);
+  machine_task_costs.insert(machine_task_costs.begin(), machine_ids.size(), POOR_SCHEDULING_CHOICE - 10000);
 
   vector<uint64_t> possible_machine_idxs;
 
@@ -169,7 +169,7 @@ Cost_t EnergyCostModel::BatchTaskToResourceNodeCosts(TaskID_t task_id, TaskDescr
       machine_task_costs[machine_idx] = (powers[machine_idx] * runtimes[machine_idx].first / fastest_runtime) * MULTIPLIER_;
     }
     // Do not unschedule por favor ;)
-    return POOR_SCHEDULING_CHOICE;
+    return POOR_SCHEDULING_CHOICE - 10000;
   }
 }
 
@@ -208,7 +208,7 @@ Cost_t EnergyCostModel::ServiceTaskToResourceNodeCosts(TaskID_t task_id, TaskDes
 
 
   // Set all as poor scheduling choices for now and then we update them later :).
-  machine_task_costs.insert(machine_task_costs.begin(), machine_ids.size(), POOR_SCHEDULING_CHOICE - 100);
+  machine_task_costs.insert(machine_task_costs.begin(), machine_ids.size(), POOR_SCHEDULING_CHOICE);
 
   vector<uint64_t> possible_machine_idxs;
   vector<string> hosts;
@@ -255,7 +255,7 @@ Cost_t EnergyCostModel::ServiceTaskToResourceNodeCosts(TaskID_t task_id, TaskDes
   }
 
   // Not running a service task is always a bad ide
-  return POOR_SCHEDULING_CHOICE;
+  return POOR_SCHEDULING_CHOICE - 100;
 
 
 }
