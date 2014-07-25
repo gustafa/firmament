@@ -116,6 +116,8 @@ Cost_t EnergyCostModel::BatchTaskToResourceNodeCosts(TaskID_t task_id, TaskDescr
 
   vector<uint64_t> possible_machine_idxs;
 
+
+
   for (uint64_t i = 0; i < machine_ids.size(); ++i) {
     ResourceID_t machine_id = machine_ids[i];
       // TODO handle case when we have started a task!
@@ -209,11 +211,13 @@ Cost_t EnergyCostModel::ServiceTaskToResourceNodeCosts(TaskID_t task_id, TaskDes
   machine_task_costs.insert(machine_task_costs.begin(), machine_ids.size(), POOR_SCHEDULING_CHOICE - 100);
 
   vector<uint64_t> possible_machine_idxs;
-
+  vector<string> hosts;
   for (uint64_t i = 0; i < machine_ids.size(); ++i) {
     ResourceID_t machine_id = machine_ids[i];
       // TODO handle case when we have started a task!
     string host = (*resource_to_host_)[machine_id];
+    hosts.push_back(host);
+
     VLOG(2) << "Estimating cost of " << application  << " on "  << host;
 
     uint64_t max_rps = app_stats->MaxRPS(host);
@@ -243,7 +247,10 @@ Cost_t EnergyCostModel::ServiceTaskToResourceNodeCosts(TaskID_t task_id, TaskDes
     // Still use their energies but make it crazy expensive to not schedule this! :)
     for (uint64_t i = 0; i < num_considered; ++i) {
       uint64_t machine_idx = max_rpss[i].second;
-      machine_task_costs[machine_idx] = powers[machine_idx] * MULTIPLIER_;
+      // Refuse to run more than one per machine. TODO make this a bit more flexible.
+      if (!knowledge_base_->NumRunningWebservers(hosts[machine_idx])) {
+         machine_task_costs[machine_idx] = powers[machine_idx] * MULTIPLIER_;
+      }
     }
   }
 
