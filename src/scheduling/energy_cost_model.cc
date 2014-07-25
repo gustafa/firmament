@@ -222,9 +222,11 @@ Cost_t EnergyCostModel::ServiceTaskToResourceNodeCosts(TaskID_t task_id, TaskDes
     double power = app_stats->GetPower(host, input_size);
     powers.push_back(power);
 
-    if (input_size > max_rps) {
+    // TODO: verify this!
+    //if (input_size > max_rps) {
+    if (!knowledge_base_->NumRunningWebservers(host))
       possible_machine_idxs.push_back(i);
-    }
+    //}
     // Set all to poor scheduling choice initially, we'll change this later.
   }
 

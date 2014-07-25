@@ -24,7 +24,8 @@ KnowledgeBase::KnowledgeBase() :
   virtual_web_loads_(0),
   num_web_loads_(0),
   application_stats_(new AppStatsMap_t()),
-  runtime_stats_map_(new RuntimeStatsMap_t()) {
+  runtime_stats_map_(new RuntimeStatsMap_t()),
+  running_webservers_(new ResourceCountMap_t()) {
 }
 
 void KnowledgeBase::AddMachineSample(
@@ -180,6 +181,33 @@ string KnowledgeBase::GetRuntimesAsJson() {
   return ss.str();
 }
 
+
+uint64_t KnowledgeBase::NumRunningWebservers(string machine) {
+  uint64_t *num_running_webservers = FindOrNull(*running_webservers_, machine);
+  if (num_running_webservers == NULL) {
+    return 0;
+  } else {
+    return *num_running_webservers;
+  }
+}
+
+void KnowledgeBase::DeregisterWebserver(string machine) {
+  uint64_t *current_num_webservers = FindOrNull(*running_webservers_, machine);
+  if (current_num_webservers == NULL) {
+    (*running_webservers_)[machine] = 0;
+  } else {
+    (*running_webservers_)[machine] = (*current_num_webservers) -1;
+  }
+}
+
+void KnowledgeBase::RegisterWebserver(string machine) {
+  uint64_t *current_num_webservers = FindOrNull(*running_webservers_, machine);
+  if (current_num_webservers == NULL) {
+    (*running_webservers_)[machine] = 1;
+  } else {
+    (*running_webservers_)[machine] = (*current_num_webservers) +1;
+  }
+}
 
 
 void KnowledgeBase::AddScheduledTaskStat(TaskDescriptor::TaskType type, string hostname) {

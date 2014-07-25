@@ -28,7 +28,7 @@ typedef unordered_map<TaskDescriptor::TaskType, ApplicationStatistics*,
 
 typedef unordered_map<TaskDescriptor::TaskType, RuntimeStats*,
                       std::hash<int>> RuntimeStatsMap_t;
-
+typedef unordered_map<string, uint64_t> ResourceCountMap_t;
 // Limit stats queues to 1MB each
 #define MAX_SAMPLE_QUEUE_CAPACITY 1024*1024
 
@@ -53,6 +53,11 @@ class KnowledgeBase {
     return application_stats_;
   }
 
+
+
+  uint64_t NumRunningWebservers(string machine);
+  void DeregisterWebserver(string machine);
+  void RegisterWebserver(string machine);
   string GetRuntimesAsJson();
 
   void AddScheduledTaskStat(TaskDescriptor::TaskType type, string hostname);
@@ -70,6 +75,8 @@ class KnowledgeBase {
   uint64_t num_web_loads_;
 
   shared_ptr<RuntimeStatsMap_t> runtime_stats_map_;
+
+  shared_ptr<ResourceCountMap_t> running_webservers_;
 
   uint64_t webreqs_since_last_check_;
 

@@ -6,6 +6,7 @@
 
 #include "engine/coordinator.h"
 
+#include <ctime>
 #include <set>
 #include <string>
 #include <utility>
@@ -304,11 +305,18 @@ void Coordinator::Run() {
   // possible?
 
   // if (parent_chan_ == NULL) {
-  //   // STATS PRINT TIME WOOOHOOOOO
-  //   stringstream ss;
-  //   ss << GetCurrentTimestamp();
-  //   OutputStats("/home/gjrh2/coordinatorstats" + ss.str());
-  // }
+  //     time_t t = time(0);   // get time now
+  //     struct tm * now = localtime( & t );
+  //     cout <<
+  //        << (now->tm_mon + 1) << '-'
+  //        <<  now->tm_mday
+  //        << endl;
+  //    // STATS PRINT TIME WOOOHOOOOO
+  //    stringstream ss;
+  //    ss << (now->tm_year + 1900) << '-' <<now->tm_mon +1 << '-' << now->tm_mday <<
+  //          "_" << FLAGS_flow_scheduling_cost_model << "_stats";
+  //    OutputStats("/home/gjrh2/coordinatorstats_" + ss.str());
+  //  }
 
   Shutdown("dropped out of main loop");
 }

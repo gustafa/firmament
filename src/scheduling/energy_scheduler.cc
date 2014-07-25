@@ -192,6 +192,8 @@ uint64_t EnergyScheduler::ApplySchedulingDeltas(
           CHECK((*td)->has_port());
           VLOG(2) << "ENABLING NGINX SERVER";
           haproxy_controller_->EnableServer(*hostname, (*td)->port());
+          // Let the knowledge base know we are running a webserver on this machine!
+          knowledge_base_->RegisterWebserver(*hostname);
         }
 
         knowledge_base_->AddScheduledTaskStat((*td)->task_type(), *hostname);
