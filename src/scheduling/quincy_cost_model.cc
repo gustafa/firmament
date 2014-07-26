@@ -58,7 +58,13 @@ Cost_t QuincyCostModel::TaskToResourceNodeCost(TaskID_t task_id,
 }
 Cost_t QuincyCostModel::TaskToResourceNodeCosts(TaskID_t task_id, const vector<ResourceID_t> &machine_ids,  vector<Cost_t> &machine_task_costs) {
   for (uint64_t i = 0; i < machine_ids.size(); ++i) {
-    machine_task_costs.push_back(0);
+      string host = (*resource_to_host_)[machine_ids[i]];
+
+     if (!knowledge_base_->NumRunningWebservers(host)) {
+        machine_task_costs.push_back(0);
+      } else {
+        machine_task_costs.push_back(2);
+      }
   }
   return 1ULL;
 }
