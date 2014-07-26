@@ -934,16 +934,16 @@ void Coordinator::IssueWebserverJobs() {
       }
     }
 
-  current_num_webservers++;
+  //current_num_webservers++;
 
   } else if (current_load < decrease_if_below && current_num_webservers > 1) {
     string shutdown_server = (*running_webservers)[current_num_webservers -1];
     haproxy_controller_->DisableServer(shutdown_server);
-    current_num_webservers--;
+    //current_num_webservers--;
   }
 
   // Update the number of active servers.
-  haproxy_controller_->SetNumActiveJobs(current_num_webservers);
+  //haproxy_controller_->SetNumActiveJobs(current_num_webservers);
 }
 
 const string Coordinator::SubmitJob(const JobDescriptor& job_descriptor) {

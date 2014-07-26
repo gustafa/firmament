@@ -43,6 +43,7 @@ bool HAProxyController::DisableServer(string hostname, uint64_t port) {
   string command = "disable server my_servers/" + webserver_name;
   running_servers_.erase(webserver_name);
   HAProxyCommand(command);
+  num_active_jobs_--;
   return true;
 }
 
@@ -51,6 +52,7 @@ bool HAProxyController::DisableServer(string webserver_name) {
   string command = "disable server my_servers/" + webserver_name;
   running_servers_.erase(webserver_name);
   HAProxyCommand(command);
+  num_active_jobs_--;
   return true;
 }
 
@@ -78,6 +80,7 @@ bool HAProxyController::EnableServer(string hostname, uint64_t port) {
   string command = "enable server my_servers/" + webserver_name;
   HAProxyCommand(command);
   running_servers_.insert(webserver_name);
+  num_active_jobs_++;
   return true;
 }
 
